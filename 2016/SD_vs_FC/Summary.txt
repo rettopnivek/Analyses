@@ -1,0 +1,32 @@
+11/23/2016
+This document summarizes the different scripts, their purpose, and their status:
+
+F0_data_creation.R (Finished)
+  - Reads in the original .csv file of data and converts it to a .RData file.
+  - Creates some new variables and rescales others.
+  - Calculates the total number of subjects.
+  - Provides information on each variable and its levels.
+F1_data_preprocessing.R (Finished)
+  - Trims data based on a set of cut-offs (RTs too fast, slow, or unlikely under a mixture model).
+  - Creates a pdf summarizing the trimming results.
+  - Revises the .RData file to include the raw and trimmed data.
+F2_useful_functions.R (In progress)
+  - Defines a set of useful functions for subsequent modeling
+F3_descriptive_results.R (Finished)
+  - Generates a pdf with a set of descriptive results describing the data and empirical effects.
+F4_starting_script.R (In progress)
+  - Loads in needed packages and defines Stan scripts
+F5_nROUSE.R (Finished)
+  - Obtain estimates of the nROUSE model parameters for subjects using MLE
+  - Generate predicted target/foil latencies from nROUSE per each subject
+  - Create new covariates (raw and standardized inverted latencies)
+  - Plot and save the results
+F6_BE_OS.R (In progress)
+  - Fits a bayesian model to data from a single subject.
+  - Provides basic examples of how to examine convergence and plot marginal posterior estimates.
+F7_BE_MS.R (Planned)
+  - Fits a hierarchical bayesian model to data across all subjects.
+TO DO -> create a function to generate better starting values?
+F8_post_examinations.R (Planned)
+  - Plots convergence checks for a given hierarchical model
+  - Plots retrodictive checks for a given hierarchical model
