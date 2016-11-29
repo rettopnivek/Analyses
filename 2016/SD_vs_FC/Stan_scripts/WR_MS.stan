@@ -370,6 +370,7 @@ functions{
     return( out );
   }
 }
+
 data {
   int Ns; // Number of subjects
   int No[Ns]; // Number of observations by subject
@@ -377,35 +378,38 @@ data {
   int V; // Number of covariates
   int K; // Number of mappings
   int U; // Number of fixed values
-  int C[3]; // Number of coefficients
+  int C[4]; // Number of coefficients
   matrix[V,No_max] X[Ns]; // Array of design matrices
   vector[U] fixed; // Fixed values
   int index[ V + 1, 2 ]; // Indices for filling parameter matrix
   int parSel[K]; // Mapping of coefficients to parameter matrix
   vector[2] Y[Ns,No_max]; // Array of RT and choice by subject
-  real<lower=0> min_RT[ Ns, C[3] ]; // Smallest response time for each relevant condition
+  real<lower=0> min_RT[ Ns, C[4] ]; // Smallest response time for each relevant condition
   matrix[ sum(C), 4 ]Priors; // Matrix of parameters for prior distributions
 }
 parameters {
   // Subject level
-  vector<lower=0.01>[ C[1] ] kappa[Ns]; // Subject thresholds
-  vector<lower=0.01>[ C[2] ] xi[Ns]; // Subject drift rates
-  vector<lower=0.0,upper=1.0>[ C[3] ] theta[Ns]; // Proportion for residual latency by subject
+  vector[ C[1] ] kappa[Ns]; // Subject thresholds
+  vector[ C[2] ] xi[Ns]; // Subject drift rates
+  vector<lower=0.0>[ C[3] ] sigma[Ns]; // Coefficient of drift
+  vector<lower=0.0,upper=1.0>[ C[4] ] theta[Ns]; // Proportion for residual latency by subject
   // Group level
-  real<lower=0.01> kappa_mu[ C[1] ]; // Means for thresholds
-  real<lower=0.01> kappa_sig[ C[1] ]; // Standard deviations for thresholds
-  real<lower=0.01> xi_mu[ C[2] ]; // Means for thresholds
-  real<lower=0.01> xi_sig[ C[2] ]; // Standard deviations for thresholds
-  real<lower=0.0> theta_alpha[ C[3] ]; // 1st parameter for beta distribution (Residual latency)
-  real<lower=0.0> theta_beta[ C[3] ]; // 2nd parameter for beta distribution (Residual latency)
+  real kappa_mu[ C[1] ]; // Means for thresholds
+  real<lower=0.0> kappa_sig[ C[1] ]; // Standard deviations for thresholds
+  real xi_mu[ C[2] ]; // Means for thresholds
+  real<lower=0.0> xi_sig[ C[2] ]; // Standard deviations for thresholds
+  real<lower=0.0> sigma_mu[ C[3] ]; // Means for coefficient of drift
+  real<lower=0.0> sigma_sig[ C[3] ]; // Standard deviations for coefficient of drift
+  real<lower=0.0> theta_alpha[ C[4] ]; // 1st parameter for beta distribution (Residual latency)
+  real<lower=0.0> theta_beta[ C[4] ]; // 2nd parameter for beta distribution (Residual latency)
 }
 transformed parameters {
   // Variable declaration
-  vector<lower=0.0>[ C[3] ] tau[Ns]; // Raw residual latency by subject
+  vector<lower=0.0>[ C[4] ] tau[Ns]; // Raw residual latency by subject
   
   // Weight fastest RT by proportion for residual latency
   for ( ns in 1:Ns ) {
-    for ( c in 1:C[3] ) tau[ns,c] = min_RT[ns,c]*theta[ns,c];
+    for ( c in 1:C[4] ) tau[ns,c] = min_RT[ns,c]*theta[ns,c];
   }
 }
 model {
@@ -428,6 +432,11 @@ model {
     inc[1] = inc[1] + 1;
   }
   for (i in 1:C[3]) {
+    sigma_mu[i] ~ normal( Priors[inc[1],1], Priors[inc[1],2] );
+    sigma_sig[i] ~ gamma( Priors[inc[1],3], Priors[inc[1],4] );
+    inc[1] = inc[1] + 1;
+  }
+  for (i in 1:C[4]) {
     theta_alpha[i] ~ normal( Priors[inc[1],1], Priors[inc[1],2] );
     theta_beta[i] ~ normal( Priors[inc[1],3], Priors[inc[1],4] );
     inc[1] = inc[1] + 1;
@@ -448,14 +457,15 @@ model {
     inc[1] = inc[1] + C[1]; inc[2] = inc[2] + C[2];
     coef[ inc[1]:inc[2] ] = xi[ ns, 1:C[2] ];
     inc[1] = inc[1] + C[2]; inc[2] = inc[2] + C[3];
-    coef[ inc[1]:inc[2] ] = tau[ ns, 1:C[3] ];
+    coef[ inc[1]:inc[2] ] = sigma[ ns, 1:C[3] ];
+    inc[1] = inc[1] + C[3]; inc[2] = inc[2] + C[4];
+    coef[ inc[1]:inc[2] ] = tau[ ns, 1:C[4] ];
     
     // Generate parameter matrix
     param = param_est( X[ns], coef, fixed, index, parSel );
     
     // Likelihood
     for ( no in 1:No[ns] ) {
-      //print( col(param,no) );
       summands[ inc[3] ] = waldrace_lpdf( Y[ns,no] | col(param,no) );
       inc[3] = inc[3] + 1;
     }
@@ -482,7 +492,9 @@ generated quantities {
       inc[1] = inc[1] + C[1]; inc[2] = inc[2] + C[2];
       coef[ inc[1]:inc[2] ] = xi[ ns, 1:C[2] ];
       inc[1] = inc[1] + C[2]; inc[2] = inc[2] + C[3];
-      coef[ inc[1]:inc[2] ] = tau[ ns, 1:C[3] ];
+      coef[ inc[1]:inc[2] ] = sigma[ ns, 1:C[3] ];
+      inc[1] = inc[1] + C[3]; inc[2] = inc[2] + C[4];
+      coef[ inc[1]:inc[2] ] = tau[ ns, 1:C[4] ];
       
       // Generate parameter matrix
       param = param_est( X[ns], coef, fixed, index, parSel );
@@ -495,3 +507,4 @@ generated quantities {
     }
   }
 }
+

@@ -68,6 +68,22 @@ if ( createScriptOS ) {
   
 }
 
+createScriptOS = F
+if ( createScriptOS ) {
+  
+  setwd('Stan_scripts')
+  fileName = "Wald_race_stan_functions.txt"
+  wr_f = readChar(fileName, file.info(fileName)$size)
+  fileName = "WR_one_subject_ex_fixed.txt"
+  os = readChar(fileName, file.info(fileName)$size)
+  model_script = paste( wr_f, os, sep = "" )
+  writeChar( model_script, "WR_OS_fixed.stan" )
+  
+  # Clean up workspace
+  rm( wr_f, os, model_script )
+  
+}
+
 createScriptMS = F
 if ( createScriptMS ) {
   
@@ -83,6 +99,23 @@ if ( createScriptMS ) {
   rm( wr_f, ms, model_script )
   
 }
+
+createScriptMS = F
+if ( createScriptMS ) {
+  
+  setwd('Stan_scripts')
+  fileName = "Wald_race_stan_functions.txt"
+  wr_f = readChar(fileName, file.info(fileName)$size)
+  fileName = "WR_multi_subject_fixed.txt"
+  ms = readChar(fileName, file.info(fileName)$size)
+  model_script = paste( wr_f, ms, sep = "" )
+  writeChar( model_script, "WR_MS_fixed.stan" )
+  
+  # Clean up workspace
+  rm( wr_f, ms, model_script )
+  
+}
+
 
 # Clean up workspace
 rm( createScriptMS, createScriptOS )

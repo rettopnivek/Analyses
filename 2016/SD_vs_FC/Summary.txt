@@ -1,4 +1,4 @@
-11/23/2016
+11/28/2016
 This document summarizes the different scripts, their purpose, and their status:
 
 F0_data_creation.R (Finished)
@@ -14,19 +14,23 @@ F2_useful_functions.R (In progress)
   - Defines a set of useful functions for subsequent modeling
 F3_descriptive_results.R (Finished)
   - Generates a pdf with a set of descriptive results describing the data and empirical effects.
-F4_starting_script.R (In progress)
+F4_starting_script.R (Finished)
   - Loads in needed packages and defines Stan scripts
 F5_nROUSE.R (Finished)
   - Obtain estimates of the nROUSE model parameters for subjects using MLE
   - Generate predicted target/foil latencies from nROUSE per each subject
   - Create new covariates (raw and standardized inverted latencies)
   - Plot and save the results
-F6_BE_OS.R (In progress)
+F6_BE_OS.R (Finished)
   - Fits a bayesian model to data from a single subject.
-  - Provides basic examples of how to examine convergence and plot marginal posterior estimates.
-F7_BE_MS.R (Planned)
+  - Provides basic examples of how to plot...
+    a) convergence,
+    b) retrodictive checks, and
+    c) marginal posteriors.
+F7_BE_MS.R (In progress)
   - Fits a hierarchical bayesian model to data across all subjects.
-TO DO -> create a function to generate better starting values?
-F8_post_examinations.R (Planned)
-  - Plots convergence checks for a given hierarchical model
-  - Plots retrodictive checks for a given hierarchical model
+F8_post_examinations.R (In progress)
+  - For a given hierarchical model
+    a) plots convergence checks,
+    b) plots retrodictive checks, and
+    c) plots marginal posterior distributions.

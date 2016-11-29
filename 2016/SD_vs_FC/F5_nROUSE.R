@@ -24,7 +24,7 @@ colnames( d ) = c('S','Cnd','Ac','RT','E','PD',
                   'Ta','Co','PT','Ch')
 
 # Define code segments to run
-runCode = c( F, T, T )
+runCode = c( T, T, T )
 
 # Indicate if a pdf should be generated
 savePlot = T
@@ -103,8 +103,7 @@ if ( runCode[1] ) {
   for (i in 1:4) {
     pres = c(nDat$PrimeDur[i],nDat$TarDur[i],
              nDat$MaskDur[i],500)
-    pi = c(0,0);
-    pi[ nDat$PT[i] + 1 ] = -2*(1-nDat$PT[i]) + 2*nDat$PT[i]
+    if ( nDat$Type[i] == -2 ) pi = c(0,2) else pi = c(2,0)
     prm = c(0.25, 0.0302, 0.15, 0.324, 0.022, 0.9844, 
             0.15, 1, 0.0294, 0.0609, 0.015)
     prm[ c(1,6,8) ] = bfp
@@ -167,7 +166,7 @@ if ( runCode[1] ) {
   blankPlot()
   legend( 'left', c('Estimation of nROUSE',
                     'parameters at the group level'),
-          bty = 'l', cex = 2, bty = 'n' )
+           cex = 2, bty = 'n' )
   
 }
 
@@ -219,8 +218,7 @@ if ( runCode[2] ) {
     for (i in 1:4) {
       pres = c(nDat$PrimeDur[i],nDat$TarDur[i],
                nDat$MaskDur[i],500)
-      pi = c(0,0);
-      pi[ nDat$PT[i] + 1 ] = -2*(1-nDat$PT[i]) + 2*nDat$PT[i]
+      if ( nDat$Type[i] == -2 ) pi = c(0,2) else pi = c(2,0)
       prm = c(0.25, 0.0302, 0.15, 0.324, 0.022, 0.9844, 
               0.15, 1, 0.0294, 0.0609, 0.015)
       prm[ c(1,6,8) ] = bfp

@@ -370,6 +370,7 @@ functions{
     return( out );
   }
 }
+
 data {
   int N; // Number of observations
   int V; // Number of covariates
@@ -385,7 +386,7 @@ data {
   matrix[sum(C),2] Priors; // Matrix of parameters for prior distributions
 }
 parameters {
-  vector<lower=0.0>[ C[1] ] kappa; // Threshold
+  vector[ C[1] ] kappa; // Threshold
   vector[ C[2] ] xi; // Drift rate
   vector<lower=0.0,upper=1.0>[ C[3] ] theta; // Proportion for residual latency
 }
@@ -436,3 +437,4 @@ model {
   // Call to the sampler
   target += sum(summands);
 }
+

@@ -370,7 +370,6 @@ functions{
     return( out );
   }
 }
-
 data {
   int N; // Number of observations
   int V; // Number of covariates
@@ -386,8 +385,8 @@ data {
   matrix[sum(C),2] Priors; // Matrix of parameters for prior distributions
 }
 parameters {
-  vector<lower=0.0>[ C[1] ] kappa; // Threshold
-  vector<lower=0.0>[ C[2] ] xi; // Drift rate
+  vector[ C[1] ] kappa; // Threshold
+  vector[ C[2] ] xi; // Drift rate
   vector<lower=0.0>[ C[3] ] sigma; // Coefficient of drift
   vector<lower=0.0,upper=1.0>[ C[4] ] theta; // Proportion for residual latency
 }

@@ -370,69 +370,129 @@ functions{
     return( out );
   }
 }
+
 data {
-  int N; // Number of observations
+  int Ns; // Number of subjects
+  int No[Ns]; // Number of observations by subject
+  int No_max; // Largest number of observations
   int V; // Number of covariates
   int K; // Number of mappings
   int U; // Number of fixed values
   int C[3]; // Number of coefficients
-  matrix[V,N] X; // Design matrix
+  matrix[V,No_max] X[Ns]; // Array of design matrices
   vector[U] fixed; // Fixed values
   int index[ V + 1, 2 ]; // Indices for filling parameter matrix
   int parSel[K]; // Mapping of coefficients to parameter matrix
-  vector[2] Y[N]; // RT and choice
-  real<lower=0> min_RT[ C[3] ]; // Smallest response time for each relevant condition
-  matrix[sum(C),2] Priors; // Matrix of parameters for prior distributions
+  vector[2] Y[Ns,No_max]; // Array of RT and choice by subject
+  real<lower=0> min_RT[ Ns, C[3] ]; // Smallest response time for each relevant condition
+  matrix[ sum(C), 4 ]Priors; // Matrix of parameters for prior distributions
 }
 parameters {
-  vector<lower=0.0>[ C[1] ] kappa; // Threshold
-  vector[ C[2] ] xi; // Drift rate
-  vector<lower=0.0,upper=1.0>[ C[3] ] theta; // Proportion for residual latency
+  // Subject level
+  vector<lower=0.0>[ C[1] ] kappa[Ns]; // Subject thresholds
+  vector<lower=0.0>[ C[2] ] xi[Ns]; // Subject drift rates
+  vector<lower=0.0,upper=1.0>[ C[3] ] theta[Ns]; // Proportion for residual latency by subject
+  // Group level
+  real<lower=0.0> kappa_mu[ C[1] ]; // Means for thresholds
+  real<lower=0.0> kappa_sig[ C[1] ]; // Standard deviations for thresholds
+  real<lower=0.0> xi_mu[ C[2] ]; // Means for thresholds
+  real<lower=0.0> xi_sig[ C[2] ]; // Standard deviations for thresholds
+  real<lower=0.0> theta_alpha[ C[3] ]; // 1st parameter for beta distribution (Residual latency)
+  real<lower=0.0> theta_beta[ C[3] ]; // 2nd parameter for beta distribution (Residual latency)
 }
 transformed parameters {
   // Variable declaration
-  vector<lower=0.0>[ C[3] ] tau; // Raw residual latency
+  vector<lower=0.0>[ C[3] ] tau[Ns]; // Raw residual latency by subject
   
   // Weight fastest RT by proportion for residual latency
-  for ( c in 1:C[3] ) tau[c] = min_RT[c]*theta[c];
+  for ( ns in 1:Ns ) {
+    for ( c in 1:C[3] ) tau[ns,c] = min_RT[ns,c]*theta[ns,c];
+  }
 }
 model {
   // Variable declaration
   vector[ sum(C) ] coef;
-  matrix[ 8, N ] param;
-  int inc[2];
-  vector[N] summands;
+  matrix[ 8, No_max ] param;
+  int inc[3]; // For incrementing over indices
+  vector[ sum(No) ] summands;
   
   // Priors
   inc[1] = 1;
   for (i in 1:C[1]) {
-    kappa[i] ~ normal( Priors[inc[1],1], Priors[inc[1],2] );
+    kappa_mu[i] ~ normal( Priors[inc[1],1], Priors[inc[1],2] );
+    kappa_sig[i] ~ gamma( Priors[inc[1],3], Priors[inc[1],4] );
+    inc[1] = inc[1] + 1;
   }
-  inc[1] = inc[1] + C[1];
   for (i in 1:C[2]) {
-    xi[i] ~ normal( Priors[inc[1],1], Priors[inc[1],2] );
+    xi_mu[i] ~ normal( Priors[inc[1],1], Priors[inc[1],2] );
+    xi_sig[i] ~ gamma( Priors[inc[1],3], Priors[inc[1],4] );
+    inc[1] = inc[1] + 1;
   }
-  inc[1] = inc[1] + C[2];
   for (i in 1:C[3]) {
-    theta[i] ~ beta( Priors[inc[1],1], Priors[inc[1],2] );
+    theta_alpha[i] ~ normal( Priors[inc[1],1], Priors[inc[1],2] );
+    theta_beta[i] ~ normal( Priors[inc[1],3], Priors[inc[1],4] );
+    inc[1] = inc[1] + 1;
   }
   
-  // Fill in vector of coefficients
-  inc[1] = 1; inc[2] = C[1];
-  coef[ inc[1]:inc[2] ] = kappa[ 1:C[1] ];
-  inc[1] = inc[1] + C[1]; inc[2] = inc[2] + C[2];
-  coef[ inc[1]:inc[2] ] = xi[ 1:C[2] ];
-  inc[1] = inc[1] + C[2]; inc[2] = inc[2] + C[3];
-  coef[ inc[1]:inc[2] ] = tau[ 1:C[3] ];
-  
-  // Generate parameter matrix
-  param = param_est( X, coef, fixed, index, parSel );
-  
-  // Likelihood
-  for (n in 1:N) {
-    summands[n] = waldrace_lpdf( Y[n] | col(param,n) );
+  // Loop over subjects
+  inc[3] = 1;
+  for ( ns in 1:Ns ) {
+    
+    // Hierarchy
+    kappa[ns] ~ normal( kappa_mu, kappa_sig );
+    xi[ns] ~ normal( xi_mu, xi_sig );
+    theta[ns] ~ beta( theta_alpha, theta_beta );
+    
+    // Fill in vector of coefficients
+    inc[1] = 1; inc[2] = C[1];
+    coef[ inc[1]:inc[2] ] = kappa[ ns, 1:C[1] ];
+    inc[1] = inc[1] + C[1]; inc[2] = inc[2] + C[2];
+    coef[ inc[1]:inc[2] ] = xi[ ns, 1:C[2] ];
+    inc[1] = inc[1] + C[2]; inc[2] = inc[2] + C[3];
+    coef[ inc[1]:inc[2] ] = tau[ ns, 1:C[3] ];
+    
+    // Generate parameter matrix
+    param = param_est( X[ns], coef, fixed, index, parSel );
+    
+    // Likelihood
+    for ( no in 1:No[ns] ) {
+      summands[ inc[3] ] = waldrace_lpdf( Y[ns,no] | col(param,no) );
+      inc[3] = inc[3] + 1;
+    }
   }
   
   // Call to the sampler
-  target += sum(summands);
+  target += sum( summands );
 }
+generated quantities {
+  vector[ sum(No) ] log_lik; // Stores log-likelihood for WAIC
+  
+  // Create block for local variables
+  {
+    // Local variables (these won't be saved)
+    vector[ sum(C) ] coef;
+    matrix[ 8, No_max ] param;
+    int inc[3]; // For incrementing over indices
+    
+    inc[3] = 1;
+    for ( ns in 1:Ns ) {
+      // Fill in vector of coefficients
+      inc[1] = 1; inc[2] = C[1];
+      coef[ inc[1]:inc[2] ] = kappa[ ns, 1:C[1] ];
+      inc[1] = inc[1] + C[1]; inc[2] = inc[2] + C[2];
+      coef[ inc[1]:inc[2] ] = xi[ ns, 1:C[2] ];
+      inc[1] = inc[1] + C[2]; inc[2] = inc[2] + C[3];
+      coef[ inc[1]:inc[2] ] = tau[ ns, 1:C[3] ];
+      
+      // Generate parameter matrix
+      param = param_est( X[ns], coef, fixed, index, parSel );
+      
+      // Likelihood
+      for ( no in 1:No[ns] ) {
+        log_lik[ inc[3] ] = waldrace_lpdf( Y[ns,no] | col(param,no) );
+        inc[3] = inc[3] + 1;
+      }
+    }
+  }
+}
+
