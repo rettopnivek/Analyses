@@ -2,7 +2,7 @@
 # Sequential sampling model #
 # using BE for one subject  #
 # Kevin Potter              #
-# 11/26/2016                #
+# 11/29/2016                #
 #---------------------------#
 
 # Initialize script
@@ -20,10 +20,15 @@ colnames( d ) = c('S','Cnd','Ac','RT','E','PD',
 
 # Indicate whether plots should be generated
 plotYes = T
+# Determine subject to fit
+sbj = 4
+# Determine type of model to fit
+tp = 2
 
 ###
 ### Define type of model to fit
 ###
+# Lookup - 01
 
 # Define distributions for priors for plotting purposes
 prior_f = function( priors, type, v = seq(0,4,length=1000) ) {
@@ -32,9 +37,6 @@ prior_f = function( priors, type, v = seq(0,4,length=1000) ) {
     out = list( x = v, y = dnorm( v, priors[1], priors[2] ) )
   }
   if ( type == 3 ) {
-    out = list( x = v, y = dgamma( v, priors[1], priors[2] ) )
-  }
-  if ( type == 4 ) {
     if ( max(v) > 1 | min(v) < 0 ) v = seq(0,1,length=1000)
     out = list( x = v, y = dbeta( v, priors[1], priors[2] ) )
   }
@@ -42,20 +44,46 @@ prior_f = function( priors, type, v = seq(0,4,length=1000) ) {
   return( out )
 }
 
-sbj = 25 # Determine subject to fit
-tp = 1 # Determine type of model to fit
-# Indicate whether coefficient of drift is being estimated
-cod = F
+# Define a function to check if initial values are valid
+initCheck = function( curInit ) {
+  
+  nCh = length( curInit )
+  for (nc in 1:nCh) {
+    cf = as.vector( unlist( curInit[[nc]] ) )
+    
+    prm = param_est( input$X, cf, input$fixed, 
+                     input$index, input$parSel )
+    prm[4,] = prm[4,]*input$min_RT
+    prm[8,] = prm[8,]*input$min_RT
+    chk = dwaldrace( input$Y[,1], input$Y[,2],
+                     prm[1,], prm[2,], prm[4,],
+                     prm[5,], prm[6,], prm[8,], ln = 1 )
+    print( sum( chk ) )
+  }
+  
+}
 
-if ( tp == 1 & cod ) {
+### Model 1
+# Lookup - 01a
+if ( tp == 1 ) {
+  
   # Define set of priors
   Priors = cbind(
-    c( rep(1,4), rep(2.0,4), rep(1.4,4), rep(8,1), rep(7,1) ),
-    c( rep(.3,4), rep(0.5,4), rep(0.5,4), rep(8,1), rep(3,1) )
+    c( 1, 1, 0, 0, 0, # kappa
+       rep(2.0,2), rep(1.4,2), # xi
+       7 # theta
+    ),
+    c( .25, .25, .1, .1, .1, # kappa
+       rep(0.5,2), rep(.5,2), # xi
+       3 # theta
+    )
   )
   
-  # Define index for priors
-  priorIndex = c( rep(1,4), rep(2,8), rep(3,1), rep(4,1) )
+  # Prior index
+  priorIndex = c(
+    rep( 1, 5 ),
+    rep( 2, 4 ),
+    3 )
   
   # Define function to initialize values
   init_f = function(nCh) {
@@ -68,10 +96,58 @@ if ( tp == 1 & cod ) {
     for (nc in 1:nCh) {
       
       out[[nc]] = list(
-        kappa = runif( 4, .5, 2 ),
+        kappa_S = runif( 1, .5, 2 ),
+        kappa_L = runif( 1, .5, 2 ),
+        kappa_SP = runif( 1, -.2, .2 ),
+        kappa_LP = runif( 1, -.2, .2 ),
+        kappa_B = runif( 1, -.2, .2 ),
+        xi = runif( 4, .5, 4 ),
+        theta = runif( 1, .5, .8 )
+      )
+      
+    }
+    
+    return( out )
+  }
+  
+}
+
+### Model 2
+# Lookup - 01b
+if ( tp == 2 ) {
+  
+  # Define set of priors
+  Priors = cbind(
+    c( 1, # kappa
+       rep(2.0,4), rep(1.4,4), # xi
+       7 # theta
+    ),
+    c( .25, # kappa
+       rep(0.5,4), rep(.5,4), # xi
+       3 # theta
+    )
+  )
+  
+  # Prior index
+  priorIndex = c(
+    rep( 1, 1 ),
+    rep( 2, 8 ),
+    3 )
+  
+  # Define function to initialize values
+  init_f = function(nCh) {
+    
+    # Initialize output
+    out = c()
+    for (nc in 1:nCh) out = c( out, list() )
+    
+    # Generate initial values
+    for (nc in 1:nCh) {
+      
+      out[[nc]] = list(
+        kappa = runif( 1, .5, 1 ),
         xi = runif( 8, .5, 4 ),
-        sigma = array( runif( 1, .5, 1.5 ), dim = (1) ),
-        theta = array( runif( 1, .5, .8 ), dim = (1) )
+        theta = runif( 1, .5, .8 )
       )
       
     }
@@ -80,82 +156,13 @@ if ( tp == 1 & cod ) {
   }
   
 }
-
-if ( tp == 2 & cod ) {
-  # Define set of priors
-  Priors = cbind(
-    c( rep(.85,4), 2.0, 0.0, 1.4, 0.0, 8, 7 ),
-    c( rep(.3,4), .5, .5, .5, .5, 8, 3 )
-  )
-  
-  # Define index for priors
-  priorIndex = c( rep(1,4), rep(2,4), rep(3,1), rep(4,1) )
-  
-  # Define function to initialize values
-  init_f = function(nCh) {
-    
-    # Initialize output
-    out = c()
-    for (nc in 1:nCh) out = c( out, list() )
-    
-    # Generate initial values
-    for (nc in 1:nCh) {
-      
-      out[[nc]] = list(
-        kappa = runif( 4, .5, 2 ),
-        xi = runif( 4, c(1,-.5,1,-.5),
-                    c(4,.5,4,.5) ),
-        sigma = array( runif( 1, .5, 1.5 ), dim = (1) ),
-        theta = array( runif( 1, .5, .8 ), dim = (1) )
-      )
-      
-    }
-    
-    return( out )
-  }
-  
-}
-
-if ( tp == 1 & !cod ) {
-  # Define set of priors
-  Priors = cbind(
-    c( rep(1,4), rep(2.0,4), rep(1.4,4), rep(7,1) ),
-    c( rep(.3,4), rep(0.5,4), rep(0.5,4), rep(3,1) )
-  )
-  
-  # Define index for priors
-  priorIndex = c( rep(1,4), rep(2,8), 0, rep(3,1) )
-  
-  # Define function to initialize values
-  init_f = function(nCh) {
-    
-    # Initialize output
-    out = c()
-    for (nc in 1:nCh) out = c( out, list() )
-    
-    # Generate initial values
-    for (nc in 1:nCh) {
-      
-      out[[nc]] = list(
-        kappa = runif( 4, .5, 2 ),
-        xi = runif( 8, .5, 4 ),
-        theta = array( runif( 1, .5, .8 ), dim = (1) )
-      )
-      
-    }
-    
-    return( out )
-  }
-  
-}
-
 
 ###
 ### Estimate model parameters for single subject
 ###
 
 # Extract data and covariates
-input = model_structure_create( tp, d, Priors, s = sbj, cod = cod )
+input = model_structure_create( tp, d, Priors, s = sbj )
 
 # Input for Stan
 stanDat = list(
@@ -179,14 +186,13 @@ chains = 8 # Number of chains to run
 
 setwd('Stan_scripts')
 
-if (cod) mName = 'WR_OS.stan' else mName = 'WR_OS_fixed.stan'
-
 curInit = init_f( chains )
 startTime = Sys.time() # To assess run-time
-fit = stan( file = mName, data = stanDat, 
+fit = stan( file = input$mName, data = stanDat, 
             warmup = warm, iter = warm+niter, 
             chains = chains,
-            init = curInit )
+            init = curInit,
+            control = list( adapt_delta = .95 ) )
 
 post = extract(fit)
 # Report run time
@@ -200,9 +206,20 @@ rm( startTime )
 
 if ( plotYes ) {
   
+  if ( tp == 1 ) {
+    # Collapse threshold parameters to single variable
+    post$kappa = cbind( post$kappa_S, post$kappa_L, 
+                        post$kappa_SP, post$kappa_LP,
+                        post$kappa_B )
+  }
+  
+  if ( tp == 2 ) {
+    post$kappa = cbind( post$kappa )
+  }
+  
   ### Convergence check ###
   
-  cnv = convergence_extract( fit, 'tau[1]' )
+  cnv = convergence_extract( fit, 'tau' )
   x11(width=12);
   layout(cbind(1,2))
   tmp = hist( cnv$Rhat, col='grey', border='white', 
@@ -229,8 +246,7 @@ if ( plotYes ) {
       cf = c(
         post$kappa[rc,],
         post$xi[rc,],
-        post$sigma[rc,],
-        post$tau[rc,] )
+        post$tau )
       RC[rc,,] = param_est(input$X_small,cf,input$fixed,input$index,input$parSel)
     }
     
@@ -285,7 +301,7 @@ if ( plotYes ) {
   
   ### Posterior distribution estimates ####
   
-  if (cod) lp = 1:4 else lp = c(1,2,4)
+  lp = 1:3
   for (j in lp) {
     
     if ( j == 1 ) {
@@ -297,11 +313,7 @@ if ( plotYes ) {
       ttl = 'Drift rates'
     }
     if ( j == 3 ) {
-      pst = post$sigma
-      ttl = 'Coefficient of drift (Foil)'
-    }
-    if ( j == 4 ) {
-      pst = post$theta
+      pst = cbind( as.numeric( post$theta ) )
       ttl = 'Proportion of fastest RT'
     }
     

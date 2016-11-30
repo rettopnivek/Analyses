@@ -406,7 +406,7 @@ parameters {
 }
 transformed parameters {
   // Variable declaration
-  vector<lower=0.0> tau[Ns]; // Raw residual latency by subject
+  real<lower=0.0> tau[Ns]; // Raw residual latency by subject
   
   // Weight fastest RT by proportion for residual latency
   for ( ns in 1:Ns ) {
@@ -415,7 +415,7 @@ transformed parameters {
 }
 model {
   // Variable declaration
-  vector[ sum(C) ] coef;
+  vector[ C ] coef;
   matrix[ 8, No_max ] param;
   int inc; // For incrementing over indices
   vector[ sum(No) ] summands;
@@ -473,7 +473,7 @@ generated quantities {
   // Create block for local variables
   {
     // Local variables (these won't be saved)
-    vector[ sum(C) ] coef;
+    vector[ C ] coef;
     matrix[ 8, No_max ] param;
     int inc; // For incrementing over indices
     

@@ -1,0 +1,66 @@
+data {
+  int N; // Number of observations
+  int V; // Number of covariates
+  int K; // Number of mappings
+  int U; // Number of fixed values
+  int C; // Number of coefficients per parameter type
+  matrix[V,N] X; // Design matrix
+  vector[U] fixed; // Fixed values
+  int index[ V + 1, 2 ]; // Indices for filling parameter matrix
+  int parSel[K]; // Mapping of coefficients to parameter matrix
+  vector[2] Y[N]; // RT and choice
+  real<lower=0> min_RT; // Smallest response time for each relevant condition
+  matrix[C,2] Priors; // Matrix of parameters for prior distributions
+}
+parameters {
+  vector<lower=0.0>[2] kappa; // Define base thresholds
+  vector[2] beta_k; // Define adjustments to thresholds
+  vector[2] xi; // Define base drift rates
+  vector[6] beta_x; // Define adjustments to drift rates
+  real<lower=0.0,upper=1.0> theta; // Proportion for residual latency
+}
+transformed parameters {
+  // Variable declaration
+  real<lower=0.0> tau; // Raw residual latency
+  
+  // Weight fastest RT by proportion for residual latency
+  tau = min_RT*theta;
+}
+model {
+  // Variable declaration
+  vector[ C ] coef;
+  matrix[ 8, N ] param;
+  vector[N] summands;
+  
+  // Priors
+  for (i in 1:2) {
+    kappa[i] ~ normal( Priors[i,1], Priors[i,2] );
+  }
+  for (i in 1:2) {
+    beta_k[i] ~ normal( Priors[2+i,1], Priors[2+i,2] );
+  }
+  for (i in 1:2) {
+    xi[i] ~ normal( Priors[4+i,1], Priors[4+i,2] );
+  }
+  for (i in 1:6) {
+    beta_x[i] ~ normal( Priors[6+i,1], Priors[6+i,2] );
+  }
+  theta ~ beta( Priors[13,1], Priors[13,2] );
+  
+  // Fill in vector of coefficients
+  coef[ 1:2 ] = kappa[ 1:2 ]; coef[ 3:4 ] = beta_k[ 1:2 ];
+  coef[ 5:6 ] = xi[ 1:2 ]; coef[ 7:12 ] = beta_x[ 1:6 ];
+  coef[ 13 ] = tau;
+  
+  // Generate parameter matrix
+  param = param_est( X, coef, fixed, index, parSel );
+  
+  // Likelihood
+  for (n in 1:N) {
+    summands[n] = waldrace_lpdf( Y[n] | col(param,n) );
+  }
+  
+  // Call to the sampler
+  target += sum(summands);
+}
+

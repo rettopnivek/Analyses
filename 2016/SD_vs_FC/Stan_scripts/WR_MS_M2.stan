@@ -389,24 +389,20 @@ data {
 parameters {
   // S - short, L = long, P - primed choice, B - bias
   // Subject level
-  real<lower=0.0> kappa_S[Ns];
-  real<lower=0.0> kappa_L[Ns];
-  real kappa_SP[Ns];
-  real kappa_LP[Ns];
-  real kappa_B[Ns];
-  vector<lower=0.0>[4] xi[Ns]; // Set of drift rates
+  real<lower=0.0> kappa[Ns];
+  vector<lower=0.0>[8] xi[Ns]; // Set of drift rates
   real<lower=0.0,upper=1.0> theta[Ns]; // Proportion for residual latency
   // Group level
-  real kappa_mu[ 4 ]; // Means for thresholds
-  real<lower=0.0> kappa_sig[ 5 ]; // Standard deviations for thresholds
-  real xi_mu[ 4 ]; // Means for thresholds
-  real<lower=0.0> xi_sig[ 4 ]; // Standard deviations for thresholds
+  real kappa_mu; // Means for thresholds
+  real<lower=0.0> kappa_sig; // Standard deviations for thresholds
+  real xi_mu[ 8 ]; // Means for thresholds
+  real<lower=0.0> xi_sig[ 8 ]; // Standard deviations for thresholds
   real<lower=0.0> theta_alpha; // 1st parameter for beta distribution (Residual latency)
   real<lower=0.0> theta_beta; // 2nd parameter for beta distribution (Residual latency)
 }
 transformed parameters {
   // Variable declaration
-  vector<lower=0.0> tau[Ns]; // Raw residual latency by subject
+  real<lower=0.0> tau[Ns]; // Raw residual latency by subject
   
   // Weight fastest RT by proportion for residual latency
   for ( ns in 1:Ns ) {
@@ -415,21 +411,17 @@ transformed parameters {
 }
 model {
   // Variable declaration
-  vector[ sum(C) ] coef;
+  vector[ C ] coef;
   matrix[ 8, No_max ] param;
   int inc; // For incrementing over indices
   vector[ sum(No) ] summands;
   
   // Priors
-  for (i in 1:4) {
-    kappa_mu[i] ~ normal( Priors[i,1], Priors[i,2] );
-  }
-  for (i in 1:5) {
-    kappa_sig[i] ~ gamma( Priors[i,3], Priors[i,4] );
-  }
-  for (i in 1:4) {
-    xi_mu[i] ~ normal( Priors[5+i,1], Priors[5+i,2] );
-    xi_sig[i] ~ gamma( Priors[5+i,3], Priors[5+i,4] );
+  kappa_mu ~ normal( Priors[1,1], Priors[1,2] );
+  kappa_sig ~ gamma( Priors[1,3], Priors[1,4] );
+  for (i in 1:8) {
+    xi_mu[i] ~ normal( Priors[1+i,1], Priors[1+i,2] );
+    xi_sig[i] ~ gamma( Priors[1+i,3], Priors[1+i,4] );
   }
   theta_alpha ~ normal( Priors[10,1], Priors[10,2] );
   theta_beta ~ normal( Priors[10,3], Priors[10,4] );
@@ -439,19 +431,13 @@ model {
   for ( ns in 1:Ns ) {
     
     // Hierarchy
-    kappa_S[ns] ~ normal( kappa_mu[1], kappa_sig[1] );
-    kappa_L[ns] ~ normal( kappa_mu[2], kappa_sig[2] );
-    kappa_SP[ns] ~ normal( kappa_mu[3], kappa_sig[3] );
-    kappa_LP[ns] ~ normal( kappa_mu[4], kappa_sig[4] );
-    kappa_B[ns] ~ normal( 0.0, kappa_sig[5] );
+    kappa[ns] ~ normal( kappa_mu, kappa_sig );
     xi[ns] ~ normal( xi_mu, xi_sig );
     theta[ns] ~ beta( theta_alpha, theta_beta );
     
     // Fill in vector of coefficients
-    coef[1] = kappa_S[ns]; coef[2] = kappa_L[ns];
-    coef[3] = kappa_SP[ns]; coef[4] = kappa_LP[ns];
-    coef[5] = kappa_B[ns];
-    coef[ 6:9 ] = xi[ ns, 1:4 ];
+    coef[1] = kappa[ns];
+    coef[ 2:9 ] = xi[ ns, 1:8 ];
     coef[ 10 ] = tau[ns];
     
     // Generate parameter matrix
@@ -473,17 +459,15 @@ generated quantities {
   // Create block for local variables
   {
     // Local variables (these won't be saved)
-    vector[ sum(C) ] coef;
+    vector[ C ] coef;
     matrix[ 8, No_max ] param;
     int inc; // For incrementing over indices
     
     inc = 1;
     for ( ns in 1:Ns ) {
       // Fill in vector of coefficients
-      coef[1] = kappa_S[ns]; coef[2] = kappa_L[ns];
-      coef[3] = kappa_SP[ns]; coef[4] = kappa_LP[ns];
-      coef[5] = kappa_B[ns];
-      coef[ 6:9 ] = xi[ ns, 1:4 ];
+      coef[1] = kappa[ns];
+      coef[ 2:9 ] = xi[ ns, 1:8 ];
       coef[ 10 ] = tau[ns];
       
       // Generate parameter matrix

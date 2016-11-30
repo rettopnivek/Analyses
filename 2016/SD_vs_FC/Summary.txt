@@ -1,4 +1,4 @@
-11/28/2016
+11/29/2016
 This document summarizes the different scripts, their purpose, and their status:
 
 F0_data_creation.R (Finished)
@@ -21,7 +21,7 @@ F5_nROUSE.R (Finished)
   - Generate predicted target/foil latencies from nROUSE per each subject
   - Create new covariates (raw and standardized inverted latencies)
   - Plot and save the results
-F6_BE_OS.R (Finished)
+F6_BE_OS.R (In progress)
   - Fits a bayesian model to data from a single subject.
   - Provides basic examples of how to plot...
     a) convergence,
@@ -29,6 +29,9 @@ F6_BE_OS.R (Finished)
     c) marginal posteriors.
 F7_BE_MS.R (In progress)
   - Fits a hierarchical bayesian model to data across all subjects.
+  - Extracts convergence diagnostics.
+  - Saves posterior samples to a folder on the hard drive
+  - Can load previously sampled posterior estimates.
 F8_post_examinations.R (In progress)
   - For a given hierarchical model
     a) plots convergence checks,

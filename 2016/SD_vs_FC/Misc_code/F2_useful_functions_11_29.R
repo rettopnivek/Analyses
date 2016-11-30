@@ -1,7 +1,7 @@
 #--------------------#
 # Useful functions   #
 # Kevin Potter       #
-# Updated 11/29/2016 #
+# Updated 11/26/2016 #
 #--------------------#
 
 # Index
@@ -104,20 +104,10 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
   # Returns:
   # A list of the inputs.
   
-  # There are a total of 5 model types of interest:
-  # Model 1: The effects of interest are determined by 
-  #          thresholds primarily
-  # Model 2: The effects of interest are determined by 
-  #          drift rates primarily
-  # Model 3: The effects of interest are determined by 
-  #          by a hybrid of drift rates and thresholds
-  # Model 4: The effects of interest are determined by 
-  #          a hybrid of thresholds and drift rates 
-  #          constrained by nROUSE inverse latencies
-  # Model 5: A over-parameterized model
-  
   # Restrict to forced-choice only
-  cD = cD[ cD$Ta == 0, ]
+  if ( type == 1 | type == 2 ) {
+    cD = cD[ cD$Ta == 0, ]
+  }
   
   # Number of observations by subject
   No = aggregate( rep(1,nrow(cD)),list(cD$S), sum )$x
@@ -126,264 +116,64 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
   allS = cD$S
   sbj = unique( allS ) # Subject identifiers
   
-  # Fastest RTs by subject
-  min_RT = aggregate( cD$RT, list( allS ), min )$x
-  
-  # Abbreviated subscripts key
-  # S - short
-  # L - long
-  # T - target
-  # F - foil
-  # P - Primed choice
-  # B - Bias
-  # I - Intercept
-  
-  # Model 1
-  if ( type == 1 ) {
+  # Select type of model to fit
+  if ( type == 1) {
     
     # Coefficients
-    # kappa     -> S, L, PS, PL, B (1:5)
-    # xi target -> S, L            (6:7)
-    # xi foil   -> S, L            (8:9)
-    # tau       -> I               (10)
-    Cf = 10 # 10 coefficients in total
-    
-    # Create index for linear algebra function
-    Clm = c( 1:5,   # Rows in design matrix for kappa(1)
-             6:9,   # Rows in design matrix for xi(1)
-             11,    # Rows in design matrix for tau(1)
-             12:16, # Rows in design matrix for kappa(0)
-             17:20, # Rows in design matrix for xi(0)
-             22     # Rows in design matrix for tau(0)
-    )
-    Rws = c( rep( 1, 5 ),   # kappa (1)
-             rep( 2, 4 ),   # xi (1)
-             rep( 4, 1 ),   # tau (1)
-             rep( 5, 5 ),   # kappa (0)
-             rep( 6, 4 ),   # xi (0)
-             rep( 8, 1 )    # tau (0)
-    )
-    # Create index for parameter selection
-    parSel = c( 1:5, 6:9, 10, 1:5, 6:9, 10 )
-    
-    index = cbind( Rws, Clm )
-    # Fixed values
-    fixed = c(1,1)
-    index = rbind( index,
-                   c(3,10), # sigma (1)
-                   c(7,21) # sigma (0)
-    )
-    rm( Clm, Rws )
-    # Dimensions
-    index = rbind( index, c(8,length(parSel)) )
-    
-    if ( length(s) == 0 ) {
-      
-      # Define set of arrays for design matrix and 
-      # for matrix of response pairs
-      X = array( 0, dim = c( Ns, length( parSel ) + 
-                               length( fixed ), No_max ) )
-      Y = array( 0, dim = c( Ns, No_max, 2 ) )
-      
-      # Create a progress bar using a base R function
-      pb = txtProgressBar( min = 1, max = Ns, style = 3 )
-      
-      for ( s in 1:Ns ) {
-        
-        # Extract data
-        cS = cD[ allS == sbj[s], ]
-        
-        # Extract response pairs
-        Y[s, 1:No[s], ] = cbind( cS$RT, cS$Ch )
-        
-        # Define covariates
-        Int = rep( 1, nrow( cS ) ) # Intercept
-        Co = cS$Co # Correct (Left/Right)
-        PT = cS$PT # Prime type (Foil/Target)
-        PD = cS$PD # Duration (Short/Long)
-        PL = as.numeric( PT != Co ) # Left choice primed
-        PR = as.numeric( PT == Co ) # Right choice primed
-        # Priming duration x type
-        DvT = Int;
-        DvT[ cS$PD == 1 & cS$PT == 1 ] = 2;
-        DvT[ cS$PD == 0 & cS$PT == 0 ] = 3;
-        DvT[ cS$PD == 1 & cS$PT == 0 ] = 4;
-        X_x = designCoding( DvT, Levels = 1:4, 
-                            type = 'Intercept' )
-        
-        # Desired output
-        # 8 x N matrix
-        # Necessary input
-        # 8 x row(X) -> parameter matrix
-        # row(X) x N -> Design matrix
-        
-        # Design matrix
-        X[ s, , 1:No[s] ] = 
-          t( cbind( 
-            (1-PD), PD, PR*(1-PD), PR*PD, Int,
-            PD*Co, (1-PD)*Co, PD*(1-Co), (1-PD)*(1-Co),
-            Int,
-            Int,
-            (1-PD), PD, PL*(1-PD), PL*PD, -Int,
-            PD*(1-Co), (1-PD)*(1-Co), PD*Co, (1-PD)*Co,
-            Int,
-            Int
-          ) )
-        
-        if ( No[s] == No_max ) {
-          
-          # Create small design matrix for later plotting etc...
-          nCnd = length( sort( unique( cS$Cnd ) ) )
-          X_small = matrix( NA, dim( X )[2], nCnd )
-          for ( nc in 1:nCnd ) {
-            X_small[,nc] = X[ s, , cS$Cnd == nc ][,1]
-          }
-          curCnd = sort( unique( cS$Cnd ) )
-          
-        }
-        
-        # Update the progress bar
-        setTxtProgressBar(pb,s)
-      }
-      close(pb)
-      
-      # Redefine fastest RT object
-      min_RT = as.array( min_RT )
-      
-      # Return results
-      return( list(
-        Ns = Ns, 
-        No = No, 
-        No_max = No_max, 
-        V = dim(X)[2], 
-        K = length( parSel ),
-        U = length( fixed ), 
-        C = Cf,
-        X = X, 
-        fixed = fixed, 
-        index = index, 
-        parSel = parSel, 
-        Y = Y, 
-        min_RT = min_RT, 
-        Priors = Priors, 
-        X_small = X_small,
-        curCnd = curCnd,
-        mName = 'WR_MS_M1.stan') )
-      
-    } else {
-      
-      # Extract data
-      cS = cD[ allS == sbj[s], ]
-      
-      # Extract response pairs
-      Y = cbind( cS$RT, cS$Ch )
-      
-      # Define covariates
-      Int = rep( 1, nrow( cS ) ) # Intercept
-      Co = cS$Co # Correct (Left/Right)
-      PT = cS$PT # Prime type (Foil/Target)
-      PD = cS$PD # Duration (Short/Long)
-      PL = as.numeric( PT != Co ) # Left choice primed
-      PR = as.numeric( PT == Co ) # Right choice primed
-      # Priming duration x type
-      DvT = Int;
-      DvT[ cS$PD == 1 & cS$PT == 1 ] = 2;
-      DvT[ cS$PD == 0 & cS$PT == 0 ] = 3;
-      DvT[ cS$PD == 1 & cS$PT == 0 ] = 4;
-      X_x = designCoding( DvT, Levels = 1:4, 
-                          type = 'Intercept' )
-      
-      # Desired output
-      # 8 x N matrix
-      # Necessary input
-      # 8 x row(X) -> parameter matrix
-      # row(X) x N -> Design matrix
-      
-      # Design matrix
-      X = 
-        t( cbind( 
-          (1-PD), PD, PR*(1-PD), PR*PD, Int,
-          PD*Co, (1-PD)*Co, PD*(1-Co), (1-PD)*(1-Co),
-          Int,
-          Int,
-          (1-PD), PD, PL*(1-PD), PL*PD, -Int,
-          PD*(1-Co), (1-PD)*(1-Co), PD*Co, (1-PD)*Co,
-          Int,
-          Int
-        ) )
-      
-      # Redefine minimum RT
-      min_RT = min_RT[ sbj[s] ]
-      
-      # Create small design matrix for later plotting etc...
-      nCnd = length( sort( unique( cS$Cnd ) ) )
-      cndVal = sort( unique( cS$Cnd ) )
-      X_small = matrix( NA, dim( X )[1], nCnd )
-      for ( nc in 1:nCnd ) {
-        X_small[,nc] = X[ , cS$Cnd == cndVal[nc] ][,1]
-      }
-      curCnd = sort( unique( cS$Cnd ) )
-      
-      # Return results
-      return( list(
-        N = ncol(X), 
-        V = dim(X)[1], 
-        K = length( parSel ),
-        U = length( fixed ), 
-        C = Cf,
-        X = X, 
-        fixed = fixed, 
-        index = index, 
-        parSel = parSel, 
-        Y = Y, 
-        min_RT = min_RT, 
-        Priors = Priors, 
-        X_small = X_small,
-        curCnd = curCnd,
-        mName = 'WR_OS_M1.stan') )
-      
-    }
-    
-  }
-  
-  # Model 2
-  if ( type == 2 ) {
+    # kappa       -> SPC, SUC, LPC, LUC
+    # xi target   -> STP,LTP,SFP,LFP
+    # xi foil     -> STP,LTP,SFP,LFP
+    # sigma       -> Estimate for foil racer (target fixed to 1)
+    # tau         -> Single residual latency
+    # 14 parameters per subject
     
     # Coefficients
-    # kappa     -> I                  (1)
-    # xi target -> STP, LTP, SFP, LFP (2:5)
-    # xi foil   -> STP, LTP, SFP, LFP (7:9)
-    # tau       -> I                  (10)
-    Cf = 10 # 10 coefficients in total
+    # k     ( 1:4 )
+    # xi_T  ( 5:8 )
+    # xi_F  ( 9:12 )
+    # sigma ( 13 )
+    # tau   ( 14 )
+    
+    # Define the number of thresholds, drift rates, 
+    # residual latencies, and coefficients of drift
+    Cf = c( 4, 8, 1, 1 )
     
     # Create index for linear algebra function
-    Clm = c( 1,     # Rows in design matrix for kappa(1)
-             2:9,   # Rows in design matrix for xi(1)
-             11,    # Rows in design matrix for tau(1)
-             12,    # Rows in design matrix for kappa(0)
-             13:20, # Rows in design matrix for xi(0)
-             22     # Rows in design matrix for tau(0)
+    Clm = c( 1:4,   # Rows in design matrix for kappa(1)
+             5:12,  # Rows in design matrix for xi(1)
+             14,    # Rows in design matrix for sigma(1)
+             15,    # Rows in design matrix for tau(1)
+             16:19, # Rows in design matrix for kappa(0)
+             20:27, # Rows in design matrix for xi(0)
+             29,    # Rows in design matrix for sigma(0)
+             30     # Rows in design matrix for tau(0)
     )
-    Rws = c( rep( 1, 1 ),   # kappa (1)
+    
+    Rws = c( rep( 1, 4 ),   # kappa (1)
              rep( 2, 8 ),   # xi (1)
+             rep( 3, 1 ),   # sigma (1)
              rep( 4, 1 ),   # tau (1)
-             rep( 5, 1 ),   # kappa (0)
+             rep( 5, 4 ),   # kappa (0)
              rep( 6, 8 ),   # xi (0)
+             rep( 7, 1 ),   # sigma (0)
              rep( 8, 1 )    # tau (0)
     )
     # Create index for parameter selection
-    parSel = c( 1, 2:9, 10, 1, 2:9, 10 )
+    parSel = c( 1:4, 5:12, 13, 14, 1:4, 5:12, 13, 14 )
     
     index = cbind( Rws, Clm )
     # Fixed values
     fixed = c(1,1)
     index = rbind( index,
-                   c(3,10), # sigma (1)
-                   c(7,21) # sigma (0)
+                   c(3,13), # sigma (1)
+                   c(7,28) # sigma (0)
     )
     rm( Clm, Rws )
     # Dimensions
     index = rbind( index, c(8,length(parSel)) )
+    
+    # Fastest RTs by subject
+    min_RT = aggregate( cD$RT, list( allS ), min )$x
     
     if ( length(s) == 0 ) {
       
@@ -405,12 +195,28 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
         Y[s, 1:No[s], ] = cbind( cS$RT, cS$Ch )
         
         # Define covariates
-        Int = rep( 1, nrow( cS ) ) # Intercept
-        Co = cS$Co # Correct (Left/Right)
-        PT = cS$PT # Prime type (Foil/Target)
-        PD = cS$PD # Duration (Short/Long)
-        PL = as.numeric( PT != Co ) # Left choice primed
-        PR = as.numeric( PT == Co ) # Right choice primed
+        
+        # Intercept
+        Int = rep( 1, nrow( cS ) )
+        
+        # Position of correct answer
+        Co = cS$Co
+        
+        # Define covariate indicating when a choice on the 
+        # left was primed
+        PL = numeric( nrow( cS ) );
+        PL[ (cS$PT == 1 & Co == 0) | 
+              (cS$PT == 0 & Co == 1) ] = 1
+        
+        # Define covariate indicating when a choice on the 
+        # right was primed
+        PR = numeric( nrow( cS ) );
+        PR[ (cS$PT == 1 & Co == 1) | 
+              (cS$PT == 0 & Co == 0) ] = 1
+        
+        # Priming duration
+        PD = cS$PD
+        
         # Priming duration x type
         DvT = Int;
         DvT[ cS$PD == 1 & cS$PT == 1 ] = 2;
@@ -428,14 +234,14 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
         # Design matrix
         X[ s, , 1:No[s] ] = 
           t( cbind( 
-            Int,
-            X_x*Co, X_x*(1-Co),
-            Int,
-            Int,
-            Int,
-            X_x*(1-Co), X_x*Co,
-            Int,
-            Int
+            PR*PD, PR*(1-PD), PL*PD, PL*(1-PD), # kappa (1)
+            X_x*Co, X_x*(1-Co), # xi (1)
+            Co, 1-Co, # sigma (1)
+            Int, # tau (1)
+            PL*PD, PL*(1-PD), PR*PD, PR*(1-PD), # kappa (0)
+            X_x*(1-Co), X_x*Co, # xi (0)
+            Co, 1-Co, # sigma (1)
+            Int  # tau (0)
           ) )
         
         if ( No[s] == No_max ) {
@@ -456,7 +262,8 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
       close(pb)
       
       # Redefine fastest RT object
-      min_RT = as.array( min_RT )
+      min_RT = matrix( rep( min_RT, each = Cf[4] ), Ns, Cf[4],
+                       byrow = T )
       
       # Return results
       return( list(
@@ -475,8 +282,7 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
         min_RT = min_RT, 
         Priors = Priors, 
         X_small = X_small,
-        curCnd = curCnd,
-        mName = 'WR_MS_M2.stan') )
+        curCnd = curCnd ) )
       
     } else {
       
@@ -487,12 +293,28 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
       Y = cbind( cS$RT, cS$Ch )
       
       # Define covariates
-      Int = rep( 1, nrow( cS ) ) # Intercept
-      Co = cS$Co # Correct (Left/Right)
-      PT = cS$PT # Prime type (Foil/Target)
-      PD = cS$PD # Duration (Short/Long)
-      PL = as.numeric( PT != Co ) # Left choice primed
-      PR = as.numeric( PT == Co ) # Right choice primed
+      
+      # Intercept
+      Int = rep( 1, nrow( cS ) )
+      
+      # Position of correct answer
+      Co = cS$Co
+      
+      # Define covariate indicating when a choice on the 
+      # left was primed
+      PL = numeric( nrow( cS ) );
+      PL[ (cS$PT == 1 & Co == 0) | 
+            (cS$PT == 0 & Co == 1) ] = 1
+      
+      # Define covariate indicating when a choice on the 
+      # right was primed
+      PR = numeric( nrow( cS ) );
+      PR[ (cS$PT == 1 & Co == 1) | 
+            (cS$PT == 0 & Co == 0) ] = 1
+      
+      # Priming duration
+      PD = cS$PD
+      
       # Priming duration x type
       DvT = Int;
       DvT[ cS$PD == 1 & cS$PT == 1 ] = 2;
@@ -510,18 +332,18 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
       # Design matrix
       X = 
         t( cbind( 
-          Int,
-          X_x*Co, X_x*(1-Co),
-          Int,
-          Int,
-          Int,
-          X_x*(1-Co), X_x*Co,
-          Int,
-          Int
+          PR*PD, PR*(1-PD), PL*PD, PL*(1-PD), # kappa (1)
+          X_x*Co, X_x*(1-Co), # xi (1)
+          Co, 1-Co, # sigma (1)
+          Int, # tau (1)
+          PL*PD, PL*(1-PD), PR*PD, PR*(1-PD), # kappa (0)
+          X_x*(1-Co), X_x*Co, # xi (0)
+          Co, 1-Co, # sigma (0)
+          Int  # tau (0)
         ) )
       
       # Redefine minimum RT
-      min_RT = min_RT[ sbj[s] ]
+      min_RT = array( rep( min_RT[ sbj[s] ], Cf[4] ), dim = c(Cf[4]) )
       
       # Create small design matrix for later plotting etc...
       nCnd = length( sort( unique( cS$Cnd ) ) )
@@ -547,21 +369,260 @@ model_structure_create = function( type, cD, Priors, s = NULL ) {
         min_RT = min_RT, 
         Priors = Priors, 
         X_small = X_small,
-        curCnd = curCnd,
-        mName = 'WR_OS_M2.stan') )
+        curCnd = curCnd ) )
       
     }
     
   }
   
-  # Model 3
-  # Forthcoming
-  
-  # Model 4
-  # Forthcoming
-  
-  # Model 5
-  # Forthcoming
+  # Select type of model to fit
+  if ( type == 2) {
+    
+    # Coefficients
+    # kappa       -> SL,SR,LL,LR
+    # xi target   -> GM, zTL
+    # xi foil     -> GM, zFL
+    # tau         -> tau (Single residual latency)
+    # sigma       -> F (Estimate for foil racer, target fixed to 1)
+    # 10 parameters per subject
+    
+    # Coefficients
+    # k     ( 1:4 )
+    # xi_T  ( 5:6 )
+    # xi_F  ( 7:8 )
+    # sigma ( 9 )
+    # tau   ( 10 )
+    
+    # Define the number of thresholds, drift rates, 
+    # residual latencies, and coefficients of drift
+    Cf = c( 4, 4, 1, 1 )
+    
+    # Create index for linear algebra function
+    Clm = c( 1:4,   # Rows in design matrix for kappa(1)
+             5:8,   # Rows in design matrix for xi(1)
+             10,    # Rows in design matrix for sigma(1)
+             11,    # Rows in design matrix for tau(1)
+             12:15, # Rows in design matrix for kappa(0)
+             16:19, # Rows in design matrix for xi(0)
+             21,    # Rows in design matrix for sigma(0)
+             22     # Rows in design matrix for tau(0)
+    )
+    
+    Rws = c( rep( 1, 4 ),   # kappa (1)
+             rep( 2, 4 ),   # xi (1)
+             rep( 3, 1 ),   # sigma (1)
+             rep( 4, 1 ),   # tau (1)
+             rep( 5, 4 ),   # kappa (0)
+             rep( 6, 4 ),   # xi (0)
+             rep( 7, 1 ),   # sigma (0)
+             rep( 8, 1 )    # tau (0)
+    )
+    # Create index for parameter selection
+    parSel = c( 1:4, 5:8, 9, 10, 1:4, 5:8, 9, 10 )
+    
+    index = cbind( Rws, Clm )
+    # Fixed values
+    fixed = c(1,1)
+    index = rbind( index,
+                   c(3,9), # sigma (1)
+                   c(7,20) # sigma (0)
+    )
+    rm( Clm, Rws )
+    # Dimensions
+    index = rbind( index, c(8,length(parSel)) )
+    
+    # Fastest RTs by subject
+    min_RT = aggregate( cD$RT, list( allS ), min )$x
+    
+    if ( length(s) == 0 ) {
+      
+      # Define set of arrays for design matrix and 
+      # for matrix of response pairs
+      X = array( 0, dim = c( Ns, length( parSel ) + 
+                               length( fixed ), No_max ) )
+      Y = array( 0, dim = c( Ns, No_max, 2 ) )
+      
+      # Create a progress bar using a base R function
+      pb = txtProgressBar( min = 1, max = Ns, style = 3 )
+      
+      for ( s in 1:Ns ) {
+        
+        # Extract data
+        cS = cD[ allS == sbj[s], ]
+        
+        # Extract response pairs
+        Y[s, 1:No[s], ] = cbind( cS$RT, cS$Ch )
+        
+        # Define covariates
+        
+        # Intercept
+        Int = rep( 1, nrow( cS ) )
+        
+        # Position of correct answer
+        Co = cS$Co
+        
+        # Define covariate indicating when a choice on the 
+        # left was primed
+        PL = numeric( nrow( cS ) );
+        PL[ (cS$PT == 1 & Co == 0) | 
+              (cS$PT == 0 & Co == 1) ] = 1
+        
+        # Define covariate indicating when a choice on the 
+        # right was primed
+        PR = numeric( nrow( cS ) );
+        PR[ (cS$PT == 1 & Co == 1) | 
+              (cS$PT == 0 & Co == 0) ] = 1
+        
+        # Priming duration
+        PD = cS$PD
+        
+        # Priming duration x type
+        X_x = cbind( Int, cS$zTL, Int, cS$zFL )
+        
+        # Desired output
+        # 8 x N matrix
+        # Necessary input
+        # 8 x row(X) -> parameter matrix
+        # row(X) x N -> Design matrix
+        
+        # Design matrix
+        X[ s, , 1:No[s] ] = 
+          t( cbind( 
+            PR*PD, PR*(1-PD), PL*PD, PL*(1-PD), # kappa (1)
+            X_x[,1:2]*Co, X_x[,3:4]*(1-Co), # xi (1)
+            Co, 1-Co, # sigma (1)
+            Int, # tau (1)
+            PL*PD, PL*(1-PD), PR*PD, PR*(1-PD), # kappa (0)
+            X_x[,1:2]*(1-Co), X_x[,3:4]*Co, # xi (0)
+            Co, 1-Co, # sigma (0)
+            Int  # tau (0)
+          ) )
+        
+        if ( No[s] == No_max ) {
+          
+          # Create small design matrix for later plotting etc...
+          nCnd = length( sort( unique( cS$Cnd ) ) )
+          X_small = matrix( NA, dim( X )[2], nCnd )
+          for ( nc in 1:nCnd ) {
+            X_small[,nc] = X[ s, , cS$Cnd == nc ][,1]
+          }
+          curCnd = sort( unique( cS$Cnd ) )
+          
+        }
+        
+        # Update the progress bar
+        setTxtProgressBar(pb,s)
+      }
+      close(pb)
+      
+      # Redefine fastest RT object
+      min_RT = matrix( rep( min_RT, each = Cf[4] ), Ns, Cf[4],
+                       byrow = T )
+      
+      # Return results
+      return( list(
+        Ns = Ns, 
+        No = No, 
+        No_max = No_max, 
+        V = dim(X)[2], 
+        K = length( parSel ),
+        U = length( fixed ), 
+        C = Cf,
+        X = X, 
+        fixed = fixed, 
+        index = index, 
+        parSel = parSel, 
+        Y = Y, 
+        min_RT = min_RT, 
+        Priors = Priors, 
+        X_small = X_small,
+        curCnd = curCnd ) )
+      
+    } else {
+      
+      # Extract data
+      cS = cD[ allS == sbj[s], ]
+      
+      # Extract response pairs
+      Y = cbind( cS$RT, cS$Ch )
+      
+      # Define covariates
+      
+      # Intercept
+      Int = rep( 1, nrow( cS ) )
+      
+      # Position of correct answer
+      Co = cS$Co
+      
+      # Define covariate indicating when a choice on the 
+      # left was primed
+      PL = numeric( nrow( cS ) );
+      PL[ (cS$PT == 1 & Co == 0) | 
+            (cS$PT == 0 & Co == 1) ] = 1
+      
+      # Define covariate indicating when a choice on the 
+      # right was primed
+      PR = numeric( nrow( cS ) );
+      PR[ (cS$PT == 1 & Co == 1) | 
+            (cS$PT == 0 & Co == 0) ] = 1
+      
+      # Priming duration
+      PD = cS$PD
+      
+      # Priming duration x type
+      X_x = cbind( Int, cS$zTL, Int, cS$zFL )
+      
+      # Desired output
+      # 8 x N matrix
+      # Necessary input
+      # 8 x row(X) -> parameter matrix
+      # row(X) x N -> Design matrix
+      
+      # Design matrix
+      X = 
+        t( cbind( 
+          PR*PD, PR*(1-PD), PL*PD, PL*(1-PD), # kappa (1)
+          X_x[,1:2]*Co, X_x[,3:4]*(1-Co), # xi (1)
+          Co, 1-Co, # sigma (1)
+          Int, # tau (1)
+          PL*PD, PL*(1-PD), PR*PD, PR*(1-PD), # kappa (0)
+          X_x[,1:2]*(1-Co), X_x[,3:4]*Co, # xi (0)
+          Co, 1-Co, # sigma (0)
+          Int  # tau (0)
+        ) )
+      
+      # Redefine minimum RT
+      min_RT = array( rep( min_RT[ sbj[s] ], Cf[4] ), dim = c(Cf[4]) )
+      
+      # Create small design matrix for later plotting etc...
+      nCnd = length( sort( unique( cS$Cnd ) ) )
+      cndVal = sort( unique( cS$Cnd ) )
+      X_small = matrix( NA, dim( X )[1], nCnd )
+      for ( nc in 1:nCnd ) {
+        X_small[,nc] = X[ , cS$Cnd == cndVal[nc] ][,1]
+      }
+      curCnd = sort( unique( cS$Cnd ) )
+      
+      # Return results
+      return( list(
+        N = ncol(X), 
+        V = dim(X)[1], 
+        K = length( parSel ),
+        U = length( fixed ), 
+        C = Cf,
+        X = X, 
+        fixed = fixed, 
+        index = index, 
+        parSel = parSel, 
+        Y = Y, 
+        min_RT = min_RT, 
+        Priors = Priors, 
+        X_small = X_small,
+        curCnd = curCnd ) )
+      
+    }
+    
+  }
   
 }
 
