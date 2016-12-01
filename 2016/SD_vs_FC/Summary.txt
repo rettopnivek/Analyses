@@ -1,4 +1,4 @@
-11/29/2016
+12/01/2016
 This document summarizes the different scripts, their purpose, and their status:
 
 F0_data_creation.R (Finished)
@@ -12,6 +12,7 @@ F1_data_preprocessing.R (Finished)
   - Revises the .RData file to include the raw and trimmed data.
 F2_useful_functions.R (In progress)
   - Defines a set of useful functions for subsequent modeling
+TO DO -> TRIM UNNECESSARY FUNCTIONS
 F3_descriptive_results.R (Finished)
   - Generates a pdf with a set of descriptive results describing the data and empirical effects.
 F4_starting_script.R (Finished)
@@ -27,13 +28,22 @@ F6_BE_OS.R (In progress)
     a) convergence,
     b) retrodictive checks, and
     c) marginal posteriors.
+TO DO -> FIT MODELS 4 AND 5
+TO DO -> CHANGE RETRODICTIVE CHECKS
 F7_BE_MS.R (In progress)
   - Fits a hierarchical bayesian model to data across all subjects.
   - Extracts convergence diagnostics.
   - Saves posterior samples to a folder on the hard drive
   - Can load previously sampled posterior estimates.
+TO DO -> FIT MODELS 4 AND 5
 F8_post_examinations.R (In progress)
   - For a given hierarchical model
     a) plots convergence checks,
     b) plots retrodictive checks, and
     c) plots marginal posterior distributions.
+TO DO -> ADD IN MODELS 4 AND 5
+F9_model_comparison.R (In progress)
+  - Calculates the WAIC for each model.
+  - Computes pair-wise comparisons.
+  - Plots the Akaike weights, standard errors, and effective number of parameters.
+TO DO -> ADD IN MODELS 4 AND 5 ONCE FIT

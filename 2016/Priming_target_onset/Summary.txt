@@ -1,4 +1,4 @@
-11/23/2016
+12/01/2016
 This document summarizes the different scripts, their purpose, and their status:
 
 F0_data_creation.R (Finished)
@@ -14,10 +14,10 @@ F2_useful_functions.R (In progress)
   - Defines a set of useful functions for subsequent modeling
 F3_descriptive_results.R (In progress)
   - Generates a pdf with a set of descriptive results describing the data and empirical effects.
-F4_nROUSE.R (In progress)
-  - Obtain estimates of the nROUSE model parameters for subjects (Maybe hierarchical?)
-F5_starting_script.R (In progress)
+F4_starting_script.R (In progress)
   - Loads in needed packages and defines Stan scripts
+F5_nROUSE.R (In progress)
+  - Obtain estimates of the nROUSE model parameters for subjects (Maybe hierarchical?)
 F6_simulations.R (Finished)
   - Simulates data from residual latency variant of wald race.
   - Tests parameter recovery under different conditions.

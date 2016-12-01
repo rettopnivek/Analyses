@@ -1,19 +1,11 @@
 #--------------------#
 # Starting script    #
 # Kevin Potter       #
-# Updated 11/30/2016 #
+# Updated 11/21/2016 #
 #--------------------#
 
-# Check if the variable 'type' already exists
-if ( exists('type') ) {
-  sel = NULL;
-  sel = which( ls() == 'type' )
-  # Clear workspace
-  rm( list = ls()[-sel] )
-} else {
-  # Clear workspace
-  rm( list = ls() )
-}
+# Clear workspace
+rm( list = ls() )
 
 # Save current directory
 orig_dir = getwd()
@@ -55,3 +47,44 @@ options(mc.cores = parallel::detectCores())
 
 # Define useful functions
 source('F2_useful_functions.R')
+
+###
+### Create scripts for Stan
+###
+
+createScriptOS = F
+if ( createScriptOS ) {
+  
+  setwd('Stan_scripts')
+  fileName = "Wald_race_stan_functions.txt"
+  wr_f = readChar(fileName, file.info(fileName)$size)
+  fileName = "WR_one_subject_ex.txt"
+  os = readChar(fileName, file.info(fileName)$size)
+  model_script = paste( wr_f, os, sep = "" )
+  writeChar( model_script, "WR_OS.stan" )
+  
+  # Clean up workspace
+  rm( wr_f, os, model_script )
+  
+}
+
+createScriptMS = F
+if ( createScriptMS ) {
+  
+  setwd('Stan_scripts')
+  fileName = "Wald_race_stan_functions.txt"
+  wr_f = readChar(fileName, file.info(fileName)$size)
+  fileName = "WR_multi_subject.txt"
+  ms = readChar(fileName, file.info(fileName)$size)
+  model_script = paste( wr_f, ms, sep = "" )
+  writeChar( model_script, "WR_MS.stan" )
+  
+  # Clean up workspace
+  rm( wr_f, ms, model_script )
+  
+}
+
+# Clean up workspace
+rm( createScriptMS, createScriptOS )
+
+setwd( orig_dir )

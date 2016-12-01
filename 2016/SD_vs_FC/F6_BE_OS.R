@@ -2,7 +2,7 @@
 # Sequential sampling model #
 # using BE for one subject  #
 # Kevin Potter              #
-# 11/29/2016                #
+# 12/01/2016                #
 #---------------------------#
 
 # Initialize script
@@ -21,28 +21,22 @@ colnames( d ) = c('S','Cnd','Ac','RT','E','PD',
 # Indicate whether plots should be generated
 plotYes = T
 # Determine subject to fit
-sbj = 4
+sbj = 10
 # Determine type of model to fit
-tp = 2
+tp = 1
+
+# Index
+# Lookup - 01:  Define type of model to fit
+#          01a: Model 1
+#          01b: Model 2
+#          01c: Model 3
+# Lookup - 02:  Estimate model parameters for single subject
+# Lookup - 03:  Plot model results
 
 ###
 ### Define type of model to fit
 ###
 # Lookup - 01
-
-# Define distributions for priors for plotting purposes
-prior_f = function( priors, type, v = seq(0,4,length=1000) ) {
-  
-  if ( type == 1 | type == 2 ) {
-    out = list( x = v, y = dnorm( v, priors[1], priors[2] ) )
-  }
-  if ( type == 3 ) {
-    if ( max(v) > 1 | min(v) < 0 ) v = seq(0,1,length=1000)
-    out = list( x = v, y = dbeta( v, priors[1], priors[2] ) )
-  }
-  
-  return( out )
-}
 
 # Define a function to check if initial values are valid
 initCheck = function( curInit ) {
@@ -80,10 +74,13 @@ if ( tp == 1 ) {
   )
   
   # Prior index
-  priorIndex = c(
-    rep( 1, 5 ),
+  priorIndex = list( 
+    I = c( rep( 1, 5 ),
     rep( 2, 4 ),
-    3 )
+    3 ),
+    V = c( rep( 1, 5 ),
+       rep( 1, 4 ),
+       3 ) )
   
   # Define function to initialize values
   init_f = function(nCh) {
@@ -129,10 +126,14 @@ if ( tp == 2 ) {
   )
   
   # Prior index
-  priorIndex = c(
-    rep( 1, 1 ),
-    rep( 2, 8 ),
-    3 )
+  priorIndex = list( 
+    I = c( rep( 1, 1 ),
+           rep( 2, 8 ),
+           3 ),
+    V = c( rep( 1, 1 ),
+           rep( 1, 8 ),
+           3 ) )
+  
   
   # Define function to initialize values
   init_f = function(nCh) {
@@ -157,9 +158,62 @@ if ( tp == 2 ) {
   
 }
 
+# Model 3
+# Lookup - 01c
+if ( tp == 3 ) {
+  
+  # Define set of priors
+  Priors = cbind(
+    c( 1, 1, 0, 0, 0, # kappa
+       rep(2.0,4), rep(1.4,4), # xi
+       7 # theta
+    ),
+    c( .25, .25, .1, .1, .1, # kappa
+       rep(0.5,4), rep(.5,4), # xi
+       3 # theta
+    )
+  )
+  
+  # Prior index
+  priorIndex = list( 
+    I = c( rep( 1, 5 ),
+           rep( 2, 8 ),
+           3 ),
+    V = c( rep( 1, 5 ),
+           rep( 1, 8 ),
+           3 ) )
+  
+  # Define function to initialize values
+  init_f = function(nCh) {
+    
+    # Initialize output
+    out = c()
+    for (nc in 1:nCh) out = c( out, list() )
+    
+    # Generate initial values
+    for (nc in 1:nCh) {
+      
+      out[[nc]] = list(
+        kappa_S = runif( 1, .5, 2 ),
+        kappa_L = runif( 1, .5, 2 ),
+        kappa_SP = runif( 1, -.2, .2 ),
+        kappa_LP = runif( 1, -.2, .2 ),
+        kappa_B = runif( 1, -.2, .2 ),
+        xi = runif( 8, .5, 4 ),
+        theta = runif( 1, .5, .8 )
+      )
+      
+    }
+    
+    return( out )
+  }
+  
+}
+
 ###
 ### Estimate model parameters for single subject
 ###
+# Lookup - 02
 
 # Extract data and covariates
 input = model_structure_create( tp, d, Priors, s = sbj )
@@ -203,10 +257,11 @@ rm( startTime )
 ###
 ### Plot model results
 ###
+# Lookup - 03
 
 if ( plotYes ) {
   
-  if ( tp == 1 ) {
+  if ( tp == 1 | tp == 3 ) {
     # Collapse threshold parameters to single variable
     post$kappa = cbind( post$kappa_S, post$kappa_L, 
                         post$kappa_SP, post$kappa_LP,
@@ -334,8 +389,8 @@ if ( plotYes ) {
     for ( i in 1:ncol(pst) ) {
       
       # Determine prior distribution
-      pSel = which( priorIndex == j )
-      prs = prior_f( Priors[ pSel[i], ], j, 
+      pSel = which( priorIndex$I == j )
+      prs = prior_f( Priors[ pSel[i], ], priorIndex$V[i], 
                      v = seq(yl[1],yl[2],length=1000) )
       dn = .4*h[i]/max(h)
       p = .4*max( prs$y )/max(h)

@@ -2,7 +2,7 @@
 # Sequential sampling model #
 # using hierarchical BE     #
 # Kevin Potter              #
-# 11/28/2016                #
+# 12/01/2016                #
 #---------------------------#
 
 # Initialize script
@@ -20,7 +20,18 @@ colnames( d ) = c('S','Cnd','Ac','RT','E','PD',
 
 # Indicate whether model estimation should be carried out 
 # or if previous estimates should be loaded
-modelFit = T
+modelFit = F
+# Indicate if posterior samples should be saved
+saveFit = F
+
+# Index
+# Lookup - 01:  Create inputs for model estimation
+#          01a: Model 1
+#          01b: Model 2
+#          01c: Model 3
+# Lookup - 02:  Estimate model parameters for single subject
+# Lookup - 03:  Plot model results
+
 
 ###
 ### Create inputs for model estimation
@@ -28,7 +39,7 @@ modelFit = T
 # Lookup - 01
 
 # Define version of model to fit (unless previously defined)
-if ( !exists( 'type' ) ) type = 2
+if ( !exists( 'type' ) ) type = 1
 
 # Model 1
 # Lookup - 01a
@@ -83,7 +94,7 @@ if ( type == 1 ) {
   
 }
 
-# Model 1
+# Model 2
 # Lookup - 01b
 if ( type == 2 ) {
   
@@ -132,6 +143,58 @@ if ( type == 2 ) {
   
 }
 
+# Model 3
+# Lookup - 01c
+if ( type == 3 ) {
+  
+  Priors = cbind(
+    c( c(1,1,0,0,0), # kappa
+       rep( c( 2.5, 1.4 ), each = 4 ), # xi
+       7 ), # theta (Prop. of tau)
+    c( c(.25,.25,.1,.1,.1), # kappa
+       rep( .5, 8 ), # Xi 
+       2 ), # theta (Prop. of tau)
+    c( rep( 4, 5 ), # kappa
+       rep( 4, 8 ), # xi 
+       3 ), # theta (Prop. of tau)
+    c( rep( 4, 5 ), # kappa
+       rep( 4, 8 ), # xi
+       2 ) # theta (Prop. of tau)
+  )
+  
+  # Define function to initialize values
+  init_f = function( input, nCh ) {
+    
+    # Initialize output
+    out = c()
+    for (nc in 1:nCh) out = c( out, list() )
+    
+    # Generate initial values
+    for (nc in 1:nCh) {
+      
+      out[[nc]] = list(
+        kappa_S = runif( input$Ns, .5, 2 ),
+        kappa_L = runif( input$Ns, .5, 2 ),
+        kappa_SP = runif( input$Ns, -.2, .2 ),
+        kappa_LP = runif( input$Ns, -.2, .2 ),
+        kappa_B = runif( input$Ns, -.2, .2 ),
+        xi = matrix( runif( 8*input$Ns, .5, 4 ), 
+                     input$Ns, 8 ),
+        theta = runif( input$Ns, .5, .9 ),
+        kappa_mu = as.array( runif( 3, c(.5,.5,-.2),c(2,2,.2) ) ),
+        kappa_sig = as.array( runif( 5, .2, 2 ) ),
+        xi_mu = as.array( runif( 8, .5, 4 ) ),
+        xi_sig = as.array( runif( 8, .2, 2 ) ),
+        theta_alpha = runif( 1, 2, 15 ),
+        theta_beta = runif( 1, 2, 15 )
+      )
+      
+    }
+    
+    return( out )
+  }
+  
+}
 
 # Define folder location and file name to save output
 folderName = "C:/Users/Kevin/Documents/Posteriors from Stan/SD_vs_FC"
@@ -146,14 +209,15 @@ if (modelFit) {
   # Extract data and covariates
   input = model_structure_create(type, d, Priors)
   
-  warm = 100 # Warm-up period
-  niter = 100 # Number of samples to approximate posterior per chain
-  chains = 1 # Number of chains to run
+  warm = 300 # Warm-up period
+  niter = 1250 # Number of samples to approximate posterior per chain
+  chains = 8 # Number of chains to run
   
   setwd('Stan_scripts')
   
   if ( type == 1 ) stan_seed = 2032
   if ( type == 2 ) stan_seed = 7654
+  if ( type == 3 ) stan_seed = 4281
   
   startVal = init_f( input, chains )
   
@@ -176,7 +240,7 @@ if (modelFit) {
   
   # Save posterior estimates
   setwd( folderName )
-  save( post, conv, input, file = outName )
+  if (saveFit) save( post, conv, input, file = outName )
   
 } else {
   # Load in posterior estimates
