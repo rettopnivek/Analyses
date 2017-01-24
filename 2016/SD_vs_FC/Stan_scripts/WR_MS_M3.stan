@@ -397,7 +397,7 @@ parameters {
   vector<lower=0.0>[8] xi[Ns]; // Set of drift rates
   real<lower=0.0,upper=1.0> theta[Ns]; // Proportion for residual latency
   // Group level
-  real kappa_mu[ 3 ]; // Means for thresholds
+  real kappa_mu[ 5 ]; // Means for thresholds
   real<lower=0.0> kappa_sig[ 5 ]; // Standard deviations for thresholds
   real xi_mu[ 8 ]; // Means for thresholds
   real<lower=0.0> xi_sig[ 8 ]; // Standard deviations for thresholds
@@ -421,10 +421,8 @@ model {
   vector[ sum(No) ] summands;
   
   // Priors
-  for (i in 1:3) {
-    kappa_mu[i] ~ normal( Priors[i,1], Priors[i,2] );
-  }
   for (i in 1:5) {
+    kappa_mu[i] ~ normal( Priors[i,1], Priors[i,2] );
     kappa_sig[i] ~ gamma( Priors[i,3], Priors[i,4] );
   }
   for (i in 1:8) {
@@ -441,9 +439,9 @@ model {
     // Hierarchy
     kappa_S[ns] ~ normal( kappa_mu[1], kappa_sig[1] );
     kappa_L[ns] ~ normal( kappa_mu[2], kappa_sig[2] );
-    kappa_SP[ns] ~ normal( 0.0, kappa_sig[3] );
-    kappa_LP[ns] ~ normal( kappa_mu[3], kappa_sig[4] );
-    kappa_B[ns] ~ normal( 0.0, kappa_sig[5] );
+    kappa_SP[ns] ~ normal( kappa_mu[3], kappa_sig[3] );
+    kappa_LP[ns] ~ normal( kappa_mu[4], kappa_sig[4] );
+    kappa_B[ns] ~ normal( kappa_mu[5], kappa_sig[5] );
     xi[ns] ~ normal( xi_mu, xi_sig );
     theta[ns] ~ beta( theta_alpha, theta_beta );
     

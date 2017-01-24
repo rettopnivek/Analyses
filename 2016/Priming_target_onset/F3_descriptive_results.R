@@ -1,7 +1,7 @@
 #---------------------#
 # Descriptive results #
 # Kevin Potter        #
-# Updated 11/23/2016  #
+# Updated 01/03/2017  #
 #---------------------#
 
 # Clear workspace
@@ -78,7 +78,7 @@ setwd( orig_dir )
 # For easy manipulation
 d = allDat
 colnames( d ) = c('S','PD','PT','O','Co','RT',
-                  'Ch','Ac','OT','DT','CDT','Cnd')
+                  'Ch','Ac','OT','DT','CDT','Cnd','TD')
 
 ###
 ### Priming duration x type effect

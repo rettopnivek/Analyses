@@ -1,0 +1,16 @@
+12/15/2016
+This document summarizes the different scripts, their purpose, and their status:
+
+F0_data_creation.R (Finished)
+  - Reads in the original .csv files per subject and combines/converts them to a single .RData file.
+  - Creates some new variables.
+  - Calculates the total number of subjects.
+  - Provides information on each variable and its levels.
+F1_data_preprocessing.R (In progress)
+  - Trims data based on a set of cut-offs (RTs too fast, slow, or unlikely under a mixture model).
+  - Creates a pdf summarizing the trimming results.
+  - Revises the .RData file to include the raw and trimmed data.
+F2_useful_functions.R (In progress)
+  - Defines a set of useful functions for subsequent modeling
+F3_descriptive_results.R (In progress)
+  - Generates a pdf with a set of descriptive results describing the data and empirical effects.

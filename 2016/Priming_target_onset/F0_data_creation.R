@@ -1,7 +1,7 @@
 #-----------------------------#
 # Script to create R data set #
 # Kevin Potter                #
-# Updated 11/11/16            #
+# Updated 01/03/17            #
 #-----------------------------#
 
 # Clear workspace
@@ -142,6 +142,22 @@ rm( CB, tmp, i )
 
 # Determine total number of subjects
 N = length( unique( rawDat$Subject ) )
+
+###
+### Add in target duration (in ms) for each subject
+###
+
+targetDur = read.table( file = 'Offset_times.csv', 
+                        sep = ',', header = F )
+colnames( targetDur ) = c( 'Subjects', 'MonitorRefresh', 'Time' )
+rawDat$TargetDur = 0
+for ( n in 1:N ) {
+  sel = rawDat$Subject == targetDur$Subject[ n ]
+  rawDat$TargetDur[ sel ] = targetDur$Time[ n ]
+}
+
+# Clean up workspace
+rm( n, targetDur )
 
 # Save extracted data
 fName = 'Priming_offset.RData'

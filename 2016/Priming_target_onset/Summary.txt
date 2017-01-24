@@ -1,10 +1,11 @@
-12/01/2016
+01/03/2017
 This document summarizes the different scripts, their purpose, and their status:
 
 F0_data_creation.R (Finished)
   - Reads in the original .csv file of data and converts it to a .RData file.
   - Creates some new variables and rescales others.
   - Calculates the total number of subjects.
+  - Adds in the duration of the target flash for eachs subject.
   - Provides information on each variable and its levels.
 F1_data_preprocessing.R (Finished)
   - Trims data based on a set of cut-offs (RTs too fast, slow, or unlikely under a mixture model).
@@ -12,25 +13,39 @@ F1_data_preprocessing.R (Finished)
   - Revises the .RData file to include the raw and trimmed data.
 F2_useful_functions.R (In progress)
   - Defines a set of useful functions for subsequent modeling
-F3_descriptive_results.R (In progress)
+F3_descriptive_results.R (Finished)
   - Generates a pdf with a set of descriptive results describing the data and empirical effects.
-F4_starting_script.R (In progress)
+F4_starting_script.R (Finished)
   - Loads in needed packages and defines Stan scripts
 F5_nROUSE.R (In progress)
-  - Obtain estimates of the nROUSE model parameters for subjects (Maybe hierarchical?)
+  - Parameter recovery using a Bayesian estimation method for a single subject.
+  - Obtain/plot group-level estimates for nROUSE model parameters using MLE.
+  - Obtain/plot subject-level estimates for nROUSE model parameters using MLE.
+  TO DO -> Source code to obtain new data set
 F6_simulations.R (Finished)
   - Simulates data from residual latency variant of wald race.
   - Tests parameter recovery under different conditions.
   - Tests model estimation scripts in Stan.
   - Tests parameter recovery over multiple iterations with MLE.
-F7_BE_OS.R (Finished)
+F7_BE_OS.R (In progress)
   - Fits a bayesian model to data from a single subject.
   - Provides basic examples of how to examine convergence and plot marginal posterior estimates.
+  TO DO -> Update convenience data-frame column labels
 F8_BE_MS.R (In progress)
   - Fits a hierarchical bayesian model to data across all subjects.
-TO DO -> create a function to generate better starting values?
+  TO DO -> Update convenience data-frame column labels
+  TO DO -> create a function to generate better starting values?
 F9_post_examinations.R (In progress)
   - Plots convergence checks for a given hierarchical model
   - Plots retrodictive checks for a given hierarchical model
+  TO DO -> Update convenience data-frame column labels
+F10_MLE_offset.R (Finished)
+  - Obtains MLE estimates for 2 models (using a conjugate-gradient method and numerical methods 
+    for the derivates):
+    A) Hybrid model (priming effects in threshold/drift-rate) with no offset effects
+    B) Hybrid model (priming effects in threshold/drift-rate) with a-priori offset effects
+  - Calculates the AICc values and weights for the two models, and for a variant of model A in 
+    which the offset is applied post-hoc.
+  - Plots the goodness-of-fit for the MLE values using joint CDF curves.
 Misc_code.R (In progress)
   - Extra, unfinished code.

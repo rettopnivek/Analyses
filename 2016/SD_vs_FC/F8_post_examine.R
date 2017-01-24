@@ -1,11 +1,11 @@
 #---------------------------#
 # Examination of posteriors #
 # Kevin Potter              #
-# Updated 12/01/2016        #
+# Updated 12/15/2016        #
 #---------------------------#
 
 # Define model type
-type = 3
+type = 4
 
 # Load in estimation results for hierarchical model
 source( 'F7_BE_MS.R' )
@@ -165,7 +165,7 @@ if ( runCode[2] ) {
     
     # Determine MAP estimates for group-level
     cf = c(
-      apply( post$kappa_mu, 2, findMode ), 0.0, 
+      apply( post$kappa_mu, 2, findMode ), 
       apply( post$xi_mu, 2, findMode ),
       findMode( theta )*mean( input$min_RT ) )
     prm = param_est( input$X_small, cf, input$fixed, input$index,
@@ -194,9 +194,8 @@ if ( runCode[2] ) {
     theta = post$theta_alpha/(post$theta_alpha+post$theta_beta)
     
     # Determine MAP estimates for group-level
-    tmp = apply( post$kappa_mu, 2, findMode )
     cf = c(
-      tmp[1:2], 0.0, tmp[3], 0.0, 
+      apply( post$kappa_mu, 2, findMode ), 
       apply( post$xi_mu, 2, findMode ),
       findMode( theta )*mean( input$min_RT ) )
     prm = param_est( input$X_small, cf, input$fixed, input$index,
@@ -204,6 +203,22 @@ if ( runCode[2] ) {
     
   }
   
+  if ( type == 4 ) {
+    
+    # Calculate residual latency
+    theta = post$theta_alpha/(post$theta_alpha+post$theta_beta)
+    
+    tmp = findMode( post$beta_mu[,1] ) + 
+      findMode( post$beta_mu[,2] ) * colMeans( input$zIL )
+    
+    # Determine MAP estimates for group-level
+    cf = c(
+      apply( post$kappa_mu, 2, findMode ), 
+      tmp,
+      findMode( theta )*mean( input$min_RT ) )
+    prm = param_est( input$X_small, cf, input$fixed, input$index,
+                     input$parSel )
+  }
   
   if (!savePlot) x11(width=12)
   layout( rbind( c(1,3,5,7), c(2,4,6,8) ) )
@@ -216,6 +231,7 @@ if ( runCode[2] ) {
   for ( cnd in 1:8 ) {
     
     blankRTplot( bty='l', cex.axis = 1.5, cex.lab = 1.5 )
+    
     for (k in 1:4) { if ( cnd == c(1,3,5,7)[k] ) title( ttl[k], cex = .9 ) }
     
     if ( cnd == 7 ) legend( 'topleft', 'Left correct',
@@ -266,10 +282,10 @@ if ( runCode[3] ) {
       I = c( rep( 1, 5 ),
              rep( 2, 4 ),
              3 ),
-      V = c( rep( 1, 4 ),
+      V = c( rep( 1, 5 ),
              rep( 1, 4 ),
              3 ) )
-    lbls = c( 'Short', 'Long', 'Prime bias (long)', 'Side bias',
+    lbls = c( 'Short', 'Long', 'Prime bias (short)', 'Prime bias (long)', 'Side bias', 
               'Target (.05 s)', 'Target (.4 s)',
               'Foil (.05 s)', 'Foil (.4 s)',
               ' ' )
@@ -298,20 +314,37 @@ if ( runCode[3] ) {
       I = c( rep( 1, 5 ),
              rep( 2, 8 ),
              3 ),
-      V = c( rep( 1, 3 ),
+      V = c( rep( 1, 5 ),
              rep( 1, 8 ),
              3 ) )
     
-    lbls = c( 'Short', 'Long', 'Prime bias (long)',
+    lbls = c( 'Short', 'Long', 'Prime bias (short)', 'Prime bias (long)', 'Side bias', 
               'Target (STP)', 'Target (LTP)', 'Target (SFP)', 'Target (LFP)',
               'Foil (STP)', 'Foil (LTP)', 'Foil (SFP)', 'Foil (LFP)',
               ' ' )
     
   }
   
+  # Define info for prior distributions
+  if ( type == 4 ) {
+    # Prior index
+    priorIndex = list( 
+      I = c( rep( 1, 5 ),
+             rep( 2, 2 ),
+             3 ),
+      V = c( rep( 1, 5 ),
+             rep( 1, 2 ),
+             3 ) )
+    lbls = c( 'Short', 'Long', 'Prime bias (short)', 'Prime bias (long)', 'Side bias', 
+              'Intercept','Slope',
+              ' ' )
+  }
+  
+  
   ### Posterior distribution estimates ####
   
   lp = 1:3
+  if ( type == 4 ) lp = c(1,4,3)
   inc = 0
   for (j in lp) {
     
@@ -328,6 +361,10 @@ if ( runCode[3] ) {
       pst = cbind( as.numeric( post$theta_alpha / 
                                  (post$theta_alpha+post$theta_beta) ) )
       ttl = 'Proportion of fastest RT'
+    }
+    if ( j == 4 ) {
+      pst = post$beta_mu
+      ttl = 'Regression coefficients'
     }
     
     if (!savePlot) x11(width=12)
@@ -394,6 +431,7 @@ if ( runCode[3] ) {
 }
 
 if (savePlot) {
+  setwd( orig_dir )
   setwd( 'Plots' )
   dev.off()
 }

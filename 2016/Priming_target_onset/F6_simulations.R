@@ -1,11 +1,11 @@
 #------------------------------------#
 # Simulations and parameter recovery #
 # Kevin Potter                       #
-# Updated 11/13/2016                 #
+# Updated 12/01/2016                 #
 #------------------------------------#
 
 # Initialize script
-source('F5_starting_script.R')
+source('F4_starting_script.R')
 
 # Define segments of code to run
 runCode = c( T, T, T, T, T )

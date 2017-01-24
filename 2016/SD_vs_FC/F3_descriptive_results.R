@@ -730,5 +730,5 @@ if ( runCode[7] ) {
 }
 
 # Return to original directory
-if ( savePlot ) { setwd( 'Data' ); dev.off() } # Close plotting window
+if ( savePlot ) { setwd( 'Plots' ); dev.off() } # Close plotting window
 setwd( orig_dir )

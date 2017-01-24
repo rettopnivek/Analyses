@@ -1,7 +1,7 @@
 #-----------------------------#
 # nROUSE parameter estimation #
 # Kevin Potter                #
-# Updated 11/26/2016          #
+# Updated 01/03/2017          #
 #-----------------------------#
 
 # Initialize script
@@ -91,7 +91,7 @@ if ( runCode[1] ) {
   # Estimate the best fitting parameters over multiple runs with 
   # dispersed starting points
   startTime = Sys.time()
-  model_fit = MLE( nDat, mle_f, st_f, nRep = 10 )
+  model_fit = MLE( nDat, mle_f, st_f, nRep = 10, maxit = 10000 )
   runTime = Sys.time() - startTime
   print( runTime )
   
@@ -208,7 +208,7 @@ if ( runCode[2] ) {
     obs[n,] = c( nDat$P, nDat$Y, nDat$N )
     
     # Obtain maximum likelihood estimates
-    model_fit = MLE( nDat, mle_f, st_f, nRep = 20 )
+    model_fit = MLE( nDat, mle_f, st_f, nRep = 10, maxit = 10000 )
     
     # Extract best-fitting parameters
     bfp = exp( model_fit$param )

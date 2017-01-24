@@ -1,0 +1,4 @@
+01/03/2017
+This document summarizes the different scripts, their purpose, and their status:
+
+F0_data_creation.R

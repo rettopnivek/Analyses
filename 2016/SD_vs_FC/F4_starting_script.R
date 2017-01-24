@@ -1,7 +1,7 @@
 #--------------------#
 # Starting script    #
 # Kevin Potter       #
-# Updated 11/30/2016 #
+# Updated 12/01/2016 #
 #--------------------#
 
 # Check if the variable 'type' already exists
