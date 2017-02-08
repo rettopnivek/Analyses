@@ -1,7 +1,7 @@
 #-----------------------------#
 # Script to create R data set #
 # Kevin Potter                #
-# Updated 01/03/17            #
+# Updated 01/26/17            #
 #-----------------------------#
 
 # Clear workspace
@@ -10,9 +10,17 @@ rm(list = ls())
 # Save current working directory
 orig_dir = getwd()
 
+# Index
+# Lookup - 01:  Load in useful packages
+# Lookup - 02:  Read in .csv file
+# Lookup - 03:  Create/adjust variables
+# Lookup - 04:  Variable key
+# Lookup - 05:  Save new data
+
 ###
 ### Load in useful packages
 ###
+# Lookup - 01
 
 # For geting github packages
 # install.packages(devtools)
@@ -25,7 +33,7 @@ library(utilityf)
 ###
 ### Read in .csv file
 ###
-# Lookup - 01
+# Lookup - 02
 
 # Change directory to where data is stored
 setwd( 'Data' )
@@ -37,6 +45,11 @@ colnames( rawDat ) = c(
   'Subjects', 'Condition', 'Correct', 
   'Accuracy', 'Resp', 'RT', 'Target', 'Preview1', 'Preview3' )
 
+###
+### Create/adjust variables
+###
+# Lookup - 03
+
 # Convert responses to dummy coding
 rawDat$Correct[ rawDat$Correct == 5 ] = 0
 rawDat$Resp[ rawDat$Resp == 5 ] = 0
@@ -44,25 +57,81 @@ rawDat$Resp[ rawDat$Resp == 5 ] = 0
 # Convert RT from ms to seconds
 rawDat$RT = rawDat$RT/1000
 
+# Create variable storing original subject ID numbers
+rawDat$ID = rawDat$Subjects
+# Set subject numbers to be incremental
+rawDat$Subjects = createIncrement( rawDat$Subjects )
+
+# Create variable for flanker type
+# 1 = No flankers
+# 2 = Identical (Same letter as target)
+# 3 = Same response (Same class as target, i.e. 
+#     matching vowel or consonant)
+# 4 = Incompatible (consonant/vowel instead of target's vowel/consonant)
+rawDat$Flanker = 1
+sel = rawDat$Condition == 2 | rawDat$Condition == 5 | 
+  rawDat$Condition == 8 | rawDat$Condition == 11 | 
+  rawDat$Condition == 14
+rawDat$Flanker[ sel ] = 2
+sel = rawDat$Condition == 3 | rawDat$Condition == 6 | 
+  rawDat$Condition == 9 | rawDat$Condition == 12 | 
+  rawDat$Condition == 15
+rawDat$Flanker[ sel ] = 3
+sel = rawDat$Condition == 4 | rawDat$Condition == 7 | 
+  rawDat$Condition == 10 | rawDat$Condition == 13 | 
+  rawDat$Condition == 16
+rawDat$Flanker[ sel ] = 4
+
+# Create variable for prime type
+# 1 = No prime
+# 2 = Identical (Same letter as target)
+# 3 = Same response (Same class as target, i.e. 
+#     matching vowel or consonant)
+# 4 = Incompatible (consonant/vowel instead of target's vowel/consonant)
+rawDat$PrimeType = 1
+inc = 0
+for (i in 2:4) {
+  sel = rawDat$Condition == (5 + inc) | 
+    rawDat$Condition == (8 + inc) | 
+    rawDat$Condition == (11 + inc) | 
+    rawDat$Condition == (14 + inc)
+  rawDat$PrimeType = i
+  inc = inc + 1
+}
+
+# Create variable for prime duration (in s)
+rawDat$Duration = 0
+rawDat$Duration[ rawDat$Condition > 4 & rawDat$Condition < 11 ] = .1
+rawDat$Duration[ rawDat$Condition > 10 ] = .8
+
+# Extract number of subjects
+N = length( unique( rawDat$Subjects ) )
+
+###
+### Variable key
+###
+# Lookup - 04
+
 # Subject:   Indicates which subject completed a given trial
 # Condition: Indicate the type of condition, where...
-#            #  | Prime (ms) | Prime (type)
-#            1  | 0          | None
-#            2  | 0          | None
-#            3  | 0          | None
-#            4  | 0          | None
-#            5  | 100        | Identical
-#            6  | 100        | Same response
-#            7  | 100        | Incompatible
-#            8  | 100        | Identical (flankers)
-#            9  | 100        | Same response (flankers)
-#            10 | 100        | Incompatible (flankers)
-#            11 | 800        | Identical
-#            12 | 800        | Same response
-#            13 | 800        | Incompatible
-#            14 | 800        | Identical (flankers)
-#            15 | 800        | Same response (flankers)
-#            16 | 800        | Incompatible (flankers)
+# N = None, Id = Identical, In = Incompatible, SR = Same response
+#            #  | Prime (ms) | Prime (type) | Flanker
+#            1  | 0          | N            | None
+#            2  | 0          | N            | Id
+#            3  | 0          | N            | SR
+#            4  | 0          | N            | In
+#            5  | 100        | Id           | N
+#            6  | 100        | SR           | N
+#            7  | 100        | In           | N
+#            8  | 100        | Id   Same -> | Id
+#            9  | 100        | SR   Same -> | SR
+#            10 | 100        | In   Same -> | In
+#            11 | 800        | Id           | N
+#            12 | 800        | SR           | N
+#            13 | 800        | In           | N
+#            14 | 800        | Id   Same -> | Id
+#            15 | 800        | SR   Same -> | SR
+#            16 | 800        | In   Same -> | In
 # Correct:   Indicates what the correct response is, where 
 #            1 = consonant, 0 = vowel
 # Accuracy:  Indicates whether a response was correct (1) or 
@@ -74,3 +143,26 @@ rawDat$RT = rawDat$RT/1000
 #            a 1900 ms fixation and prime presentation).
 # Preveiw1:  The fixation presentation.
 # Preview3:  The prime presentation.
+# Flanker:   The type of flanker, where...
+#            1 = No flankers
+#            2 = Identical (Same letter as target)
+#            3 = Same response (Same class as target, i.e. 
+#                matching vowel or consonant)
+#            4 = Incompatible (consonant/vowel instead of 
+#                target's vowel/consonant)
+# PrimeType: The type of prime, where...
+#            1 = No prime
+#            2 = Identical (Same letter as target)
+#            3 = Same response (Same class as target, i.e. 
+#                matching vowel or consonant)
+#            4 = Incompatible (consonant/vowel instead of 
+#                target's vowel/consonant)
+# Duration:  The length of the prime in seconds
+
+###
+### Save new data
+###
+# Lookup - 05
+
+save( rawDat, N, file = 'Flanker_priming.RData' )
+setwd( orig_dir )

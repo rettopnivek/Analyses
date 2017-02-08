@@ -1,7 +1,7 @@
 #--------------------#
 # SDT model fit      #
 # Kevin Potter       #
-# Updated 01/21/2017 #
+# Updated 01/24/2017 #
 #--------------------#
 
 # Clear workspace
@@ -63,11 +63,11 @@ if ( runCode[1] ) {
   
   # Define priors
   Priors = rbind(
-    c( 1.537, 1 ),  # Beta
+    c( 1.537, 1 ),  # beta_d
     c( 1.537, 1 ),
     c( 1.537, 1 ),
     c( 1.537, 1 ),
-    c( 0, 1 ),  # Bias
+    c( 0, 1 ),  # beta_c
     c( 2, 4 ),  # sigma_zeta
     c( 2, 4 ),  # tau
     c( 2, 0 )   # L_Omega
@@ -138,10 +138,10 @@ if ( runCode[2] ) {
   
   # Define priors
   Priors = rbind(
-    c( 1.537, 1 ),  # Beta
+    c( 1.537, 1 ),  # beta_d
     c( 0, 1 ),
     c( 0, 1 ),
-    c( 0, 1 ),  # Bias
+    c( 0, 1 ),  # beta_c
     c( 2, 4 ),  # sigma_zeta
     c( 2, 4 ),  # tau
     c( 2, 0 )   # L_Omega
@@ -211,9 +211,9 @@ if ( runCode[3] ) {
   
   # Define priors
   Priors = rbind(
-    c( 1.537, 1 ),  # Beta
+    c( 1.537, 1 ),  # beta_d
     c( 0, 1 ),
-    c( 0, 1 ),  # Bias
+    c( 0, 1 ),  # beta_c
     c( 2, 4 ),  # sigma_zeta
     c( 2, 4 ),  # tau
     c( 2, 0 )   # L_Omega

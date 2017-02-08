@@ -1,5 +1,5 @@
 functions {
-  #include "RvSDT_lpmf.stan"
+  #include "RvSDT_prob.stan"
 }
 data {
   int No; // Number of total observations
@@ -21,22 +21,35 @@ parameters {
   vector[2] eta[Ns]; // Subject-specific effects on d' and criterion
   cholesky_factor_corr[2] L_Omega; // Correlations for subject effects
   vector<lower=0.0>[2] tau; // Scale parameters for subject effects
-  real<lower=0.0,upper=1.0> theta[Ni]; // Probability of recall
-  real<lower=0.0,upper=1.0> phi; // Mean for recall probability
-  real<lower=0.1> nu; // Total counts for recall probability
+  vector[Ni] lambda; // Logit values for recall probabilities
+  real mu_lambda; // Mean probability of recall
+  real<lower=0.0> sigma_lambda; // Variability for recall probabilities
 }
 transformed parameters {
-  real alpha;
-  real kappa;
+  real theta[No]; // Probability of picking right
   
-  alpha = nu * phi;
-  kappa = nu * (1.0 - phi);
+  // Define probabilities for bernoulli distribution
+  {
+    real dp;
+    real crt;
+    real lmb;
+
+    // Loop over observations and calculate probability of picking right
+    for ( no in 1:No ) {
+      
+      dp = Xd[no] * beta_dp + eta[ subjIndex[ no ], 1 ];
+      crt = Xc[no] * beta_c + eta[ subjIndex[ no ], 2 ];
+      
+      lmb = inv_logit( lambda[ itemIndex[ no ] ] );
+      theta[ no ] = RvSDT_prob( lmb, dp, crt, Co[no] );
+      
+    }
+  }
+  
 }
 model {
   vector[2] Mu; // Declare vector for location of subject effects
   matrix[2, 2] Sigma;
-  real dp;
-  real crt;
   int inc;
   
   // Fix location of subject effects to 0
@@ -54,9 +67,9 @@ model {
     beta_c[i] ~ normal( Priors[inc,1], Priors[inc,2] );
     inc = inc + 1;
   }
-  phi ~ beta( Priors[inc,1], Priors[inc,2] );
+  mu_lambda ~ normal( Priors[inc,1], Priors[inc,2] );
   inc = inc + 1;
-  nu ~ normal( Priors[inc,1], Priors[inc,2] );
+  sigma_lambda ~ gamma( Priors[inc,1], Priors[inc,2] );
   inc = inc + 1;
   tau ~ gamma( Priors[inc,1], Priors[inc,2] );
   inc = inc + 1;
@@ -64,20 +77,10 @@ model {
   
   // Hierarchy
   eta ~ multi_normal_cholesky(Mu,Sigma);
-  theta ~ beta( alpha, kappa );
+  lambda ~ normal( mu_lambda, sigma_lambda );
   
   // Likelihood
-  for (no in 1:No) {
-    
-    dp = Xd[no] * beta_dp + eta[ subjIndex[ no ], 1 ];
-    crt = Xc[no] * beta_c + eta[ subjIndex[ no ], 2 ];
-    
-    target += RvSDT_lpmf( Y[no] | 
-                          theta[ itemIndex[ no ] ],
-                          dp,
-                          crt,
-                          Co[ no ] );
-  }
+  Y ~ bernoulli(theta);
 }
 generated quantities {
   vector[No] logLik;
@@ -85,21 +88,6 @@ generated quantities {
   
   Omega = multiply_lower_tri_self_transpose(L_Omega);
   
-  {
-    real dp;
-    real crt;
-    
-    // Likelihood
-    for (no in 1:No) {
-      
-      dp = Xd[no] * beta_dp + eta[ subjIndex[ no ], 1 ];
-      crt = Xc[no] * beta_c + eta[ subjIndex[ no ], 2 ];
-      
-      logLik[no] = RvSDT_lpmf( Y[no] | 
-                               theta[ itemIndex[ no ] ],
-                               dp,
-                               crt,
-                               Co[ no ] );
-    }
-  }
+  for (no in 1:No) logLik[no] = bernoulli_lpmf( Y[no] | theta[no] );
 }
+

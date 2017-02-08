@@ -1,0 +1,4 @@
+Sex, Male
+Ethnicity, Not Hispanic or Latino
+Race, Asian
+Age, 30

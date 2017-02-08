@@ -1,0 +1,1065 @@
+7,Trial,Cond,Block,ImageFiles,Labels,Cues
+7,1,1,1,O_Lure_90.bmp,Telephone,NaN
+7,2,1,1,O_Lure_79.bmp,Remote Control,NaN
+7,3,1,1,S_Image_110.bmp,Forbidden City,NaN
+7,4,1,1,F_Lure_10.bmp,Dalai Lama,NaN
+7,5,1,1,S_Image_142.bmp,Tower Bridge,NaN
+7,6,1,1,O_Lure_96.bmp,Wineglass,NaN
+7,7,1,1,F_Lure_39.bmp,Robbie Williams,NaN
+7,8,1,1,F_Image_24.bmp,Keanu Reeves,NaN
+7,9,1,1,S_Lure_98.bmp,Alcatraz,NaN
+7,10,1,1,S_Image_97.bmp,Akropolis,NaN
+7,11,1,1,O_Lure_54.bmp,Bicycle,NaN
+7,12,1,1,F_Image_10.bmp,Dalai Lama,NaN
+7,13,1,1,F_Image_25.bmp,Leonardo DiCaprio,NaN
+7,14,1,1,O_Image_56.bmp,Broom,NaN
+7,15,1,1,S_Image_140.bmp,Taj Mahal,NaN
+7,16,1,1,O_Image_83.bmp,Shoe,NaN
+7,17,1,1,O_Image_70.bmp,Key,NaN
+7,18,1,1,O_Image_95.bmp,Wheelchair,NaN
+7,19,1,1,F_Lure_46.bmp,Wayne Rooney,NaN
+7,20,1,1,S_Lure_110.bmp,Forbidden City,NaN
+7,21,1,1,F_Lure_16.bmp,George Bush,NaN
+7,22,1,1,S_Lure_97.bmp,Akropolis,NaN
+7,23,1,1,F_Image_41.bmp,Rod Steward,NaN
+7,24,1,1,F_Image_47.bmp,Whoopi Goldberg,NaN
+7,25,1,1,S_Lure_123.bmp,Mount Everest,NaN
+7,26,1,1,S_Lure_140.bmp,Taj Mahal,NaN
+7,27,1,1,F_Lure_12.bmp,David Beckham,NaN
+7,28,1,1,F_Image_31.bmp,Michael Jackson,NaN
+7,29,1,1,F_Image_9.bmp,Charlie Chaplin,NaN
+7,30,1,1,S_Lure_126.bmp,Neu schwanstein Castle,NaN
+7,31,1,1,S_Lure_102.bmp,Ayers Rock,NaN
+7,32,1,1,S_Image_108.bmp,Dover Cliffs,NaN
+7,33,1,1,F_Image_16.bmp,George Bush,NaN
+7,34,1,1,O_Image_51.bmp,Basket,NaN
+7,35,1,1,F_Image_14.bmp,Elvis Presley,NaN
+7,36,1,1,S_Lure_138.bmp,Stonehenge,NaN
+7,37,1,1,S_Lure_142.bmp,Tower Bridge,NaN
+7,38,1,1,O_Lure_64.bmp,Goggles,NaN
+7,39,1,1,F_Lure_35.bmp,Nikola Sarkozy,NaN
+7,40,1,1,S_Image_132.bmp,Red Square,NaN
+7,41,1,1,O_Lure_56.bmp,Broom,NaN
+7,42,1,1,F_Lure_25.bmp,Leonardo DiCaprio,NaN
+7,43,1,1,O_Lure_84.bmp,Skirt,NaN
+7,44,1,1,F_Image_5.bmp,Bill Clinton,NaN
+7,45,1,1,F_Lure_40.bmp,Robert De Niro,NaN
+7,46,1,1,O_Image_86.bmp,Soother,NaN
+7,47,1,1,F_Lure_45.bmp,Tony Blair,NaN
+7,48,1,1,S_Lure_118.bmp,Leaning Tower,NaN
+7,49,1,1,F_Image_48.bmp,Will Smith,NaN
+7,50,1,1,O_Image_64.bmp,Goggles,NaN
+7,51,1,1,F_Image_39.bmp,Robbie Williams,NaN
+7,52,1,1,O_Lure_51.bmp,Basket,NaN
+7,53,1,1,O_Lure_77.bmp,Radio,NaN
+7,54,1,1,F_Image_2.bmp,Amy Winehouse,NaN
+7,55,1,1,S_Image_141.bmp,Time Square,NaN
+7,56,1,1,O_Lure_60.bmp,Flask,NaN
+7,57,1,1,O_Image_84.bmp,Skirt,NaN
+7,58,1,1,O_Lure_53.bmp,Belt,NaN
+7,59,1,1,O_Image_94.bmp,Watch,NaN
+7,60,1,1,O_Image_58.bmp,Canoe,NaN
+7,61,1,1,F_Lure_8.bmp,Cameron Diaz,NaN
+7,62,1,1,F_Image_20.bmp,Jennifer Lopez,NaN
+7,63,1,1,S_Lure_121.bmp,Mecca,NaN
+7,64,1,1,F_Image_15.bmp,Fidel Castro,NaN
+7,65,1,1,S_Image_129.bmp,Petra,NaN
+7,66,1,1,S_Lure_122.bmp,Mont Saint Michel,NaN
+7,67,1,1,O_Lure_92.bmp,Trophy,NaN
+7,68,1,1,O_Image_49.bmp,Anchor,NaN
+7,69,1,1,F_Image_42.bmp,Scarlett Johansson,NaN
+7,70,1,1,F_Image_27.bmp,Mahadma Gandhi,NaN
+7,71,1,1,O_Lure_66.bmp,Guitar,NaN
+7,72,1,1,S_Image_143.bmp,Versailles,NaN
+7,73,1,1,S_Image_103.bmp,Big Ben,NaN
+7,74,1,1,O_Image_92.bmp,Trophy,NaN
+7,75,1,1,F_Lure_22.bmp,Judi Dench,NaN
+7,76,1,1,F_Lure_26.bmp,Madonna,NaN
+7,77,1,1,O_Lure_86.bmp,Soother,NaN
+7,78,1,1,O_Image_54.bmp,Bicycle,NaN
+7,79,1,1,O_Lure_58.bmp,Canoe,NaN
+7,80,1,1,S_Image_134.bmp,Sagrada Familia,NaN
+7,81,1,1,O_Lure_59.bmp,Fan,NaN
+7,82,1,1,F_Lure_42.bmp,Scarlett Johansson,NaN
+7,83,1,1,F_Lure_3.bmp,Angela Merkel,NaN
+7,84,1,1,F_Lure_5.bmp,Bill Clinton,NaN
+7,85,1,1,O_Image_79.bmp,Remote Control,NaN
+7,86,1,1,O_Lure_81.bmp,Scale,NaN
+7,87,1,1,F_Image_34.bmp,Nelson Mandela,NaN
+7,88,1,1,S_Image_99.bmp,Alhambra,NaN
+7,89,1,1,F_Image_23.bmp,Julia Roberts,NaN
+7,90,1,1,F_Lure_14.bmp,Elvis Presley,NaN
+7,91,1,1,S_Image_144.bmp,White House,NaN
+7,92,1,1,O_Lure_83.bmp,Shoe,NaN
+7,93,1,1,O_Lure_74.bmp,Mirror,NaN
+7,94,1,1,F_Image_3.bmp,Angela Merkel,NaN
+7,95,1,1,S_Lure_100.bmp,Angkor Wat,NaN
+7,96,1,1,O_Lure_62.bmp,FryingPan,NaN
+7,97,1,1,F_Image_40.bmp,Robert De Niro,NaN
+7,98,1,1,S_Image_135.bmp,Sahara Desert,NaN
+7,99,1,1,S_Image_114.bmp,Great Wall,NaN
+7,100,1,1,S_Image_139.bmp,Sydney Opera,NaN
+7,101,1,1,F_Image_7.bmp,Britney Spears,NaN
+7,102,1,1,O_Image_81.bmp,Scale,NaN
+7,103,1,1,F_Lure_23.bmp,Julia Roberts,NaN
+7,104,1,1,F_Image_29.bmp,Marilyn Monroe,NaN
+7,105,1,1,O_Image_65.bmp,GrandPiano,NaN
+7,106,1,1,O_Image_96.bmp,Wineglass,NaN
+7,107,1,1,F_Image_12.bmp,David Beckham,NaN
+7,108,1,1,F_Image_4.bmp,Barack Obama,NaN
+7,109,1,1,S_Image_130.bmp,Potala Palace,NaN
+7,110,1,1,S_Lure_103.bmp,Big Ben,NaN
+7,111,1,1,S_Lure_120.bmp,Machu Picchu,NaN
+7,112,1,1,F_Lure_2.bmp,Amy Winehouse,NaN
+7,113,1,1,S_Lure_137.bmp,Statue Of Liberty,NaN
+7,114,1,1,F_Lure_18.bmp,Jack Nicholson,NaN
+7,115,1,1,S_Lure_143.bmp,Versailles,NaN
+7,116,1,1,O_Image_60.bmp,Flask,NaN
+7,117,1,1,S_Lure_132.bmp,Red Square,NaN
+7,118,1,1,F_Image_28.bmp,Margaret Thatcher,NaN
+7,119,1,1,F_Lure_29.bmp,Marilyn Monroe,NaN
+7,120,1,1,S_Image_128.bmp,Notre Dame,NaN
+7,121,1,1,F_Image_22.bmp,Judi Dench,NaN
+7,122,1,1,O_Lure_73.bmp,Microscope,NaN
+7,123,1,1,F_Image_43.bmp,Tom Cruise,NaN
+7,124,1,1,S_Lure_109.bmp,Eiffel Tower,NaN
+7,125,1,1,S_Image_121.bmp,Mecca,NaN
+7,126,1,1,F_Image_18.bmp,Jack Nicholson,NaN
+7,127,1,1,F_Lure_44.bmp,Tom Hanks,NaN
+7,128,1,1,F_Lure_32.bmp,Mick Jagger,NaN
+7,129,1,1,S_Image_122.bmp,Mont Saint Michel,NaN
+7,130,1,1,F_Lure_4.bmp,Barack Obama,NaN
+7,131,1,1,S_Image_119.bmp,Louvre,NaN
+7,132,1,1,O_Image_90.bmp,Telephone,NaN
+7,133,1,1,O_Lure_69.bmp,Headphones,NaN
+7,134,1,1,S_Image_98.bmp,Alcatraz,NaN
+7,135,1,1,S_Image_136.bmp,Sistine Chapel,NaN
+7,136,1,1,O_Lure_75.bmp,Necklace,NaN
+7,137,1,1,S_Image_104.bmp,Brandenburg Gate,NaN
+7,138,1,1,O_Lure_57.bmp,Brush,NaN
+7,139,1,1,F_Lure_38.bmp,Queen Elisabeth,NaN
+7,140,1,1,O_Lure_88.bmp,Suitcase,NaN
+7,141,1,1,S_Lure_108.bmp,Dover Cliffs,NaN
+7,142,1,1,S_Lure_112.bmp,Golden Gate Bridge,NaN
+7,143,1,1,O_Image_91.bmp,Torch,NaN
+7,144,1,1,O_Lure_85.bmp,Sock,NaN
+7,145,1,1,O_Image_67.bmp,Hammock,NaN
+7,146,1,1,S_Image_127.bmp,Niagara Falls,NaN
+7,147,1,1,F_Image_11.bmp,Daniel Radcliffe,NaN
+7,148,1,1,O_Image_89.bmp,Teddybear,NaN
+7,149,1,1,O_Lure_50.bmp,Barbecue,NaN
+7,150,1,1,F_Image_6.bmp,Brad Pitt,NaN
+7,151,1,1,S_Image_131.bmp,Rapa Nui,NaN
+7,152,1,1,F_Image_45.bmp,Tony Blair,NaN
+7,153,1,1,F_Image_44.bmp,Tom Hanks,NaN
+7,154,1,1,O_Image_87.bmp,Stapler,NaN
+7,155,1,1,O_Lure_72.bmp,Lightbulb,NaN
+7,156,1,1,O_Image_52.bmp,Bed,NaN
+7,157,1,1,O_Lure_55.bmp,Binoculars,NaN
+7,158,1,1,S_Image_113.bmp,Grand Canyon,NaN
+7,159,1,1,F_Lure_24.bmp,Keanu Reeves,NaN
+7,160,1,1,S_Lure_101.bmp,Atomium,NaN
+7,161,1,1,S_Lure_131.bmp,Rapa Nui,NaN
+7,162,1,1,O_Lure_80.bmp,Rope,NaN
+7,163,1,1,O_Image_93.bmp,Umbrella,NaN
+7,164,1,1,S_Image_133.bmp,Rialto Bridge,NaN
+7,165,1,1,S_Lure_111.bmp,Gizeh Pyramids,NaN
+7,166,1,1,S_Lure_144.bmp,White House,NaN
+7,167,1,1,F_Lure_6.bmp,Brad Pitt,NaN
+7,168,1,1,S_Lure_106.bmp,Christ The Redeemer,NaN
+7,169,1,1,S_Image_111.bmp,Gizeh Pyramids,NaN
+7,170,1,1,F_Lure_9.bmp,Charlie Chaplin,NaN
+7,171,1,1,F_Lure_34.bmp,Nelson Mandela,NaN
+7,172,1,1,O_Lure_93.bmp,Umbrella,NaN
+7,173,1,1,S_Lure_135.bmp,Sahara Desert,NaN
+7,174,1,1,O_Image_66.bmp,Guitar,NaN
+7,175,1,1,F_Lure_48.bmp,Will Smith,NaN
+7,176,1,1,O_Image_68.bmp,Hat,NaN
+7,177,1,1,S_Lure_134.bmp,Sagrada Familia,NaN
+7,178,1,1,O_Image_76.bmp,Pillows,NaN
+7,179,1,1,S_Image_124.bmp,Mount Fuji,NaN
+7,180,1,1,S_Lure_114.bmp,Great Wall,NaN
+7,181,1,1,S_Lure_139.bmp,Sydney Opera,NaN
+7,182,1,1,S_Image_117.bmp,Kings College,NaN
+7,183,1,1,O_Lure_95.bmp,Wheelchair,NaN
+7,184,1,1,S_Lure_130.bmp,Potala Palace,NaN
+7,185,1,1,F_Lure_43.bmp,Tom Cruise,NaN
+7,186,1,1,O_Lure_76.bmp,Pillows,NaN
+7,187,1,1,F_Image_30.bmp,Meryl Streep,NaN
+7,188,1,1,F_Image_8.bmp,Cameron Diaz,NaN
+7,189,1,1,O_Image_82.bmp,Scissors,NaN
+7,190,1,1,S_Image_126.bmp,Neu schwanstein Castle,NaN
+7,191,1,1,F_Lure_28.bmp,Margaret Thatcher,NaN
+7,192,1,1,S_Image_105.bmp,Chichen Itza,NaN
+7,193,1,1,F_Image_46.bmp,Wayne Rooney,NaN
+7,194,1,1,O_Lure_49.bmp,Anchor,NaN
+7,195,1,1,O_Image_75.bmp,Necklace,NaN
+7,196,1,1,S_Lure_129.bmp,Petra,NaN
+7,197,1,1,S_Lure_128.bmp,Notre Dame,NaN
+7,198,1,1,F_Image_21.bmp,John Lennon,NaN
+7,199,1,1,O_Lure_89.bmp,Teddybear,NaN
+7,200,1,1,O_Lure_68.bmp,Hat,NaN
+7,201,1,1,S_Image_137.bmp,Statue Of Liberty,NaN
+7,202,1,1,O_Lure_87.bmp,Stapler,NaN
+7,203,1,1,F_Lure_7.bmp,Britney Spears,NaN
+7,204,1,1,O_Lure_82.bmp,Scissors,NaN
+7,205,1,1,O_Image_72.bmp,Lightbulb,NaN
+7,206,1,1,F_Image_26.bmp,Madonna,NaN
+7,207,1,1,S_Lure_115.bmp,Hagia Sophia,NaN
+7,208,1,1,S_Image_116.bmp,Hollywood Sign,NaN
+7,209,1,1,F_Lure_21.bmp,John Lennon,NaN
+7,210,1,1,S_Image_138.bmp,Stonehenge,NaN
+7,211,1,1,O_Lure_70.bmp,Key,NaN
+7,212,1,1,S_Image_101.bmp,Atomium,NaN
+7,213,1,1,S_Image_102.bmp,Ayers Rock,NaN
+7,214,1,1,S_Image_100.bmp,Angkor Wat,NaN
+7,215,1,1,S_Lure_116.bmp,Hollywood Sign,NaN
+7,216,1,1,F_Lure_20.bmp,Jennifer Lopez,NaN
+7,217,1,1,O_Image_71.bmp,Ladder,NaN
+7,218,1,1,O_Lure_65.bmp,GrandPiano,NaN
+7,219,1,1,F_Image_32.bmp,Mick Jagger,NaN
+7,220,1,1,S_Lure_136.bmp,Sistine Chapel,NaN
+7,221,1,1,F_Lure_1.bmp,Albert Einstein,NaN
+7,222,1,1,S_Lure_141.bmp,Time Square,NaN
+7,223,1,1,O_Image_73.bmp,Microscope,NaN
+7,224,1,1,S_Image_120.bmp,Machu Picchu,NaN
+7,225,1,1,F_Image_19.bmp,James Dean,NaN
+7,226,1,1,F_Lure_17.bmp,George Clooney,NaN
+7,227,1,1,S_Lure_119.bmp,Louvre,NaN
+7,228,1,1,O_Image_88.bmp,Suitcase,NaN
+7,229,1,1,S_Lure_124.bmp,Mount Fuji,NaN
+7,230,1,1,F_Lure_41.bmp,Rod Steward,NaN
+7,231,1,1,S_Image_123.bmp,Mount Everest,NaN
+7,232,1,1,F_Image_13.bmp,Elton John,NaN
+7,233,1,1,S_Lure_105.bmp,Chichen Itza,NaN
+7,234,1,1,F_Lure_47.bmp,Whoopi Goldberg,NaN
+7,235,1,1,O_Image_63.bmp,Globe,NaN
+7,236,1,1,F_Lure_11.bmp,Daniel Radcliffe,NaN
+7,237,1,1,F_Lure_15.bmp,Fidel Castro,NaN
+7,238,1,1,F_Lure_30.bmp,Meryl Streep,NaN
+7,239,1,1,F_Lure_37.bmp,Pierce Brosnan,NaN
+7,240,1,1,O_Lure_91.bmp,Torch,NaN
+7,241,1,1,O_Image_50.bmp,Barbecue,NaN
+7,242,1,1,O_Lure_61.bmp,Football,NaN
+7,243,1,1,S_Lure_127.bmp,Niagara Falls,NaN
+7,244,1,1,S_Image_109.bmp,Eiffel Tower,NaN
+7,245,1,1,O_Image_55.bmp,Binoculars,NaN
+7,246,1,1,F_Image_1.bmp,Albert Einstein,NaN
+7,247,1,1,S_Lure_133.bmp,Rialto Bridge,NaN
+7,248,1,1,F_Image_36.bmp,Penelope Cruz,NaN
+7,249,1,1,O_Lure_71.bmp,Ladder,NaN
+7,250,1,1,F_Image_38.bmp,Queen Elisabeth,NaN
+7,251,1,1,F_Lure_36.bmp,Penelope Cruz,NaN
+7,252,1,1,O_Image_53.bmp,Belt,NaN
+7,253,1,1,S_Image_106.bmp,Christ The Redeemer,NaN
+7,254,1,1,S_Image_112.bmp,Golden Gate Bridge,NaN
+7,255,1,1,S_Image_107.bmp,Colosseum,NaN
+7,256,1,1,O_Image_78.bmp,Razor,NaN
+7,257,1,1,O_Image_57.bmp,Brush,NaN
+7,258,1,1,O_Image_62.bmp,FryingPan,NaN
+7,259,1,1,S_Image_118.bmp,Leaning Tower,NaN
+7,260,1,1,F_Image_33.bmp,Mother Teresa,NaN
+7,261,1,1,F_Lure_33.bmp,Mother Teresa,NaN
+7,262,1,1,S_Lure_113.bmp,Grand Canyon,NaN
+7,263,1,1,F_Image_35.bmp,Nikola Sarkozy,NaN
+7,264,1,1,F_Lure_13.bmp,Elton John,NaN
+7,265,1,1,O_Lure_63.bmp,Globe,NaN
+7,266,1,1,S_Image_125.bmp,Mount Rushmore,NaN
+7,267,1,1,S_Image_115.bmp,Hagia Sophia,NaN
+7,268,1,1,F_Image_37.bmp,Pierce Brosnan,NaN
+7,269,1,1,O_Lure_78.bmp,Razor,NaN
+7,270,1,1,O_Image_77.bmp,Radio,NaN
+7,271,1,1,O_Image_59.bmp,Fan,NaN
+7,272,1,1,S_Lure_117.bmp,Kings College,NaN
+7,273,1,1,F_Lure_19.bmp,James Dean,NaN
+7,274,1,1,S_Lure_107.bmp,Colosseum,NaN
+7,275,1,1,O_Lure_67.bmp,Hammock,NaN
+7,276,1,1,F_Image_17.bmp,George Clooney,NaN
+7,277,1,1,O_Image_80.bmp,Rope,NaN
+7,278,1,1,O_Image_61.bmp,Football,NaN
+7,279,1,1,O_Image_74.bmp,Mirror,NaN
+7,280,1,1,F_Lure_27.bmp,Mahadma Gandhi,NaN
+7,281,1,1,O_Lure_94.bmp,Watch,NaN
+7,282,1,1,O_Lure_52.bmp,Bed,NaN
+7,283,1,1,S_Lure_99.bmp,Alhambra,NaN
+7,284,1,1,S_Lure_104.bmp,Brandenburg Gate,NaN
+7,285,1,1,O_Image_69.bmp,Headphones,NaN
+7,286,1,1,F_Lure_31.bmp,Michael Jackson,NaN
+7,287,1,1,S_Lure_125.bmp,Mount Rushmore,NaN
+7,288,1,1,O_Image_85.bmp,Sock,NaN
+7,289,1,1,S_Image_110.bmp,Forbidden City,NaN
+7,290,1,1,F_Lure_10.bmp,Dalai Lama,NaN
+7,291,1,1,S_Image_142.bmp,Tower Bridge,NaN
+7,292,1,1,F_Lure_39.bmp,Robbie Williams,NaN
+7,293,1,1,F_Image_24.bmp,Keanu Reeves,NaN
+7,294,1,1,S_Lure_98.bmp,Alcatraz,NaN
+7,295,1,1,F_Image_10.bmp,Dalai Lama,NaN
+7,296,1,1,F_Lure_46.bmp,Wayne Rooney,NaN
+7,297,1,1,S_Lure_110.bmp,Forbidden City,NaN
+7,298,1,1,F_Image_41.bmp,Rod Steward,NaN
+7,299,1,1,F_Lure_12.bmp,David Beckham,NaN
+7,300,1,1,S_Lure_126.bmp,Neu schwanstein Castle,NaN
+7,301,1,1,S_Lure_102.bmp,Ayers Rock,NaN
+7,302,1,1,S_Image_108.bmp,Dover Cliffs,NaN
+7,303,1,1,F_Image_14.bmp,Elvis Presley,NaN
+7,304,1,1,S_Lure_142.bmp,Tower Bridge,NaN
+7,305,1,1,F_Lure_35.bmp,Nikola Sarkozy,NaN
+7,306,1,1,S_Image_132.bmp,Red Square,NaN
+7,307,1,1,F_Lure_40.bmp,Robert De Niro,NaN
+7,308,1,1,F_Lure_45.bmp,Tony Blair,NaN
+7,309,1,1,F_Image_39.bmp,Robbie Williams,NaN
+7,310,1,1,F_Image_2.bmp,Amy Winehouse,NaN
+7,311,1,1,F_Image_20.bmp,Jennifer Lopez,NaN
+7,312,1,1,S_Lure_121.bmp,Mecca,NaN
+7,313,1,1,F_Image_15.bmp,Fidel Castro,NaN
+7,314,1,1,S_Image_129.bmp,Petra,NaN
+7,315,1,1,S_Lure_122.bmp,Mont Saint Michel,NaN
+7,316,1,1,S_Image_143.bmp,Versailles,NaN
+7,317,1,1,F_Lure_22.bmp,Judi Dench,NaN
+7,318,1,1,F_Lure_26.bmp,Madonna,NaN
+7,319,1,1,S_Image_134.bmp,Sagrada Familia,NaN
+7,320,1,1,F_Lure_3.bmp,Angela Merkel,NaN
+7,321,1,1,S_Image_99.bmp,Alhambra,NaN
+7,322,1,1,F_Image_3.bmp,Angela Merkel,NaN
+7,323,1,1,S_Lure_100.bmp,Angkor Wat,NaN
+7,324,1,1,S_Image_130.bmp,Potala Palace,NaN
+7,325,1,1,F_Image_22.bmp,Judi Dench,NaN
+7,326,1,1,S_Image_121.bmp,Mecca,NaN
+7,327,1,1,S_Image_122.bmp,Mont Saint Michel,NaN
+7,328,1,1,S_Image_119.bmp,Louvre,NaN
+7,329,1,1,S_Image_104.bmp,Brandenburg Gate,NaN
+7,330,1,1,F_Image_45.bmp,Tony Blair,NaN
+7,331,1,1,S_Lure_101.bmp,Atomium,NaN
+7,332,1,1,S_Image_133.bmp,Rialto Bridge,NaN
+7,333,1,1,S_Lure_134.bmp,Sagrada Familia,NaN
+7,334,1,1,S_Image_117.bmp,Kings College,NaN
+7,335,1,1,S_Lure_130.bmp,Potala Palace,NaN
+7,336,1,1,F_Image_30.bmp,Meryl Streep,NaN
+7,337,1,1,S_Image_126.bmp,Neu schwanstein Castle,NaN
+7,338,1,1,S_Lure_129.bmp,Petra,NaN
+7,339,1,1,S_Lure_115.bmp,Hagia Sophia,NaN
+7,340,1,1,S_Image_100.bmp,Angkor Wat,NaN
+7,341,1,1,F_Image_19.bmp,James Dean,NaN
+7,342,1,1,F_Lure_37.bmp,Pierce Brosnan,NaN
+7,343,1,1,S_Lure_133.bmp,Rialto Bridge,NaN
+7,344,1,1,F_Image_35.bmp,Nikola Sarkozy,NaN
+7,345,1.5,1,F_Image_7.bmp,Britney Spears,steam
+7,346,1.5,1,F_Image_4.bmp,Barack Obama,crumb
+7,347,1.5,1,O_Image_81.bmp,Scale,arrow
+7,348,1.5,1,O_Image_64.bmp,Goggles,spike
+7,349,1.5,1,O_Image_62.bmp,FryingPan,animal
+7,350,1.5,1,O_Image_54.bmp,Bicycle,rust
+7,351,1.5,1,O_Image_57.bmp,Brush,antique
+7,352,1.5,1,F_Image_6.bmp,Brad Pitt,angel
+7,353,1.5,1,S_Image_138.bmp,Stonehenge,tear
+7,354,1.5,1,O_Image_95.bmp,Wheelchair,galaxy
+7,355,1.5,1,F_Image_24.bmp,Keanu Reeves,measles
+7,356,1.5,1,F_Image_14.bmp,Elvis Presley,rock
+7,357,1.5,1,O_Image_86.bmp,Soother,stem
+7,358,1.5,1,O_Image_59.bmp,Fan,triangle
+7,359,1.5,1,O_Image_80.bmp,Rope,tube
+7,360,1.5,1,S_Image_116.bmp,Hollywood Sign,corpse
+7,361,1.5,1,S_Image_136.bmp,Sistine Chapel,scar
+7,362,1.5,1,O_Image_72.bmp,Lightbulb,vegetable
+7,363,1.5,1,S_Image_137.bmp,Statue Of Liberty,signal
+7,364,1.5,1,F_Image_34.bmp,Nelson Mandela,lever
+7,365,1.5,1,S_Image_122.bmp,Mont Saint Michel,asphalt
+7,366,1.5,1,S_Image_103.bmp,Big Ben,army
+7,367,1.5,1,O_Image_58.bmp,Canoe,yellow
+7,368,1.5,1,S_Image_134.bmp,Sagrada Familia,sunshine
+7,369,2,1,S_Image_136.bmp-S_Lure_136.bmp,Sistine Chapel,scar
+7,370,2,1,O_Image_72.bmp-O_Lure_72.bmp,Lightbulb,vegetable
+7,371,2,1,O_Image_80.bmp-O_Lure_80.bmp,Rope,tube
+7,372,2,1,S_Image_137.bmp-S_Lure_137.bmp,Statue Of Liberty,signal
+7,373,2,1,O_Image_57.bmp-O_Lure_57.bmp,Brush,antique
+7,374,2,1,S_Image_122.bmp-S_Lure_122.bmp,Mont Saint Michel,asphalt
+7,375,2,1,S_Image_116.bmp-S_Lure_116.bmp,Hollywood Sign,corpse
+7,376,2,1,F_Image_4.bmp-F_Lure_4.bmp,Barack Obama,crumb
+7,377,2,1,O_Image_59.bmp-O_Lure_59.bmp,Fan,triangle
+7,378,2,1,S_Image_103.bmp-S_Lure_103.bmp,Big Ben,army
+7,379,2,1,S_Image_134.bmp-S_Lure_134.bmp,Sagrada Familia,sunshine
+7,380,2,1,F_Image_24.bmp-F_Lure_24.bmp,Keanu Reeves,measles
+7,381,2,1,O_Image_86.bmp-O_Lure_86.bmp,Soother,stem
+7,382,2,1,F_Image_7.bmp-F_Lure_7.bmp,Britney Spears,steam
+7,383,2,1,F_Image_14.bmp-F_Lure_14.bmp,Elvis Presley,rock
+7,384,2,1,O_Image_95.bmp-O_Lure_95.bmp,Wheelchair,galaxy
+7,385,2,1,O_Image_58.bmp-O_Lure_58.bmp,Canoe,yellow
+7,386,2,1,O_Image_62.bmp-O_Lure_62.bmp,FryingPan,animal
+7,387,2,1,F_Image_34.bmp-F_Lure_34.bmp,Nelson Mandela,lever
+7,388,2,1,F_Image_6.bmp-F_Lure_6.bmp,Brad Pitt,angel
+7,389,2,1,S_Image_138.bmp-S_Lure_138.bmp,Stonehenge,tear
+7,390,2,1,O_Image_64.bmp-O_Lure_64.bmp,Goggles,spike
+7,391,2,1,O_Image_81.bmp-O_Lure_81.bmp,Scale,arrow
+7,392,2,1,O_Image_54.bmp-O_Lure_54.bmp,Bicycle,rust
+7,393,3,1,O_Image_86.bmp-O_Lure_86.bmp,Soother,stem
+7,394,3,1,O_Image_80.bmp-O_Lure_80.bmp,Rope,tube
+7,395,3,1,S_Image_103.bmp-S_Lure_103.bmp,Big Ben,army
+7,396,3,1,S_Image_122.bmp-S_Lure_122.bmp,Mont Saint Michel,asphalt
+7,397,3,1,F_Image_14.bmp-F_Lure_14.bmp,Elvis Presley,rock
+7,398,3,1,O_Image_64.bmp-O_Lure_64.bmp,Goggles,spike
+7,399,3,1,F_Image_24.bmp-F_Lure_24.bmp,Keanu Reeves,measles
+7,400,3,1,F_Image_6.bmp-F_Lure_6.bmp,Brad Pitt,angel
+7,401,3,1,F_Image_7.bmp-F_Lure_7.bmp,Britney Spears,steam
+7,402,3,1,O_Image_62.bmp-O_Lure_62.bmp,FryingPan,animal
+7,403,3,1,S_Image_137.bmp-S_Lure_137.bmp,Statue Of Liberty,signal
+7,404,3,1,O_Image_81.bmp-O_Lure_81.bmp,Scale,arrow
+7,405,3,1,O_Image_72.bmp-O_Lure_72.bmp,Lightbulb,vegetable
+7,406,3,1,S_Image_134.bmp-S_Lure_134.bmp,Sagrada Familia,sunshine
+7,407,3,1,O_Image_57.bmp-O_Lure_57.bmp,Brush,antique
+7,408,3,1,S_Image_136.bmp-S_Lure_136.bmp,Sistine Chapel,scar
+7,409,3,1,F_Image_4.bmp-F_Lure_4.bmp,Barack Obama,crumb
+7,410,3,1,S_Image_138.bmp-S_Lure_138.bmp,Stonehenge,tear
+7,411,3,1,O_Image_95.bmp-O_Lure_95.bmp,Wheelchair,galaxy
+7,412,3,1,S_Image_116.bmp-S_Lure_116.bmp,Hollywood Sign,corpse
+7,413,3,1,F_Image_34.bmp-F_Lure_34.bmp,Nelson Mandela,lever
+7,414,3,1,O_Image_59.bmp-O_Lure_59.bmp,Fan,triangle
+7,415,3,1,O_Image_54.bmp-O_Lure_54.bmp,Bicycle,rust
+7,416,3,1,O_Image_58.bmp-O_Lure_58.bmp,Canoe,yellow
+7,417,1.5,2,O_Image_78.bmp,Razor,wreck
+7,418,1.5,2,O_Image_89.bmp,Teddybear,board
+7,419,1.5,2,F_Image_35.bmp,Nikola Sarkozy,kiss
+7,420,1.5,2,F_Image_2.bmp,Amy Winehouse,drizzle
+7,421,1.5,2,F_Image_45.bmp,Tony Blair,paper
+7,422,1.5,2,F_Image_22.bmp,Judi Dench,shell
+7,423,1.5,2,S_Image_127.bmp,Niagara Falls,spray
+7,424,1.5,2,S_Image_109.bmp,Eiffel Tower,water
+7,425,1.5,2,F_Image_20.bmp,Jennifer Lopez,harem
+7,426,1.5,2,O_Image_56.bmp,Broom,giant
+7,427,1.5,2,S_Image_115.bmp,Hagia Sophia,fire
+7,428,1.5,2,S_Image_129.bmp,Petra,laundry
+7,429,1.5,2,S_Image_106.bmp,Christ The Redeemer,orchestra
+7,430,1.5,2,F_Image_30.bmp,Meryl Streep,marble
+7,431,1.5,2,S_Image_123.bmp,Mount Everest,cone
+7,432,1.5,2,O_Image_71.bmp,Ladder,bubble
+7,433,1.5,2,S_Image_139.bmp,Sydney Opera,tail
+7,434,1.5,2,F_Image_44.bmp,Tom Hanks,stripe
+7,435,1.5,2,F_Image_36.bmp,Penelope Cruz,sweat
+7,436,1.5,2,F_Image_17.bmp,George Clooney,tourist
+7,437,1.5,2,S_Image_119.bmp,Louvre,slope
+7,438,1.5,2,F_Image_40.bmp,Robert De Niro,cloud
+7,439,1.5,2,S_Image_100.bmp,Angkor Wat,alcohol
+7,440,1.5,2,O_Image_88.bmp,Suitcase,corner
+7,441,2,2,O_Image_71.bmp-O_Lure_71.bmp,Ladder,bubble
+7,442,2,2,F_Image_36.bmp-F_Lure_36.bmp,Penelope Cruz,sweat
+7,443,2,2,O_Image_56.bmp-O_Lure_56.bmp,Broom,giant
+7,444,2,2,S_Image_109.bmp-S_Lure_109.bmp,Eiffel Tower,water
+7,445,2,2,F_Image_20.bmp-F_Lure_20.bmp,Jennifer Lopez,harem
+7,446,2,2,S_Image_119.bmp-S_Lure_119.bmp,Louvre,slope
+7,447,2,2,F_Image_45.bmp-F_Lure_45.bmp,Tony Blair,paper
+7,448,2,2,O_Image_88.bmp-O_Lure_88.bmp,Suitcase,corner
+7,449,2,2,S_Image_127.bmp-S_Lure_127.bmp,Niagara Falls,spray
+7,450,2,2,O_Image_78.bmp-O_Lure_78.bmp,Razor,wreck
+7,451,2,2,F_Image_17.bmp-F_Lure_17.bmp,George Clooney,tourist
+7,452,2,2,S_Image_100.bmp-S_Lure_100.bmp,Angkor Wat,alcohol
+7,453,2,2,F_Image_35.bmp-F_Lure_35.bmp,Nikola Sarkozy,kiss
+7,454,2,2,S_Image_106.bmp-S_Lure_106.bmp,Christ The Redeemer,orchestra
+7,455,2,2,S_Image_129.bmp-S_Lure_129.bmp,Petra,laundry
+7,456,2,2,F_Image_30.bmp-F_Lure_30.bmp,Meryl Streep,marble
+7,457,2,2,F_Image_44.bmp-F_Lure_44.bmp,Tom Hanks,stripe
+7,458,2,2,F_Image_22.bmp-F_Lure_22.bmp,Judi Dench,shell
+7,459,2,2,S_Image_115.bmp-S_Lure_115.bmp,Hagia Sophia,fire
+7,460,2,2,S_Image_139.bmp-S_Lure_139.bmp,Sydney Opera,tail
+7,461,2,2,S_Image_123.bmp-S_Lure_123.bmp,Mount Everest,cone
+7,462,2,2,F_Image_2.bmp-F_Lure_2.bmp,Amy Winehouse,drizzle
+7,463,2,2,O_Image_89.bmp-O_Lure_89.bmp,Teddybear,board
+7,464,2,2,F_Image_40.bmp-F_Lure_40.bmp,Robert De Niro,cloud
+7,465,3,2,F_Image_22.bmp-F_Lure_22.bmp,Judi Dench,shell
+7,466,3,2,F_Image_36.bmp-F_Lure_36.bmp,Penelope Cruz,sweat
+7,467,3,2,F_Image_40.bmp-F_Lure_40.bmp,Robert De Niro,cloud
+7,468,3,2,S_Image_127.bmp-S_Lure_127.bmp,Niagara Falls,spray
+7,469,3,2,S_Image_100.bmp-S_Lure_100.bmp,Angkor Wat,alcohol
+7,470,3,2,O_Image_89.bmp-O_Lure_89.bmp,Teddybear,board
+7,471,3,2,S_Image_115.bmp-S_Lure_115.bmp,Hagia Sophia,fire
+7,472,3,2,F_Image_35.bmp-F_Lure_35.bmp,Nikola Sarkozy,kiss
+7,473,3,2,S_Image_106.bmp-S_Lure_106.bmp,Christ The Redeemer,orchestra
+7,474,3,2,F_Image_45.bmp-F_Lure_45.bmp,Tony Blair,paper
+7,475,3,2,O_Image_56.bmp-O_Lure_56.bmp,Broom,giant
+7,476,3,2,O_Image_78.bmp-O_Lure_78.bmp,Razor,wreck
+7,477,3,2,S_Image_119.bmp-S_Lure_119.bmp,Louvre,slope
+7,478,3,2,S_Image_123.bmp-S_Lure_123.bmp,Mount Everest,cone
+7,479,3,2,F_Image_17.bmp-F_Lure_17.bmp,George Clooney,tourist
+7,480,3,2,F_Image_44.bmp-F_Lure_44.bmp,Tom Hanks,stripe
+7,481,3,2,O_Image_88.bmp-O_Lure_88.bmp,Suitcase,corner
+7,482,3,2,S_Image_109.bmp-S_Lure_109.bmp,Eiffel Tower,water
+7,483,3,2,F_Image_20.bmp-F_Lure_20.bmp,Jennifer Lopez,harem
+7,484,3,2,F_Image_2.bmp-F_Lure_2.bmp,Amy Winehouse,drizzle
+7,485,3,2,S_Image_129.bmp-S_Lure_129.bmp,Petra,laundry
+7,486,3,2,F_Image_30.bmp-F_Lure_30.bmp,Meryl Streep,marble
+7,487,3,2,O_Image_71.bmp-O_Lure_71.bmp,Ladder,bubble
+7,488,3,2,S_Image_139.bmp-S_Lure_139.bmp,Sydney Opera,tail
+7,489,1.5,3,S_Image_114.bmp,Great Wall,hurricane
+7,490,1.5,3,F_Image_25.bmp,Leonardo DiCaprio,wool
+7,491,1.5,3,F_Image_5.bmp,Bill Clinton,honeymoon
+7,492,1.5,3,S_Image_141.bmp,Time Square,flood
+7,493,1.5,3,F_Image_1.bmp,Albert Einstein,seed
+7,494,1.5,3,S_Image_105.bmp,Chichen Itza,magnet
+7,495,1.5,3,O_Image_96.bmp,Wineglass,arch
+7,496,1.5,3,S_Image_135.bmp,Sahara Desert,ghost
+7,497,1.5,3,F_Image_48.bmp,Will Smith,attack
+7,498,1.5,3,F_Image_23.bmp,Julia Roberts,wound
+7,499,1.5,3,F_Image_27.bmp,Mahadma Gandhi,breakfast
+7,500,1.5,3,O_Image_51.bmp,Basket,poison
+7,501,1.5,3,O_Image_75.bmp,Necklace,shadow
+7,502,1.5,3,F_Image_10.bmp,Dalai Lama,alien
+7,503,1.5,3,O_Image_68.bmp,Hat,hostage
+7,504,1.5,3,S_Image_118.bmp,Leaning Tower,witch
+7,505,1.5,3,O_Image_94.bmp,Watch,costume
+7,506,1.5,3,S_Image_121.bmp,Mecca,snow
+7,507,1.5,3,O_Image_77.bmp,Radio,sand
+7,508,1.5,3,F_Image_41.bmp,Rod Steward,money
+7,509,1.5,3,S_Image_128.bmp,Notre Dame,quake
+7,510,1.5,3,O_Image_69.bmp,Headphones,black
+7,511,1.5,3,S_Image_108.bmp,Dover Cliffs,fuel
+7,512,1.5,3,O_Image_84.bmp,Skirt,menu
+7,513,2,3,F_Image_1.bmp-F_Lure_1.bmp,Albert Einstein,seed
+7,514,2,3,O_Image_77.bmp-O_Lure_77.bmp,Radio,sand
+7,515,2,3,S_Image_121.bmp-S_Lure_121.bmp,Mecca,snow
+7,516,2,3,F_Image_5.bmp-F_Lure_5.bmp,Bill Clinton,honeymoon
+7,517,2,3,F_Image_27.bmp-F_Lure_27.bmp,Mahadma Gandhi,breakfast
+7,518,2,3,F_Image_25.bmp-F_Lure_25.bmp,Leonardo DiCaprio,wool
+7,519,2,3,F_Image_48.bmp-F_Lure_48.bmp,Will Smith,attack
+7,520,2,3,S_Image_135.bmp-S_Lure_135.bmp,Sahara Desert,ghost
+7,521,2,3,S_Image_128.bmp-S_Lure_128.bmp,Notre Dame,quake
+7,522,2,3,O_Image_94.bmp-O_Lure_94.bmp,Watch,costume
+7,523,2,3,O_Image_68.bmp-O_Lure_68.bmp,Hat,hostage
+7,524,2,3,O_Image_75.bmp-O_Lure_75.bmp,Necklace,shadow
+7,525,2,3,F_Image_10.bmp-F_Lure_10.bmp,Dalai Lama,alien
+7,526,2,3,S_Image_118.bmp-S_Lure_118.bmp,Leaning Tower,witch
+7,527,2,3,S_Image_108.bmp-S_Lure_108.bmp,Dover Cliffs,fuel
+7,528,2,3,S_Image_141.bmp-S_Lure_141.bmp,Time Square,flood
+7,529,2,3,O_Image_69.bmp-O_Lure_69.bmp,Headphones,black
+7,530,2,3,O_Image_84.bmp-O_Lure_84.bmp,Skirt,menu
+7,531,2,3,S_Image_105.bmp-S_Lure_105.bmp,Chichen Itza,magnet
+7,532,2,3,F_Image_41.bmp-F_Lure_41.bmp,Rod Steward,money
+7,533,2,3,S_Image_114.bmp-S_Lure_114.bmp,Great Wall,hurricane
+7,534,2,3,O_Image_96.bmp-O_Lure_96.bmp,Wineglass,arch
+7,535,2,3,F_Image_23.bmp-F_Lure_23.bmp,Julia Roberts,wound
+7,536,2,3,O_Image_51.bmp-O_Lure_51.bmp,Basket,poison
+7,537,3,3,F_Image_1.bmp-F_Lure_1.bmp,Albert Einstein,seed
+7,538,3,3,S_Image_114.bmp-S_Lure_114.bmp,Great Wall,hurricane
+7,539,3,3,S_Image_128.bmp-S_Lure_128.bmp,Notre Dame,quake
+7,540,3,3,O_Image_77.bmp-O_Lure_77.bmp,Radio,sand
+7,541,3,3,O_Image_96.bmp-O_Lure_96.bmp,Wineglass,arch
+7,542,3,3,O_Image_94.bmp-O_Lure_94.bmp,Watch,costume
+7,543,3,3,F_Image_25.bmp-F_Lure_25.bmp,Leonardo DiCaprio,wool
+7,544,3,3,F_Image_48.bmp-F_Lure_48.bmp,Will Smith,attack
+7,545,3,3,F_Image_10.bmp-F_Lure_10.bmp,Dalai Lama,alien
+7,546,3,3,F_Image_23.bmp-F_Lure_23.bmp,Julia Roberts,wound
+7,547,3,3,S_Image_118.bmp-S_Lure_118.bmp,Leaning Tower,witch
+7,548,3,3,F_Image_5.bmp-F_Lure_5.bmp,Bill Clinton,honeymoon
+7,549,3,3,S_Image_141.bmp-S_Lure_141.bmp,Time Square,flood
+7,550,3,3,O_Image_69.bmp-O_Lure_69.bmp,Headphones,black
+7,551,3,3,F_Image_27.bmp-F_Lure_27.bmp,Mahadma Gandhi,breakfast
+7,552,3,3,F_Image_41.bmp-F_Lure_41.bmp,Rod Steward,money
+7,553,3,3,S_Image_135.bmp-S_Lure_135.bmp,Sahara Desert,ghost
+7,554,3,3,O_Image_68.bmp-O_Lure_68.bmp,Hat,hostage
+7,555,3,3,O_Image_51.bmp-O_Lure_51.bmp,Basket,poison
+7,556,3,3,S_Image_108.bmp-S_Lure_108.bmp,Dover Cliffs,fuel
+7,557,3,3,O_Image_75.bmp-O_Lure_75.bmp,Necklace,shadow
+7,558,3,3,O_Image_84.bmp-O_Lure_84.bmp,Skirt,menu
+7,559,3,3,S_Image_121.bmp-S_Lure_121.bmp,Mecca,snow
+7,560,3,3,S_Image_105.bmp-S_Lure_105.bmp,Chichen Itza,magnet
+7,561,3.5,1,F_Image_18.bmp,Jack Nicholson,animal
+7,562,3.5,1,S_Image_125.bmp,Mount Rushmore,lever
+7,563,3.5,1,O_Image_74.bmp,Mirror,alcohol
+7,564,3.5,1,S_Image_124.bmp,Mount Fuji,angel
+7,565,3.5,1,O_Image_83.bmp,Shoe,slope
+7,566,3.5,1,O_Image_61.bmp,Football,harem
+7,567,3.5,1,F_Image_33.bmp,Mother Teresa,army
+7,568,3.5,1,S_Image_99.bmp,Alhambra,spike
+7,569,3.5,1,S_Image_120.bmp,Machu Picchu,breakfast
+7,570,3.5,1,O_Image_73.bmp,Microscope,fuel
+7,571,3.5,1,F_Image_21.bmp,John Lennon,menu
+7,572,3.5,1,S_Image_101.bmp,Atomium,rust
+7,573,3.5,1,O_Image_90.bmp,Telephone,magnet
+7,574,3.5,1,F_Image_47.bmp,Whoopi Goldberg,scar
+7,575,3.5,1,S_Image_142.bmp,Tower Bridge,cloud
+7,576,3.5,1,F_Image_11.bmp,Daniel Radcliffe,shadow
+7,577,3.5,1,S_Image_133.bmp,Rialto Bridge,wound
+7,578,3.5,1,O_Image_53.bmp,Belt,honeymoon
+7,579,3.5,1,S_Image_112.bmp,Golden Gate Bridge,giant
+7,580,3.5,1,O_Image_79.bmp,Remote Control,hurricane
+7,581,3.5,1,S_Image_140.bmp,Taj Mahal,marble
+7,582,3.5,1,O_Image_66.bmp,Guitar,money
+7,583,3.5,1,S_Image_98.bmp,Alcatraz,black
+7,584,3.5,1,O_Image_93.bmp,Umbrella,corpse
+7,585,4,1,S_Image_142.bmp-S_Lure_142.bmp,Tower Bridge,cloud
+7,586,4,1,S_Image_124.bmp-S_Lure_124.bmp,Mount Fuji,angel
+7,587,4,1,S_Image_140.bmp-S_Lure_140.bmp,Taj Mahal,marble
+7,588,4,1,O_Image_66.bmp-O_Lure_66.bmp,Guitar,money
+7,589,4,1,O_Image_93.bmp-O_Lure_93.bmp,Umbrella,corpse
+7,590,4,1,F_Image_11.bmp-F_Lure_11.bmp,Daniel Radcliffe,shadow
+7,591,4,1,S_Image_98.bmp-S_Lure_98.bmp,Alcatraz,black
+7,592,4,1,F_Image_21.bmp-F_Lure_21.bmp,John Lennon,menu
+7,593,4,1,O_Image_90.bmp-O_Lure_90.bmp,Telephone,magnet
+7,594,4,1,O_Image_83.bmp-O_Lure_83.bmp,Shoe,slope
+7,595,4,1,S_Image_112.bmp-S_Lure_112.bmp,Golden Gate Bridge,giant
+7,596,4,1,F_Image_47.bmp-F_Lure_47.bmp,Whoopi Goldberg,scar
+7,597,4,1,O_Image_53.bmp-O_Lure_53.bmp,Belt,honeymoon
+7,598,4,1,F_Image_33.bmp-F_Lure_33.bmp,Mother Teresa,army
+7,599,4,1,S_Image_125.bmp-S_Lure_125.bmp,Mount Rushmore,lever
+7,600,4,1,F_Image_18.bmp-F_Lure_18.bmp,Jack Nicholson,animal
+7,601,4,1,S_Image_99.bmp-S_Lure_99.bmp,Alhambra,spike
+7,602,4,1,O_Image_61.bmp-O_Lure_61.bmp,Football,harem
+7,603,4,1,S_Image_101.bmp-S_Lure_101.bmp,Atomium,rust
+7,604,4,1,S_Image_133.bmp-S_Lure_133.bmp,Rialto Bridge,wound
+7,605,4,1,S_Image_120.bmp-S_Lure_120.bmp,Machu Picchu,breakfast
+7,606,4,1,O_Image_73.bmp-O_Lure_73.bmp,Microscope,fuel
+7,607,4,1,O_Image_74.bmp-O_Lure_74.bmp,Mirror,alcohol
+7,608,4,1,O_Image_79.bmp-O_Lure_79.bmp,Remote Control,hurricane
+7,609,3.5,2,F_Image_32.bmp,Mick Jagger,witch
+7,610,3.5,2,F_Image_39.bmp,Robbie Williams,fire
+7,611,3.5,2,S_Image_110.bmp,Forbidden City,galaxy
+7,612,3.5,2,O_Image_92.bmp,Trophy,flood
+7,613,3.5,2,F_Image_26.bmp,Madonna,arch
+7,614,3.5,2,O_Image_87.bmp,Stapler,quake
+7,615,3.5,2,F_Image_3.bmp,Angela Merkel,hostage
+7,616,3.5,2,S_Image_111.bmp,Gizeh Pyramids,wreck
+7,617,3.5,2,F_Image_12.bmp,David Beckham,corner
+7,618,3.5,2,O_Image_55.bmp,Binoculars,measles
+7,619,3.5,2,F_Image_13.bmp,Elton John,tube
+7,620,3.5,2,O_Image_67.bmp,Hammock,tourist
+7,621,3.5,2,F_Image_42.bmp,Scarlett Johansson,water
+7,622,3.5,2,S_Image_117.bmp,Kings College,antique
+7,623,3.5,2,O_Image_70.bmp,Key,rock
+7,624,3.5,2,F_Image_43.bmp,Tom Cruise,spray
+7,625,3.5,2,F_Image_37.bmp,Pierce Brosnan,laundry
+7,626,3.5,2,F_Image_16.bmp,George Bush,arrow
+7,627,3.5,2,S_Image_102.bmp,Ayers Rock,poison
+7,628,3.5,2,S_Image_131.bmp,Rapa Nui,paper
+7,629,3.5,2,F_Image_29.bmp,Marilyn Monroe,sunshine
+7,630,3.5,2,F_Image_9.bmp,Charlie Chaplin,stem
+7,631,3.5,2,S_Image_130.bmp,Potala Palace,seed
+7,632,3.5,2,S_Image_132.bmp,Red Square,crumb
+7,633,4,2,S_Image_117.bmp-S_Lure_117.bmp,Kings College,antique
+7,634,4,2,S_Image_130.bmp-S_Lure_130.bmp,Potala Palace,seed
+7,635,4,2,F_Image_29.bmp-F_Lure_29.bmp,Marilyn Monroe,sunshine
+7,636,4,2,O_Image_87.bmp-O_Lure_87.bmp,Stapler,quake
+7,637,4,2,F_Image_42.bmp-F_Lure_42.bmp,Scarlett Johansson,water
+7,638,4,2,O_Image_92.bmp-O_Lure_92.bmp,Trophy,flood
+7,639,4,2,S_Image_132.bmp-S_Lure_132.bmp,Red Square,crumb
+7,640,4,2,F_Image_9.bmp-F_Lure_9.bmp,Charlie Chaplin,stem
+7,641,4,2,F_Image_26.bmp-F_Lure_26.bmp,Madonna,arch
+7,642,4,2,S_Image_111.bmp-S_Lure_111.bmp,Gizeh Pyramids,wreck
+7,643,4,2,O_Image_67.bmp-O_Lure_67.bmp,Hammock,tourist
+7,644,4,2,F_Image_3.bmp-F_Lure_3.bmp,Angela Merkel,hostage
+7,645,4,2,O_Image_55.bmp-O_Lure_55.bmp,Binoculars,measles
+7,646,4,2,S_Image_131.bmp-S_Lure_131.bmp,Rapa Nui,paper
+7,647,4,2,O_Image_70.bmp-O_Lure_70.bmp,Key,rock
+7,648,4,2,F_Image_16.bmp-F_Lure_16.bmp,George Bush,arrow
+7,649,4,2,F_Image_37.bmp-F_Lure_37.bmp,Pierce Brosnan,laundry
+7,650,4,2,F_Image_12.bmp-F_Lure_12.bmp,David Beckham,corner
+7,651,4,2,F_Image_39.bmp-F_Lure_39.bmp,Robbie Williams,fire
+7,652,4,2,S_Image_102.bmp-S_Lure_102.bmp,Ayers Rock,poison
+7,653,4,2,F_Image_13.bmp-F_Lure_13.bmp,Elton John,tube
+7,654,4,2,S_Image_110.bmp-S_Lure_110.bmp,Forbidden City,galaxy
+7,655,4,2,F_Image_32.bmp-F_Lure_32.bmp,Mick Jagger,witch
+7,656,4,2,F_Image_43.bmp-F_Lure_43.bmp,Tom Cruise,spray
+7,657,3.5,3,O_Image_82.bmp,Scissors,orchestra
+7,658,3.5,3,O_Image_63.bmp,Globe,steam
+7,659,3.5,3,S_Image_126.bmp,Neu schwanstein Castle,kiss
+7,660,3.5,3,O_Image_91.bmp,Torch,cone
+7,661,3.5,3,O_Image_50.bmp,Barbecue,sweat
+7,662,3.5,3,O_Image_65.bmp,GrandPiano,stripe
+7,663,3.5,3,F_Image_19.bmp,James Dean,sand
+7,664,3.5,3,S_Image_113.bmp,Grand Canyon,vegetable
+7,665,3.5,3,S_Image_107.bmp,Colosseum,triangle
+7,666,3.5,3,O_Image_76.bmp,Pillows,tail
+7,667,3.5,3,F_Image_28.bmp,Margaret Thatcher,asphalt
+7,668,3.5,3,O_Image_60.bmp,Flask,alien
+7,669,3.5,3,O_Image_85.bmp,Sock,ghost
+7,670,3.5,3,F_Image_31.bmp,Michael Jackson,signal
+7,671,3.5,3,F_Image_46.bmp,Wayne Rooney,snow
+7,672,3.5,3,O_Image_49.bmp,Anchor,attack
+7,673,3.5,3,O_Image_52.bmp,Bed,drizzle
+7,674,3.5,3,F_Image_38.bmp,Queen Elisabeth,tear
+7,675,3.5,3,F_Image_15.bmp,Fidel Castro,yellow
+7,676,3.5,3,S_Image_104.bmp,Brandenburg Gate,costume
+7,677,3.5,3,F_Image_8.bmp,Cameron Diaz,bubble
+7,678,3.5,3,S_Image_143.bmp,Versailles,shell
+7,679,3.5,3,S_Image_97.bmp,Akropolis,board
+7,680,3.5,3,S_Image_144.bmp,White House,wool
+7,681,4,3,F_Image_38.bmp-F_Lure_38.bmp,Queen Elisabeth,tear
+7,682,4,3,S_Image_107.bmp-S_Lure_107.bmp,Colosseum,triangle
+7,683,4,3,S_Image_143.bmp-S_Lure_143.bmp,Versailles,shell
+7,684,4,3,O_Image_91.bmp-O_Lure_91.bmp,Torch,cone
+7,685,4,3,O_Image_60.bmp-O_Lure_60.bmp,Flask,alien
+7,686,4,3,F_Image_19.bmp-F_Lure_19.bmp,James Dean,sand
+7,687,4,3,O_Image_65.bmp-O_Lure_65.bmp,GrandPiano,stripe
+7,688,4,3,O_Image_82.bmp-O_Lure_82.bmp,Scissors,orchestra
+7,689,4,3,F_Image_15.bmp-F_Lure_15.bmp,Fidel Castro,yellow
+7,690,4,3,F_Image_8.bmp-F_Lure_8.bmp,Cameron Diaz,bubble
+7,691,4,3,F_Image_28.bmp-F_Lure_28.bmp,Margaret Thatcher,asphalt
+7,692,4,3,O_Image_85.bmp-O_Lure_85.bmp,Sock,ghost
+7,693,4,3,O_Image_49.bmp-O_Lure_49.bmp,Anchor,attack
+7,694,4,3,S_Image_113.bmp-S_Lure_113.bmp,Grand Canyon,vegetable
+7,695,4,3,O_Image_52.bmp-O_Lure_52.bmp,Bed,drizzle
+7,696,4,3,F_Image_31.bmp-F_Lure_31.bmp,Michael Jackson,signal
+7,697,4,3,S_Image_144.bmp-S_Lure_144.bmp,White House,wool
+7,698,4,3,O_Image_76.bmp-O_Lure_76.bmp,Pillows,tail
+7,699,4,3,F_Image_46.bmp-F_Lure_46.bmp,Wayne Rooney,snow
+7,700,4,3,S_Image_104.bmp-S_Lure_104.bmp,Brandenburg Gate,costume
+7,701,4,3,S_Image_97.bmp-S_Lure_97.bmp,Akropolis,board
+7,702,4,3,S_Image_126.bmp-S_Lure_126.bmp,Neu schwanstein Castle,kiss
+7,703,4,3,O_Image_50.bmp-O_Lure_50.bmp,Barbecue,sweat
+7,704,4,3,O_Image_63.bmp-O_Lure_63.bmp,Globe,steam
+7,705,5, 1 ,F_Image_24.bmp-O_Lure_55.bmp,Keanu Reeves-Binoculars,measles
+7,706,5, 1 ,S_Image_129.bmp-F_Lure_37.bmp,Petra-Pierce Brosnan,laundry
+7,707,5, 1 ,S_Image_135.bmp-O_Lure_85.bmp,Sahara Desert-Sock,ghost
+7,708,5, 1 ,F_Image_5.bmp-O_Lure_53.bmp,Bill Clinton-Belt,honeymoon
+7,709,5, 1 ,F_Image_5.bmp-O_Lure_53.bmp,Bill Clinton-Belt,honeymoon
+7,710,5, 1 ,S_Image_106.bmp-O_Lure_82.bmp,Christ The Redeemer-Scissors,orchestra
+7,711,5, 1 ,S_Image_127.bmp-F_Lure_43.bmp,Niagara Falls-Tom Cruise,spray
+7,712,5, 1 ,F_Image_20.bmp-O_Lure_61.bmp,Jennifer Lopez-Football,harem
+7,713,5, 1 ,S_Image_139.bmp-O_Lure_76.bmp,Sydney Opera-Pillows,tail
+7,714,5, 1 ,F_Image_17.bmp-O_Lure_67.bmp,George Clooney-Hammock,tourist
+7,715,5, 1 ,F_Image_22.bmp-S_Lure_143.bmp,Judi Dench-Versailles,shell
+7,716,5, 1 ,O_Image_72.bmp-S_Lure_113.bmp,Lightbulb-Grand Canyon,vegetable
+7,717,5, 1 ,F_Image_6.bmp-S_Lure_124.bmp,Brad Pitt-Mount Fuji,angel
+7,718,5, 1 ,O_Image_88.bmp-F_Lure_12.bmp,Suitcase-David Beckham,corner
+7,719,5, 1 ,F_Image_44.bmp-O_Lure_65.bmp,Tom Hanks-GrandPiano,stripe
+7,720,5, 1 ,F_Image_30.bmp-S_Lure_140.bmp,Meryl Streep-Taj Mahal,marble
+7,721,5, 1 ,F_Image_7.bmp-O_Lure_63.bmp,Britney Spears-Globe,steam
+7,722,5, 1 ,O_Image_54.bmp-S_Lure_101.bmp,Bicycle-Atomium,rust
+7,723,5, 1 ,O_Image_81.bmp-F_Lure_16.bmp,Scale-George Bush,arrow
+7,724,5, 1 ,F_Image_41.bmp-O_Lure_66.bmp,Rod Steward-Guitar,money
+7,725,5, 1 ,F_Image_22.bmp-S_Lure_143.bmp,Judi Dench-Versailles,shell
+7,726,5, 1 ,S_Image_139.bmp-O_Lure_76.bmp,Sydney Opera-Pillows,tail
+7,727,5, 1 ,S_Image_137.bmp-F_Lure_31.bmp,Statue Of Liberty-Michael Jackson,signal
+7,728,5, 1 ,F_Image_6.bmp-S_Lure_124.bmp,Brad Pitt-Mount Fuji,angel
+7,729,5, 1 ,O_Image_68.bmp-F_Lure_3.bmp,Hat-Angela Merkel,hostage
+7,730,5, 1 ,S_Image_122.bmp-F_Lure_28.bmp,Mont Saint Michel-Margaret Thatcher,asphalt
+7,731,5, 1 ,O_Image_95.bmp-S_Lure_110.bmp,Wheelchair-Forbidden City,galaxy
+7,732,5, 1 ,F_Image_25.bmp-S_Lure_144.bmp,Leonardo DiCaprio-White House,wool
+7,733,5, 1 ,O_Image_72.bmp-S_Lure_113.bmp,Lightbulb-Grand Canyon,vegetable
+7,734,5, 1 ,O_Image_96.bmp-F_Lure_26.bmp,Wineglass-Madonna,arch
+7,735,5, 1 ,F_Image_45.bmp-S_Lure_131.bmp,Tony Blair-Rapa Nui,paper
+7,736,5, 1 ,S_Image_119.bmp-O_Lure_83.bmp,Louvre-Shoe,slope
+7,737,5, 1 ,S_Image_129.bmp-F_Lure_37.bmp,Petra-Pierce Brosnan,laundry
+7,738,5, 1 ,S_Image_115.bmp-F_Lure_39.bmp,Hagia Sophia-Robbie Williams,fire
+7,739,5, 1 ,S_Image_127.bmp-F_Lure_43.bmp,Niagara Falls-Tom Cruise,spray
+7,740,5, 1 ,O_Image_77.bmp-F_Lure_19.bmp,Radio-James Dean,sand
+7,741,5, 1 ,S_Image_127.bmp-F_Lure_43.bmp,Niagara Falls-Tom Cruise,spray
+7,742,5, 1 ,F_Image_45.bmp-S_Lure_131.bmp,Tony Blair-Rapa Nui,paper
+7,743,5, 1 ,F_Image_7.bmp-O_Lure_63.bmp,Britney Spears-Globe,steam
+7,744,5, 1 ,O_Image_71.bmp-F_Lure_8.bmp,Ladder-Cameron Diaz,bubble
+7,745,5, 1 ,F_Image_5.bmp-O_Lure_53.bmp,Bill Clinton-Belt,honeymoon
+7,746,5, 1 ,S_Image_138.bmp-F_Lure_38.bmp,Stonehenge-Queen Elisabeth,tear
+7,747,5, 1 ,S_Image_123.bmp-O_Lure_91.bmp,Mount Everest-Torch,cone
+7,748,5, 1 ,S_Image_139.bmp-O_Lure_76.bmp,Sydney Opera-Pillows,tail
+7,749,5, 1 ,F_Image_23.bmp-S_Lure_133.bmp,Julia Roberts-Rialto Bridge,wound
+7,750,5, 1 ,O_Image_78.bmp-S_Lure_111.bmp,Razor-Gizeh Pyramids,wreck
+7,751,5, 1 ,O_Image_56.bmp-S_Lure_112.bmp,Broom-Golden Gate Bridge,giant
+7,752,5, 1 ,F_Image_34.bmp-S_Lure_125.bmp,Nelson Mandela-Mount Rushmore,lever
+7,753,5, 1 ,S_Image_134.bmp-F_Lure_29.bmp,Sagrada Familia-Marilyn Monroe,sunshine
+7,754,5, 1 ,O_Image_71.bmp-F_Lure_8.bmp,Ladder-Cameron Diaz,bubble
+7,755,5, 1 ,O_Image_86.bmp-F_Lure_9.bmp,Soother-Charlie Chaplin,stem
+7,756,5, 1 ,F_Image_20.bmp-O_Lure_61.bmp,Jennifer Lopez-Football,harem
+7,757,5, 1 ,F_Image_20.bmp-O_Lure_61.bmp,Jennifer Lopez-Football,harem
+7,758,5, 1 ,S_Image_105.bmp-O_Lure_90.bmp,Chichen Itza-Telephone,magnet
+7,759,5, 1 ,S_Image_123.bmp-O_Lure_91.bmp,Mount Everest-Torch,cone
+7,760,5, 1 ,S_Image_114.bmp-O_Lure_79.bmp,Great Wall-Remote Control,hurricane
+7,761,5, 1 ,S_Image_127.bmp-F_Lure_43.bmp,Niagara Falls-Tom Cruise,spray
+7,762,5, 1 ,O_Image_62.bmp-F_Lure_18.bmp,FryingPan-Jack Nicholson,animal
+7,763,5, 1 ,O_Image_86.bmp-F_Lure_9.bmp,Soother-Charlie Chaplin,stem
+7,764,5, 1 ,F_Image_2.bmp-O_Lure_52.bmp,Amy Winehouse-Bed,drizzle
+7,765,5, 1 ,S_Image_116.bmp-O_Lure_93.bmp,Hollywood Sign-Umbrella,corpse
+7,766,5, 1 ,O_Image_77.bmp-F_Lure_19.bmp,Radio-James Dean,sand
+7,767,5, 1 ,O_Image_54.bmp-S_Lure_101.bmp,Bicycle-Atomium,rust
+7,768,5, 1 ,S_Image_105.bmp-O_Lure_90.bmp,Chichen Itza-Telephone,magnet
+7,769,5, 1 ,F_Image_27.bmp-S_Lure_120.bmp,Mahadma Gandhi-Machu Picchu,breakfast
+7,770,5, 1 ,F_Image_17.bmp-O_Lure_67.bmp,George Clooney-Hammock,tourist
+7,771,5, 1 ,O_Image_78.bmp-S_Lure_111.bmp,Razor-Gizeh Pyramids,wreck
+7,772,5, 1 ,F_Image_24.bmp-O_Lure_55.bmp,Keanu Reeves-Binoculars,measles
+7,773,5, 1 ,S_Image_139.bmp-O_Lure_76.bmp,Sydney Opera-Pillows,tail
+7,774,5, 1 ,S_Image_129.bmp-F_Lure_37.bmp,Petra-Pierce Brosnan,laundry
+7,775,5, 1 ,O_Image_57.bmp-S_Lure_117.bmp,Brush-Kings College,antique
+7,776,5, 1 ,F_Image_41.bmp-O_Lure_66.bmp,Rod Steward-Guitar,money
+7,777,5, 1 ,F_Image_34.bmp-S_Lure_125.bmp,Nelson Mandela-Mount Rushmore,lever
+7,778,5, 1 ,F_Image_34.bmp-S_Lure_125.bmp,Nelson Mandela-Mount Rushmore,lever
+7,779,5, 1 ,O_Image_56.bmp-S_Lure_112.bmp,Broom-Golden Gate Bridge,giant
+7,780,5, 1 ,S_Image_138.bmp-F_Lure_38.bmp,Stonehenge-Queen Elisabeth,tear
+7,781,5, 1 ,F_Image_27.bmp-S_Lure_120.bmp,Mahadma Gandhi-Machu Picchu,breakfast
+7,782,5, 1 ,O_Image_56.bmp-S_Lure_112.bmp,Broom-Golden Gate Bridge,giant
+7,783,5, 1 ,S_Image_135.bmp-O_Lure_85.bmp,Sahara Desert-Sock,ghost
+7,784,5, 1 ,F_Image_5.bmp-O_Lure_53.bmp,Bill Clinton-Belt,honeymoon
+7,785,5, 1 ,F_Image_23.bmp-S_Lure_133.bmp,Julia Roberts-Rialto Bridge,wound
+7,786,5, 1 ,F_Image_36.bmp-O_Lure_50.bmp,Penelope Cruz-Barbecue,sweat
+7,787,5, 1 ,O_Image_62.bmp-F_Lure_18.bmp,FryingPan-Jack Nicholson,animal
+7,788,5, 1 ,S_Image_134.bmp-F_Lure_29.bmp,Sagrada Familia-Marilyn Monroe,sunshine
+7,789,5, 1 ,S_Image_134.bmp-F_Lure_29.bmp,Sagrada Familia-Marilyn Monroe,sunshine
+7,790,5, 1 ,O_Image_84.bmp-F_Lure_21.bmp,Skirt-John Lennon,menu
+7,791,5, 1 ,S_Image_134.bmp-F_Lure_29.bmp,Sagrada Familia-Marilyn Monroe,sunshine
+7,792,5, 1 ,F_Image_17.bmp-O_Lure_67.bmp,George Clooney-Hammock,tourist
+7,793,5, 1 ,F_Image_25.bmp-S_Lure_144.bmp,Leonardo DiCaprio-White House,wool
+7,794,5, 1 ,S_Image_137.bmp-F_Lure_31.bmp,Statue Of Liberty-Michael Jackson,signal
+7,795,5, 1 ,S_Image_122.bmp-F_Lure_28.bmp,Mont Saint Michel-Margaret Thatcher,asphalt
+7,796,5, 1 ,F_Image_10.bmp-O_Lure_60.bmp,Dalai Lama-Flask,alien
+7,797,5, 1 ,S_Image_122.bmp-F_Lure_28.bmp,Mont Saint Michel-Margaret Thatcher,asphalt
+7,798,5, 1 ,F_Image_1.bmp-S_Lure_130.bmp,Albert Einstein-Potala Palace,seed
+7,799,5, 1 ,O_Image_84.bmp-F_Lure_21.bmp,Skirt-John Lennon,menu
+7,800,5, 1 ,F_Image_20.bmp-O_Lure_61.bmp,Jennifer Lopez-Football,harem
+7,801,5, 1 ,S_Image_116.bmp-O_Lure_93.bmp,Hollywood Sign-Umbrella,corpse
+7,802,5, 1 ,F_Image_36.bmp-O_Lure_50.bmp,Penelope Cruz-Barbecue,sweat
+7,803,5, 1 ,F_Image_27.bmp-S_Lure_120.bmp,Mahadma Gandhi-Machu Picchu,breakfast
+7,804,5, 1 ,O_Image_72.bmp-S_Lure_113.bmp,Lightbulb-Grand Canyon,vegetable
+7,805,5, 1 ,O_Image_96.bmp-F_Lure_26.bmp,Wineglass-Madonna,arch
+7,806,5, 1 ,S_Image_122.bmp-F_Lure_28.bmp,Mont Saint Michel-Margaret Thatcher,asphalt
+7,807,5, 1 ,O_Image_68.bmp-F_Lure_3.bmp,Hat-Angela Merkel,hostage
+7,808,5, 1 ,S_Image_114.bmp-O_Lure_79.bmp,Great Wall-Remote Control,hurricane
+7,809,5, 1 ,F_Image_30.bmp-S_Lure_140.bmp,Meryl Streep-Taj Mahal,marble
+7,810,5, 1 ,O_Image_86.bmp-F_Lure_9.bmp,Soother-Charlie Chaplin,stem
+7,811,5, 1 ,F_Image_10.bmp-O_Lure_60.bmp,Dalai Lama-Flask,alien
+7,812,5, 1 ,S_Image_114.bmp-O_Lure_79.bmp,Great Wall-Remote Control,hurricane
+7,813,5, 1 ,O_Image_95.bmp-S_Lure_110.bmp,Wheelchair-Forbidden City,galaxy
+7,814,5, 1 ,S_Image_109.bmp-F_Lure_42.bmp,Eiffel Tower-Scarlett Johansson,water
+7,815,5, 1 ,F_Image_25.bmp-S_Lure_144.bmp,Leonardo DiCaprio-White House,wool
+7,816,5, 1 ,S_Image_108.bmp-O_Lure_73.bmp,Dover Cliffs-Microscope,fuel
+7,817,5, 1 ,O_Image_84.bmp-F_Lure_21.bmp,Skirt-John Lennon,menu
+7,818,5, 1 ,F_Image_23.bmp-S_Lure_133.bmp,Julia Roberts-Rialto Bridge,wound
+7,819,5, 1 ,O_Image_62.bmp-F_Lure_18.bmp,FryingPan-Jack Nicholson,animal
+7,820,5, 1 ,F_Image_17.bmp-O_Lure_67.bmp,George Clooney-Hammock,tourist
+7,821,5, 1 ,F_Image_10.bmp-O_Lure_60.bmp,Dalai Lama-Flask,alien
+7,822,5, 1 ,F_Image_1.bmp-S_Lure_130.bmp,Albert Einstein-Potala Palace,seed
+7,823,5, 1 ,S_Image_108.bmp-O_Lure_73.bmp,Dover Cliffs-Microscope,fuel
+7,824,5, 1 ,S_Image_138.bmp-F_Lure_38.bmp,Stonehenge-Queen Elisabeth,tear
+7,825,5, 1 ,S_Image_106.bmp-O_Lure_82.bmp,Christ The Redeemer-Scissors,orchestra
+7,826,5, 1 ,F_Image_22.bmp-S_Lure_143.bmp,Judi Dench-Versailles,shell
+7,827,5, 1 ,O_Image_78.bmp-S_Lure_111.bmp,Razor-Gizeh Pyramids,wreck
+7,828,5, 1 ,O_Image_68.bmp-F_Lure_3.bmp,Hat-Angela Merkel,hostage
+7,829,5, 1 ,S_Image_106.bmp-O_Lure_82.bmp,Christ The Redeemer-Scissors,orchestra
+7,830,5, 1 ,O_Image_71.bmp-F_Lure_8.bmp,Ladder-Cameron Diaz,bubble
+7,831,5, 1 ,S_Image_129.bmp-F_Lure_37.bmp,Petra-Pierce Brosnan,laundry
+7,832,5, 1 ,S_Image_118.bmp-F_Lure_32.bmp,Leaning Tower-Mick Jagger,witch
+7,833,5, 1 ,O_Image_62.bmp-F_Lure_18.bmp,FryingPan-Jack Nicholson,animal
+7,834,5, 1 ,O_Image_96.bmp-F_Lure_26.bmp,Wineglass-Madonna,arch
+7,835,5, 1 ,S_Image_135.bmp-O_Lure_85.bmp,Sahara Desert-Sock,ghost
+7,836,5, 1 ,O_Image_64.bmp-S_Lure_99.bmp,Goggles-Alhambra,spike
+7,837,5, 1 ,F_Image_45.bmp-S_Lure_131.bmp,Tony Blair-Rapa Nui,paper
+7,838,5, 1 ,O_Image_88.bmp-F_Lure_12.bmp,Suitcase-David Beckham,corner
+7,839,5, 1 ,F_Image_44.bmp-O_Lure_65.bmp,Tom Hanks-GrandPiano,stripe
+7,840,5, 1 ,O_Image_95.bmp-S_Lure_110.bmp,Wheelchair-Forbidden City,galaxy
+7,841,5, 1 ,S_Image_123.bmp-O_Lure_91.bmp,Mount Everest-Torch,cone
+7,842,5, 1 ,F_Image_25.bmp-S_Lure_144.bmp,Leonardo DiCaprio-White House,wool
+7,843,5, 1 ,O_Image_56.bmp-S_Lure_112.bmp,Broom-Golden Gate Bridge,giant
+7,844,5, 1 ,F_Image_27.bmp-S_Lure_120.bmp,Mahadma Gandhi-Machu Picchu,breakfast
+7,845,5, 1 ,S_Image_137.bmp-F_Lure_31.bmp,Statue Of Liberty-Michael Jackson,signal
+7,846,5, 1 ,F_Image_1.bmp-S_Lure_130.bmp,Albert Einstein-Potala Palace,seed
+7,847,5, 1 ,O_Image_81.bmp-F_Lure_16.bmp,Scale-George Bush,arrow
+7,848,5, 1 ,O_Image_54.bmp-S_Lure_101.bmp,Bicycle-Atomium,rust
+7,849,5, 1 ,O_Image_88.bmp-F_Lure_12.bmp,Suitcase-David Beckham,corner
+7,850,5, 1 ,F_Image_30.bmp-S_Lure_140.bmp,Meryl Streep-Taj Mahal,marble
+7,851,5, 1 ,S_Image_116.bmp-O_Lure_93.bmp,Hollywood Sign-Umbrella,corpse
+7,852,5, 1 ,S_Image_116.bmp-O_Lure_93.bmp,Hollywood Sign-Umbrella,corpse
+7,853,5, 1 ,S_Image_138.bmp-F_Lure_38.bmp,Stonehenge-Queen Elisabeth,tear
+7,854,5, 1 ,F_Image_44.bmp-O_Lure_65.bmp,Tom Hanks-GrandPiano,stripe
+7,855,5, 1 ,F_Image_30.bmp-S_Lure_140.bmp,Meryl Streep-Taj Mahal,marble
+7,856,5, 1 ,O_Image_51.bmp-S_Lure_102.bmp,Basket-Ayers Rock,poison
+7,857,5, 1 ,O_Image_84.bmp-F_Lure_21.bmp,Skirt-John Lennon,menu
+7,858,5, 1 ,F_Image_22.bmp-S_Lure_143.bmp,Judi Dench-Versailles,shell
+7,859,5, 1 ,F_Image_24.bmp-O_Lure_55.bmp,Keanu Reeves-Binoculars,measles
+7,860,5, 1 ,O_Image_57.bmp-S_Lure_117.bmp,Brush-Kings College,antique
+7,861,5, 1 ,O_Image_86.bmp-F_Lure_9.bmp,Soother-Charlie Chaplin,stem
+7,862,5, 1 ,O_Image_96.bmp-F_Lure_26.bmp,Wineglass-Madonna,arch
+7,863,5, 1 ,S_Image_109.bmp-F_Lure_42.bmp,Eiffel Tower-Scarlett Johansson,water
+7,864,5, 1 ,O_Image_88.bmp-F_Lure_12.bmp,Suitcase-David Beckham,corner
+7,865,5, 1 ,F_Image_23.bmp-S_Lure_133.bmp,Julia Roberts-Rialto Bridge,wound
+7,866,5, 1 ,O_Image_54.bmp-S_Lure_101.bmp,Bicycle-Atomium,rust
+7,867,5, 1 ,F_Image_2.bmp-O_Lure_52.bmp,Amy Winehouse-Bed,drizzle
+7,868,5, 1 ,F_Image_24.bmp-O_Lure_55.bmp,Keanu Reeves-Binoculars,measles
+7,869,5, 1 ,S_Image_119.bmp-O_Lure_83.bmp,Louvre-Shoe,slope
+7,870,5, 1 ,S_Image_106.bmp-O_Lure_82.bmp,Christ The Redeemer-Scissors,orchestra
+7,871,5, 1 ,S_Image_115.bmp-F_Lure_39.bmp,Hagia Sophia-Robbie Williams,fire
+7,872,5, 1 ,F_Image_41.bmp-O_Lure_66.bmp,Rod Steward-Guitar,money
+7,873,5, 1 ,O_Image_64.bmp-S_Lure_99.bmp,Goggles-Alhambra,spike
+7,874,5, 1 ,O_Image_77.bmp-F_Lure_19.bmp,Radio-James Dean,sand
+7,875,5, 1 ,S_Image_123.bmp-O_Lure_91.bmp,Mount Everest-Torch,cone
+7,876,5, 1 ,S_Image_109.bmp-F_Lure_42.bmp,Eiffel Tower-Scarlett Johansson,water
+7,877,5, 1 ,S_Image_105.bmp-O_Lure_90.bmp,Chichen Itza-Telephone,magnet
+7,878,5, 1 ,O_Image_71.bmp-F_Lure_8.bmp,Ladder-Cameron Diaz,bubble
+7,879,5, 1 ,S_Image_109.bmp-F_Lure_42.bmp,Eiffel Tower-Scarlett Johansson,water
+7,880,5, 1 ,O_Image_81.bmp-F_Lure_16.bmp,Scale-George Bush,arrow
+7,881,5, 1 ,S_Image_108.bmp-O_Lure_73.bmp,Dover Cliffs-Microscope,fuel
+7,882,5, 1 ,S_Image_115.bmp-F_Lure_39.bmp,Hagia Sophia-Robbie Williams,fire
+7,883,5, 1 ,S_Image_105.bmp-O_Lure_90.bmp,Chichen Itza-Telephone,magnet
+7,884,5, 1 ,F_Image_7.bmp-O_Lure_63.bmp,Britney Spears-Globe,steam
+7,885,5, 1 ,O_Image_81.bmp-F_Lure_16.bmp,Scale-George Bush,arrow
+7,886,5, 1 ,F_Image_44.bmp-O_Lure_65.bmp,Tom Hanks-GrandPiano,stripe
+7,887,5, 1 ,O_Image_64.bmp-S_Lure_99.bmp,Goggles-Alhambra,spike
+7,888,5, 1 ,F_Image_34.bmp-S_Lure_125.bmp,Nelson Mandela-Mount Rushmore,lever
+7,889,5, 1 ,S_Image_118.bmp-F_Lure_32.bmp,Leaning Tower-Mick Jagger,witch
+7,890,5, 1 ,O_Image_57.bmp-S_Lure_117.bmp,Brush-Kings College,antique
+7,891,5, 1 ,S_Image_115.bmp-F_Lure_39.bmp,Hagia Sophia-Robbie Williams,fire
+7,892,5, 1 ,F_Image_36.bmp-O_Lure_50.bmp,Penelope Cruz-Barbecue,sweat
+7,893,5, 1 ,O_Image_64.bmp-S_Lure_99.bmp,Goggles-Alhambra,spike
+7,894,5, 1 ,F_Image_6.bmp-S_Lure_124.bmp,Brad Pitt-Mount Fuji,angel
+7,895,5, 1 ,F_Image_7.bmp-O_Lure_63.bmp,Britney Spears-Globe,steam
+7,896,5, 1 ,O_Image_51.bmp-S_Lure_102.bmp,Basket-Ayers Rock,poison
+7,897,5, 1 ,F_Image_36.bmp-O_Lure_50.bmp,Penelope Cruz-Barbecue,sweat
+7,898,5, 1 ,S_Image_137.bmp-F_Lure_31.bmp,Statue Of Liberty-Michael Jackson,signal
+7,899,5, 1 ,F_Image_6.bmp-S_Lure_124.bmp,Brad Pitt-Mount Fuji,angel
+7,900,5, 1 ,S_Image_135.bmp-O_Lure_85.bmp,Sahara Desert-Sock,ghost
+7,901,5, 1 ,O_Image_95.bmp-S_Lure_110.bmp,Wheelchair-Forbidden City,galaxy
+7,902,5, 1 ,F_Image_1.bmp-S_Lure_130.bmp,Albert Einstein-Potala Palace,seed
+7,903,5, 1 ,S_Image_108.bmp-O_Lure_73.bmp,Dover Cliffs-Microscope,fuel
+7,904,5, 1 ,O_Image_51.bmp-S_Lure_102.bmp,Basket-Ayers Rock,poison
+7,905,5, 1 ,S_Image_118.bmp-F_Lure_32.bmp,Leaning Tower-Mick Jagger,witch
+7,906,5, 1 ,S_Image_119.bmp-O_Lure_83.bmp,Louvre-Shoe,slope
+7,907,5, 1 ,O_Image_57.bmp-S_Lure_117.bmp,Brush-Kings College,antique
+7,908,5, 1 ,F_Image_2.bmp-O_Lure_52.bmp,Amy Winehouse-Bed,drizzle
+7,909,5, 1 ,O_Image_51.bmp-S_Lure_102.bmp,Basket-Ayers Rock,poison
+7,910,5, 1 ,O_Image_77.bmp-F_Lure_19.bmp,Radio-James Dean,sand
+7,911,5, 1 ,F_Image_41.bmp-O_Lure_66.bmp,Rod Steward-Guitar,money
+7,912,5, 1 ,S_Image_114.bmp-O_Lure_79.bmp,Great Wall-Remote Control,hurricane
+7,913,5, 1 ,O_Image_72.bmp-S_Lure_113.bmp,Lightbulb-Grand Canyon,vegetable
+7,914,5, 1 ,F_Image_45.bmp-S_Lure_131.bmp,Tony Blair-Rapa Nui,paper
+7,915,5, 1 ,O_Image_78.bmp-S_Lure_111.bmp,Razor-Gizeh Pyramids,wreck
+7,916,5, 1 ,F_Image_2.bmp-O_Lure_52.bmp,Amy Winehouse-Bed,drizzle
+7,917,5, 1 ,F_Image_10.bmp-O_Lure_60.bmp,Dalai Lama-Flask,alien
+7,918,5, 1 ,S_Image_118.bmp-F_Lure_32.bmp,Leaning Tower-Mick Jagger,witch
+7,919,5, 1 ,O_Image_68.bmp-F_Lure_3.bmp,Hat-Angela Merkel,hostage
+7,920,5, 1 ,S_Image_119.bmp-O_Lure_83.bmp,Louvre-Shoe,slope
+7,921,6,1,F_Image_28.bmp-F_Lure_28.bmp,Margaret Thatcher,asphalt
+7,922,6,1,F_Image_39.bmp-F_Lure_39.bmp,Robbie Williams,fire
+7,923,6,1,F_Image_42.bmp-F_Lure_42.bmp,Scarlett Johansson,water
+7,924,6,1,F_Image_29.bmp-F_Lure_29.bmp,Marilyn Monroe,sunshine
+7,925,6,1,F_Image_38.bmp-F_Lure_38.bmp,Queen Elisabeth,tear
+7,926,6,1,S_Image_117.bmp-S_Lure_117.bmp,Kings College,antique
+7,927,6,1,F_Image_16.bmp-F_Lure_16.bmp,George Bush,arrow
+7,928,6,1,F_Image_11.bmp-F_Lure_11.bmp,Daniel Radcliffe,shadow
+7,929,6,1,F_Image_37.bmp-F_Lure_37.bmp,Pierce Brosnan,laundry
+7,930,6,1,S_Image_142.bmp-S_Lure_142.bmp,Tower Bridge,cloud
+7,931,6,1,O_Image_61.bmp-O_Lure_61.bmp,Football,harem
+7,932,6,1,O_Image_66.bmp-O_Lure_66.bmp,Guitar,money
+7,933,6,1,S_Image_133.bmp-S_Lure_133.bmp,Rialto Bridge,wound
+7,934,6,1,S_Image_126.bmp-S_Lure_126.bmp,Neu schwanstein Castle,kiss
+7,935,6,1,F_Image_26.bmp-F_Lure_26.bmp,Madonna,arch
+7,936,6,1,F_Image_19.bmp-F_Lure_19.bmp,James Dean,sand
+7,937,6,1,O_Image_82.bmp-O_Lure_82.bmp,Scissors,orchestra
+7,938,6,1,S_Image_112.bmp-S_Lure_112.bmp,Golden Gate Bridge,giant
+7,939,6,1,S_Image_110.bmp-S_Lure_110.bmp,Forbidden City,galaxy
+7,940,6,1,S_Image_124.bmp-S_Lure_124.bmp,Mount Fuji,angel
+7,941,6,1,O_Image_91.bmp-O_Lure_91.bmp,Torch,cone
+7,942,6,1,O_Image_50.bmp-O_Lure_50.bmp,Barbecue,sweat
+7,943,6,1,F_Image_8.bmp-F_Lure_8.bmp,Cameron Diaz,bubble
+7,944,6,1,O_Image_53.bmp-O_Lure_53.bmp,Belt,honeymoon
+7,945,6,1,S_Image_113.bmp-S_Lure_113.bmp,Grand Canyon,vegetable
+7,946,6,1,O_Image_67.bmp-O_Lure_67.bmp,Hammock,tourist
+7,947,6,1,S_Image_104.bmp-S_Lure_104.bmp,Brandenburg Gate,costume
+7,948,6,1,S_Image_125.bmp-S_Lure_125.bmp,Mount Rushmore,lever
+7,949,6,1,O_Image_70.bmp-O_Lure_70.bmp,Key,rock
+7,950,6,1,S_Image_143.bmp-S_Lure_143.bmp,Versailles,shell
+7,951,6,1,O_Image_90.bmp-O_Lure_90.bmp,Telephone,magnet
+7,952,6,1,F_Image_12.bmp-F_Lure_12.bmp,David Beckham,corner
+7,953,6,1,S_Image_144.bmp-S_Lure_144.bmp,White House,wool
+7,954,6,1,O_Image_74.bmp-O_Lure_74.bmp,Mirror,alcohol
+7,955,6,1,O_Image_49.bmp-O_Lure_49.bmp,Anchor,attack
+7,956,6,1,O_Image_93.bmp-O_Lure_93.bmp,Umbrella,corpse
+7,957,6,1,F_Image_3.bmp-F_Lure_3.bmp,Angela Merkel,hostage
+7,958,6,1,F_Image_46.bmp-F_Lure_46.bmp,Wayne Rooney,snow
+7,959,6,1,S_Image_98.bmp-S_Lure_98.bmp,Alcatraz,black
+7,960,6,1,O_Image_83.bmp-O_Lure_83.bmp,Shoe,slope
+7,961,6,1,F_Image_15.bmp-F_Lure_15.bmp,Fidel Castro,yellow
+7,962,6,1,O_Image_79.bmp-O_Lure_79.bmp,Remote Control,hurricane
+7,963,6,1,S_Image_120.bmp-S_Lure_120.bmp,Machu Picchu,breakfast
+7,964,6,1,O_Image_60.bmp-O_Lure_60.bmp,Flask,alien
+7,965,6,1,F_Image_47.bmp-F_Lure_47.bmp,Whoopi Goldberg,scar
+7,966,6,1,O_Image_63.bmp-O_Lure_63.bmp,Globe,steam
+7,967,6,1,S_Image_97.bmp-S_Lure_97.bmp,Akropolis,board
+7,968,6,1,O_Image_65.bmp-O_Lure_65.bmp,GrandPiano,stripe
+7,969,6,1,O_Image_87.bmp-O_Lure_87.bmp,Stapler,quake
+7,970,6,1,O_Image_85.bmp-O_Lure_85.bmp,Sock,ghost
+7,971,6,1,S_Image_132.bmp-S_Lure_132.bmp,Red Square,crumb
+7,972,6,1,F_Image_9.bmp-F_Lure_9.bmp,Charlie Chaplin,stem
+7,973,6,1,S_Image_130.bmp-S_Lure_130.bmp,Potala Palace,seed
+7,974,6,1,O_Image_55.bmp-O_Lure_55.bmp,Binoculars,measles
+7,975,6,1,F_Image_21.bmp-F_Lure_21.bmp,John Lennon,menu
+7,976,6,1,S_Image_107.bmp-S_Lure_107.bmp,Colosseum,triangle
+7,977,6,1,F_Image_31.bmp-F_Lure_31.bmp,Michael Jackson,signal
+7,978,6,1,S_Image_140.bmp-S_Lure_140.bmp,Taj Mahal,marble
+7,979,6,1,S_Image_99.bmp-S_Lure_99.bmp,Alhambra,spike
+7,980,6,1,F_Image_33.bmp-F_Lure_33.bmp,Mother Teresa,army
+7,981,6,1,O_Image_52.bmp-O_Lure_52.bmp,Bed,drizzle
+7,982,6,1,F_Image_43.bmp-F_Lure_43.bmp,Tom Cruise,spray
+7,983,6,1,F_Image_13.bmp-F_Lure_13.bmp,Elton John,tube
+7,984,6,1,S_Image_131.bmp-S_Lure_131.bmp,Rapa Nui,paper
+7,985,6,1,O_Image_73.bmp-O_Lure_73.bmp,Microscope,fuel
+7,986,6,1,O_Image_76.bmp-O_Lure_76.bmp,Pillows,tail
+7,987,6,1,S_Image_102.bmp-S_Lure_102.bmp,Ayers Rock,poison
+7,988,6,1,F_Image_32.bmp-F_Lure_32.bmp,Mick Jagger,witch
+7,989,6,1,F_Image_18.bmp-F_Lure_18.bmp,Jack Nicholson,animal
+7,990,6,1,S_Image_101.bmp-S_Lure_101.bmp,Atomium,rust
+7,991,6,1,O_Image_92.bmp-O_Lure_92.bmp,Trophy,flood
+7,992,6,1,S_Image_111.bmp-S_Lure_111.bmp,Gizeh Pyramids,wreck
+7,993,6,1,F_Image_6.bmp-F_Lure_6.bmp,Brad Pitt,angel
+7,994,6,1,F_Image_45.bmp-F_Lure_45.bmp,Tony Blair,paper
+7,995,6,1,O_Image_51.bmp-O_Lure_51.bmp,Basket,poison
+7,996,6,1,S_Image_109.bmp-S_Lure_109.bmp,Eiffel Tower,water
+7,997,6,1,F_Image_20.bmp-F_Lure_20.bmp,Jennifer Lopez,harem
+7,998,6,1,F_Image_10.bmp-F_Lure_10.bmp,Dalai Lama,alien
+7,999,6,1,O_Image_96.bmp-O_Lure_96.bmp,Wineglass,arch
+7,1000,6,1,F_Image_34.bmp-F_Lure_34.bmp,Nelson Mandela,lever
+7,1001,6,1,S_Image_108.bmp-S_Lure_108.bmp,Dover Cliffs,fuel
+7,1002,6,1,F_Image_1.bmp-F_Lure_1.bmp,Albert Einstein,seed
+7,1003,6,1,O_Image_54.bmp-O_Lure_54.bmp,Bicycle,rust
+7,1004,6,1,S_Image_127.bmp-S_Lure_127.bmp,Niagara Falls,spray
+7,1005,6,1,S_Image_114.bmp-S_Lure_114.bmp,Great Wall,hurricane
+7,1006,6,1,O_Image_86.bmp-O_Lure_86.bmp,Soother,stem
+7,1007,6,1,F_Image_17.bmp-F_Lure_17.bmp,George Clooney,tourist
+7,1008,6,1,F_Image_24.bmp-F_Lure_24.bmp,Keanu Reeves,measles
+7,1009,6,1,O_Image_81.bmp-O_Lure_81.bmp,Scale,arrow
+7,1010,6,1,S_Image_128.bmp-S_Lure_128.bmp,Notre Dame,quake
+7,1011,6,1,S_Image_135.bmp-S_Lure_135.bmp,Sahara Desert,ghost
+7,1012,6,1,F_Image_7.bmp-F_Lure_7.bmp,Britney Spears,steam
+7,1013,6,1,O_Image_75.bmp-O_Lure_75.bmp,Necklace,shadow
+7,1014,6,1,O_Image_88.bmp-O_Lure_88.bmp,Suitcase,corner
+7,1015,6,1,S_Image_103.bmp-S_Lure_103.bmp,Big Ben,army
+7,1016,6,1,S_Image_136.bmp-S_Lure_136.bmp,Sistine Chapel,scar
+7,1017,6,1,O_Image_58.bmp-O_Lure_58.bmp,Canoe,yellow
+7,1018,6,1,F_Image_30.bmp-F_Lure_30.bmp,Meryl Streep,marble
+7,1019,6,1,O_Image_77.bmp-O_Lure_77.bmp,Radio,sand
+7,1020,6,1,O_Image_78.bmp-O_Lure_78.bmp,Razor,wreck
+7,1021,6,1,F_Image_14.bmp-F_Lure_14.bmp,Elvis Presley,rock
+7,1022,6,1,F_Image_2.bmp-F_Lure_2.bmp,Amy Winehouse,drizzle
+7,1023,6,1,S_Image_122.bmp-S_Lure_122.bmp,Mont Saint Michel,asphalt
+7,1024,6,1,S_Image_134.bmp-S_Lure_134.bmp,Sagrada Familia,sunshine
+7,1025,6,1,S_Image_119.bmp-S_Lure_119.bmp,Louvre,slope
+7,1026,6,1,S_Image_123.bmp-S_Lure_123.bmp,Mount Everest,cone
+7,1027,6,1,O_Image_80.bmp-O_Lure_80.bmp,Rope,tube
+7,1028,6,1,F_Image_35.bmp-F_Lure_35.bmp,Nikola Sarkozy,kiss
+7,1029,6,1,O_Image_94.bmp-O_Lure_94.bmp,Watch,costume
+7,1030,6,1,O_Image_64.bmp-O_Lure_64.bmp,Goggles,spike
+7,1031,6,1,O_Image_56.bmp-O_Lure_56.bmp,Broom,giant
+7,1032,6,1,S_Image_137.bmp-S_Lure_137.bmp,Statue Of Liberty,signal
+7,1033,6,1,S_Image_118.bmp-S_Lure_118.bmp,Leaning Tower,witch
+7,1034,6,1,F_Image_36.bmp-F_Lure_36.bmp,Penelope Cruz,sweat
+7,1035,6,1,S_Image_129.bmp-S_Lure_129.bmp,Petra,laundry
+7,1036,6,1,O_Image_95.bmp-O_Lure_95.bmp,Wheelchair,galaxy
+7,1037,6,1,O_Image_62.bmp-O_Lure_62.bmp,FryingPan,animal
+7,1038,6,1,S_Image_141.bmp-S_Lure_141.bmp,Time Square,flood
+7,1039,6,1,F_Image_48.bmp-F_Lure_48.bmp,Will Smith,attack
+7,1040,6,1,F_Image_22.bmp-F_Lure_22.bmp,Judi Dench,shell
+7,1041,6,1,F_Image_5.bmp-F_Lure_5.bmp,Bill Clinton,honeymoon
+7,1042,6,1,S_Image_115.bmp-S_Lure_115.bmp,Hagia Sophia,fire
+7,1043,6,1,O_Image_89.bmp-O_Lure_89.bmp,Teddybear,board
+7,1044,6,1,S_Image_106.bmp-S_Lure_106.bmp,Christ The Redeemer,orchestra
+7,1045,6,1,F_Image_27.bmp-F_Lure_27.bmp,Mahadma Gandhi,breakfast
+7,1046,6,1,S_Image_116.bmp-S_Lure_116.bmp,Hollywood Sign,corpse
+7,1047,6,1,O_Image_69.bmp-O_Lure_69.bmp,Headphones,black
+7,1048,6,1,O_Image_84.bmp-O_Lure_84.bmp,Skirt,menu
+7,1049,6,1,S_Image_121.bmp-S_Lure_121.bmp,Mecca,snow
+7,1050,6,1,S_Image_138.bmp-S_Lure_138.bmp,Stonehenge,tear
+7,1051,6,1,F_Image_4.bmp-F_Lure_4.bmp,Barack Obama,crumb
+7,1052,6,1,O_Image_68.bmp-O_Lure_68.bmp,Hat,hostage
+7,1053,6,1,O_Image_57.bmp-O_Lure_57.bmp,Brush,antique
+7,1054,6,1,S_Image_105.bmp-S_Lure_105.bmp,Chichen Itza,magnet
+7,1055,6,1,O_Image_72.bmp-O_Lure_72.bmp,Lightbulb,vegetable
+7,1056,6,1,F_Image_41.bmp-F_Lure_41.bmp,Rod Steward,money
+7,1057,6,1,F_Image_40.bmp-F_Lure_40.bmp,Robert De Niro,cloud
+7,1058,6,1,F_Image_23.bmp-F_Lure_23.bmp,Julia Roberts,wound
+7,1059,6,1,S_Image_139.bmp-S_Lure_139.bmp,Sydney Opera,tail
+7,1060,6,1,O_Image_59.bmp-O_Lure_59.bmp,Fan,triangle
+7,1061,6,1,S_Image_100.bmp-S_Lure_100.bmp,Angkor Wat,alcohol
+7,1062,6,1,F_Image_44.bmp-F_Lure_44.bmp,Tom Hanks,stripe
+7,1063,6,1,F_Image_25.bmp-F_Lure_25.bmp,Leonardo DiCaprio,wool
+7,1064,6,1,O_Image_71.bmp-O_Lure_71.bmp,Ladder,bubble

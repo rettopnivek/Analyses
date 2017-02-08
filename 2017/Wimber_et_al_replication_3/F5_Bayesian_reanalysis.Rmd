@@ -1,0 +1,211 @@
+---
+title: "Reanalysis of original data"
+author: "Kevin Potter"
+date: "February 7, 2017"
+output: html_document
+---
+
+## Introduction
+
+Here I reanalysis the final recognition test from the behavioral data of Wimber et al. (2015) using a generalized linear model, the goal being to use the posteriors subsequently as priors for the replication. Furthermore, Nature Neuroscience defines successful replications as ones who fall within the 95% confidence intervals of the original data. We will try to do the same using the credible intervals instead.
+
+## Load in useful packages and data
+
+```{r,message=FALSE,warning=FALSE}
+# Clear workspace
+rm(list = ls())
+
+# For geting github packages
+# install.packages(devtools)
+# library(devtools)
+
+# Miscellanous functions for modeling/plotting
+# install_github("rettopnivek/utilityf")
+library(utilityf)
+
+# Load in packages for Bayesian estimation
+# install.packages('rstan')
+library(rstan)
+# For parallel processing
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+# install.packages( 'rstanarm' )
+library( rstanarm )
+
+# Load in useful functions
+source( 'F1_Useful_functions.R' )
+
+# Load in data
+load( 'Data/Original_all_data.RData' )
+OriginalRecMem = OriginalAllData[ OriginalAllData$Cond == 6, ]
+
+# Determine the sample size
+N = length( unique( OriginalRecMem$Subject ) )
+```
+
+## Specification of independent and dependent variables
+
+The dependent variable of interest is accuracy (coded as 0 for wrong and 1 for correct), which we assume follows a Bernoulli distribution. The group-level factors we'll examine across the models are:
+
+1. Image type (whether an image was a target vs. competitor).
+2. Selective retrieval (whether an image was in the selective retrieval condition or not).
+
+Additionally, we'll include specific subject-level and image-level effects.
+
+```{r}
+# Create a data frame for data to be fitted
+d = OriginalRecMem
+# Set missing responses to 0
+d$Accuracy[ is.na( d$Accuracy ) ] = 0
+# Dependent variable
+d$Y = d$Accuracy
+# Image type (1 = target, 2 = competitor)
+d$IT = as.factor( d$ImageType )
+# Selective retrieval ( 1 = yes, 0 = no )
+d$SR = as.factor( 1 - d$Baseline )
+d$S = as.factor( d$Subject )
+d$I = as.factor( d$ImageNum )
+# Nuisance parameter for bernoulli distribution
+d$Trial = rep(1,nrow(d))
+```
+
+However, the predicted effect is that there should be no difference between baseline conditions and the selective retrieval condition with targets, but there should be a drop in performance for the selective retrieval condition with competitors. We'll create a dummy-coded variable representing that.
+
+```{r}
+d$RIF = 0; d$RIF[ d$IT == 2 & d$SR == 1 ] = 1
+```
+
+## Prior predictive checks
+
+We'll need to specify priors for the model. Specifically, we'll specify the intercept as a Normal( 1.775, .3 ). As for the coefficient representing the RIF effect, we'll specify a Normal( -.3, .3 ) prior. Given that a large number of studies report a RIF effect, this prior should reflect the average researcher's belief that the effect is present. A prior predictive check can tell us the range of responses the model predicts using these priors.
+
+```{r}
+# Fit a model conditioned on the priors instead of the outcomes
+fit = stan_glmer(cbind(Y, Trial) ~ RIF + (1|S) + (1|I), 
+                 data = d, family = binomial("logit"), 
+                 prior_intercept = normal(1.775,.3), 
+                 prior = normal( -.3, .3 ), 
+                 prior_PD = TRUE,chains = 4, cores = 4, seed = 7453)
+
+# Simulate data from the priors
+nd = d; nd$Y = 0; nd = nd[,-7];
+Sim = posterior_predict( fit, newdata = nd )
+```
+
+```{r,echo=FALSE}
+# Calculate avg. accuracy over conditions of interest
+tmp = apply( Sim, 1, function(x) 
+	aggregate( x, list( nd$IT, nd$SR ), mean )$x )
+# Create a plot of the priors
+plot( c(1,4), c(.5,1), type='n', bty='l',
+			xlab = 'Condition', xaxt='n', yaxt='n',
+			ylab = 'P(Correct)' )
+abline( h = c(.85,.8,.75), col = 'grey' )
+axis( 1, 1:4, c('T-BS','C-BS','T-SR','C-SR'), tick=F )
+axis( 2, seq(.5,1,.1) )
+tmp2 = apply( tmp, 1, quantile, prob=c(.025,.25,.5,.75,.975) )
+segments( 1:4, tmp2[1,], 1:4, tmp2[5,] )
+segments( 1:4, tmp2[2,], 1:4, tmp2[4,], lwd = 3 )
+points( 1:4, tmp2[3,], pch = 21, bg='white', cex = 2 )
+```
+
+With these priors, the model predicts an average accuracy of 80% across subjects, and a RIF effect of about 4%. Accuracy ranges roughly between 60 to 90% though.
+
+## Model fit
+
+We'll now fit the model to the actual data and update our priors.
+
+```{r}
+# Fit the model to the original data
+fit = stan_glmer(cbind(Y, Trial) ~ RIF + (1|S) + (1|I), 
+                 data = d, family = binomial("logit"), 
+                 prior_intercept = normal(1.775,.3), 
+                 prior = normal( c(-.3), c(.3) ), 
+                 chains = 8, cores = 8, 
+                 seed = 3872,iter=1250,warmup=500)
+
+# Extract the posterior estimates
+post = as.matrix( fit )
+```
+
+The resulting posteriors suggest that the posterior probability for the RIF effect is essentially guaranteed to be negative (i.e. 100% of credible mass is less than 0 ).
+
+```{r,echo=FALSE}
+layout( cbind( 1, 2 ) )
+plot( c(0,1), c(1.2,2.4), type = 'n',
+      xaxt = 'n', xlab = 'Intercept', ylab = ' ', bty = 'n' )
+violinPlot( post[,1], .5, scaleH = .4 )
+
+plot( c(0,1), c(-.8,.2), type = 'n',
+      xaxt = 'n',  xlab = 'RIF effect', ylab = ' ', bty = 'n' )
+abline( h = 0, lty = 2 )
+postProb = violinPlot( post[,2], .5, scaleH = .4, crit = 0, type = "less",
+                       border = NA, col = 'grey' )
+violinPlot( post[,2], .5, scaleH = .4 )
+legend( 'topleft', paste( 'P( Theta < 0 ) = ', round(postProb,2) ),
+        bty = 'n' )
+```
+
+```{r}
+# Credible intervals
+print( round( quantile( post[,2], c( .025, .975 ) ), 2 ) )
+```
+
+## Posterior retrodictive checks
+
+To examine how well the model performs, we can examine how well it retrodicts the data to which the model was fitted.
+
+```{r,echo=FALSE}
+
+# Simulate data from the posterior estimates
+nd = d[,c('Y','I','S','IT','SR','RIF','Trial')]; nd$Y = 0;
+Sim = posterior_predict( fit, newdata = nd )
+
+### Group-level performance ###
+
+# Calculate avg. accuracy over conditions of interest
+tmp = apply( Sim, 1, function(x) 
+	aggregate( x, list( nd$IT, nd$SR ), mean )$x )
+obs = aggregate( d$Y, list( d$IT, d$SR ), mean )$x
+# Create a plot of the posterior predictive check
+plot( c(1,4), c(.5,1), type='n', bty='l',
+			xlab = 'Condition', xaxt='n', yaxt='n',
+			ylab = 'P(Correct)' )
+abline( h = c(.85,.8,.75), col = 'grey' )
+axis( 1, 1:4, c('T-BS','C-BS','T-SR','C-SR'), tick=F )
+axis( 2, seq(.5,1,.1) )
+tmp2 = apply( tmp, 1, quantile, prob=c(.025,.25,.5,.75,.975) )
+segments( 1:4, tmp2[1,], 1:4, tmp2[5,] )
+segments( 1:4, tmp2[2,], 1:4, tmp2[4,], lwd = 3 )
+points( 1:4, tmp2[3,], pch = 21, bg='white', cex = 2 )
+points( 1:4, obs, pch = 19, col = 'blue' )
+
+### Subject-level performance ###
+tmp = apply( Sim, 1, function(x) 
+	aggregate( x, list( nd$IT, nd$SR, nd$S ), mean )$x )
+
+obs = aggregate( d$Y, list( d$IT, d$SR, d$S ), mean )
+
+cond = cbind( c(1,2,1,2), c(0,0,1,1) )
+ttl = paste( 'Subject-level:', c('T-BS','C-BS','T-SR','C-SR') )
+for (i in 1:4) {
+  sel = obs[,1] == cond[i,1] & obs[,2] == cond[i,2]
+  tmp2 = apply( tmp[sel,], 1, quantile, prob = c(.025,.25,.5,.75,.975) )
+  plot( c(1,N), c(.5,1), type = 'n', bty = 'l', ylab = 'P(Correct)',
+        xlab = 'Subject', main = ttl[i] )
+  segments( 1:N, tmp2[1,], 1:N, tmp2[5,] )
+  segments( 1:N, tmp2[2,], 1:N, tmp2[4,], lwd = 3 )
+  points( 1:N, tmp2[3,], pch = 21, bg='white', cex = 2 )
+  points( 1:N, obs$x[ sel ], pch = 19, col = 'blue' )
+}
+
+```
+
+The model does fairly well at the group-level, but (unsurprisingly) is less precise at the subject level due to shrinkage. Finally, assuming that the posteriors are well approximated by normal distributions, we can use the mean and standard deviation of the posterior approximations for the intercept and RIF coefficient to determine the subsequent priors for the replication analyses.
+
+```{r,echo=FALSE}
+cat('Mean and standard deviation for intercept:','\n')
+cat( round( mean(post[,1]), 2 ), ',', round( sd(post[,1]), 2 ), '\n' )
+cat('Mean and standard deviation for RIF coefficient:','\n')
+cat( round( mean(post[,2]), 2 ), ',', round( sd(post[,2]), 2 ), '\n' )
+```

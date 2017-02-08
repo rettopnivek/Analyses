@@ -1,0 +1,4 @@
+Sex, Female
+Ethnicity, Hispanic or Latino
+Race, Rather not say
+Age, 20

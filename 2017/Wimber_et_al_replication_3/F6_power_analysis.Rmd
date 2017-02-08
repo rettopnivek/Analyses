@@ -1,0 +1,240 @@
+---
+title: "Power Analysis for replication"
+author: "Kevin Potter"
+date: "May 3, 2016"
+output: html_document
+---
+
+## Introduction
+
+This is a record of a power analysis for a third replication attempt on the Wimber et al. (2015) study on cortical suppression as an explanation of retrieval induced forgetting.
+
+## Load in useful packages and data
+
+```{r,message=FALSE,warning=FALSE}
+# Clear workspace
+rm(list = ls())
+
+# For geting github packages
+# install.packages(devtools)
+# library(devtools)
+
+# Miscellanous functions for modeling/plotting
+# install_github("rettopnivek/utilityf")
+library(utilityf)
+
+# Package for fitting generalized linear models with mixed effects
+# install.packages( 'lme4' )
+library( lme4 )
+
+# Load in data
+load("Data/Original_Rec_Mem_data.RData")
+
+# Determine the sample size
+N_orig = length( unique( OriginalRecMem$Subject ) )
+```
+
+## Define dependent and independent variables
+```{r, echo=FALSE}
+# Extract data
+Y = OriginalRecMem$Accuracy # ( 0 = wrong, 1 = right )
+W = rep( 1, length(Y) ) # The weighting to use so glmer function
+                        # can use binomial distribution correctly
+
+# Create a covariate indicating which condition subjects 
+# should experience RIF
+RIF_cond = numeric( length(Y) )
+# Subjects should have RIF for second associates in the 
+# selective retrieval condition
+RIF_cond[ OriginalRecMem$ImageType == 2 & 
+            OriginalRecMem$Baseline == 0 ] = 1
+RIF_cond = RIF_cond
+# Create an index for subjects
+S = OriginalRecMem$Subject
+# Create an index for items
+I = OriginalRecMem$ImageNum
+
+# We can also test the simple effects for a standard ANOVA model
+IT = OriginalRecMem$ImageType
+SR = 1 - OriginalRecMem$Baseline
+
+# Create data frame with data
+datFit = cbind( Y, RIF_cond, S, I, IT, SR )
+datFit = as.data.frame( datFit )
+# Convert variables to factors
+datFit$RIF_cond = as.factor( datFit$RIF_cond )
+datFit$S = as.factor( datFit$S )
+datFit$I = as.factor( datFit$I )
+datFit$IT = as.factor( datFit$IT )
+datFit$SR = as.factor( datFit$SR )
+
+# Clean up workspace
+rm( Y, RIF_cond, S, I, IT, SR )
+```
+
+First, we'll fit three models to the original data kindly provided by Maria Wimber.
+
+```{r}
+str( datFit ) # Structure of data to be fitted
+
+# Y is the accuracy ( 0 = wrong, 1 = right )
+# I is an index for items
+# S is an index for subjects
+# RIF_cond is a factor indicating which trials were expected to have 
+#   a RIF effect (i.e. second associates shown in the selective retrieval
+#   phase ).
+# IT is a factor indicating the image type (first vs. second associates)
+# SR is a factor indicating which images underwent selective retrieval
+```
+
+We'll use a generalized linear model in which the data follows a bernoulli distribution, and for all models we'll include random effects for subjects and items.
+
+```{r}
+RIF_model = glmer( Y ~ RIF_cond + (1|S) + (1|I), data = datFit, 
+                 family = binomial(link='logit'), weights = W )
+
+Null_model = glmer( Y ~ (1|S) + (1|I), data = datFit, 
+                    family = binomial(link='logit'), weights = W )
+
+AOV_model = glmer( Y ~ IT + SR + IT:SR + (1|S) + (1|I), data = datFit, 
+                   family = binomial(link='logit'), weights = W )
+```
+
+The AIC weights indicate that the RIF model is the best candidate of the three models, the most likely to fit a new sample of data.
+
+```{r}
+model_comparisons = anova( Null_model, RIF_model, AOV_model )
+
+delta_AIC = model_comparisons$AIC - min( model_comparisons$AIC )
+AIC_relative_likelihood = exp( -.5*delta_AIC )
+AIC_weights = AIC_relative_likelihood / sum( AIC_relative_likelihood )
+names( AIC_weights ) = c( 'Null', 'RIF', 'AOV' )
+
+print( round( AIC_weights, 2 ) )
+```
+
+Examining the coefficients, the RIF model suggests that there is a drop of about 4% in the performance in recognition memory predicted in the population.
+
+```{r}
+RIF_results = summary( RIF_model )
+round( RIF_results$coefficients[2,], 3 )
+
+# Convert to percentage
+Intercept = RIF_results$coefficients[1,1]
+RIF = RIF_results$coefficients[2,1]
+print( round( 100*( logistic( Intercept ) - 
+                      logistic( Intercept + RIF ) ), 2 ) )
+```
+
+We'll use that as our upper bound for the power analyses, since effect sizes are typically over-estimated since the literature only publishes significant findings. We'll test results for 4% to 0% in approximately 1% increments.
+
+```{r}
+# Loop through some possible combinations
+RIF_effect = seq( -.29, 0, length = 5 )
+Samp_size = c( 24, 48, 72 )
+```
+
+Simulating data using the RIF model and refitting the model to the simulations generates the following power-curves for sample sizes of 24, 48, and 72 subjects:
+
+```{r, eval=FALSE,echo=FALSE}
+# Model simulations
+# (Not run since they can take up to an hour if not more
+
+# Loop through some possible combinations
+RIF_effect = seq( -.29, 0, length = 5 )
+Samp_size = c( 24, 48, 72 )
+
+Is = 144 # Number of items to simulate
+
+power = matrix( NA, length( Samp_size ), length( RIF_effect ) )
+rownames(power) = paste( 'N_', Samp_size, sep = '' )
+colnames(power) = paste( 'RIF_minus_',
+                         round( logistic(1.7) - 
+                                  logistic( 1.7 + RIF_effect ), 2 ), 
+                         '%', sep = '' )
+
+for ( j in 1:length( Samp_size ) ) {
+  
+  Ss = Samp_size[j] # Number of subjects to simulate
+  
+  for ( i in 1:length( RIF_effect ) ) {
+    
+    # Generating parameters
+    Beta = rbind( 1.74, RIF_effect[i] )
+    sig_eta = .5168
+    sig_zeta = .4152
+    
+    # Covariates
+    rfS = as.factor( rep( 1:Ss, each = Is ) )
+    rfI = as.factor( rep( 1:Is, Ss ) )
+    Ws = rep( 1, Ss*Is )
+    
+    # Number of iterations to check power
+    nRep = 100
+    p_value = numeric( nRep )
+    
+    # Function to simulate data
+    sim_function = function() {
+      
+      # Random effects
+      eta = rnorm( Ss, 0, sig_eta )
+      zeta = rnorm( Is, 0, sig_zeta )
+      
+      RIF_cond = as.vector( apply( matrix(NA,Ss,Is), 1, 
+                                   function(x) x = 
+                                     sample( c( rep(0,18+18+54),
+                                                rep(1,54) ) ) ) )
+      # Design matrix
+      X = cbind( 1, RIF_cond )
+      
+      theta = logistic( X %*% Beta + rep( eta, each = Is ) + 
+                       rep( zeta, Ss ) )
+      
+      # Simulate data
+      Ys = rbinom( Is*Ss, 1, theta )
+      
+      model_sim = glmer( Ys ~ RIF_cond + (1|rfS) + (1|rfI), 
+                         family = binomial(link='logit'), weights = Ws )
+      tmp = summary( model_sim )
+      
+      return( tmp$coefficients[2,4] )
+    }
+    
+    startTime = Sys.time()
+    sim_results = apply( cbind( p_value ), 1, 
+                         function(x) x = sim_function() )
+    power[j,i] = sum( sim_results < .05 )/nRep
+    # cat( 'Run', j, '-', i, ': ' )
+    # print( Sys.time() - startTime )
+    
+  }
+  
+}
+
+```
+
+```{r, echo=FALSE}
+
+load('Data/Power_1000_rep.RData') # Load in previously calculated values
+
+plot( 1:ncol(power), power[1,], ylim = c(0,1),
+      bty = 'l', xaxt = 'n', xlab = 'RIF effect',
+      ylab = 'Power', type = 'n' )
+axis( 1, 1:5, paste( 100*round( logistic(1.7) - 
+                                  logistic( 1.7 + RIF_effect ), 2 ),
+                  '%',sep=''), tick = F )
+abline( h = .05 )
+abline( h = .8, lty = 2 )
+abline( h = .5, lty = 3 )
+
+clr = rainbow( nrow(power) )
+for (j in 1:nrow(power)) {
+  lines( 1:ncol(power), power[j,], col = clr[j] )
+  points( 1:ncol(power), power[j,], col = clr[j], pch = 19 )
+}
+
+legend( 'topright', paste( 'N =', Samp_size ), fill = clr,
+        bty = 'n' )
+```
+
+Note that the predicted power can vary between approximately +/- 2% since I only use 1000 repetitions.

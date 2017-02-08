@@ -13,7 +13,7 @@ data {
   matrix[No,Nd] Xd; // Design matrix for d'
   matrix[No,Nc] Xc; // Design matrix for criterion
   matrix[No,Nm] Xm; // Design matrix for mixture probability
-  matrix[ Nd + Nc + 3, 2 ] Priors; // Matrix of prior values
+  matrix[ Nd + Nc + Nm + 3, 2 ] Priors; // Matrix of prior values
 }
 parameters {
   vector[Nd] beta_dp; // Group-level effects for d'

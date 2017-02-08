@@ -1,0 +1,4 @@
+Sex, Female
+Ethnicity, Not Hispanic or Latino
+Race, Black or African American
+Age, 26

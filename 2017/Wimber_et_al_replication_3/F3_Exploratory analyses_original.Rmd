@@ -1,0 +1,607 @@
+---
+title: "Exploratory analyses of Wimber et al 2015"
+author: "Kevin Potter"
+date: "May 13, 2016"
+output: html_document
+---
+
+## Introduction
+
+This is a report on an assortment of generalized linear models I've explored so far for fitting the data from the final recognition memory test of Wimber et al. (2015). Much of this is about determining the appropriate predictors to use in our pre-registration attempt. For speed and convenience, I've currently restricted myself to a frequentist framework.
+
+## Load in useful packages
+
+```{r,message=FALSE,warning=FALSE}
+# Clear workspace
+rm(list = ls())
+
+# For geting github packages
+# install.packages(devtools)
+# library(devtools)
+
+# Miscellanous functions for modeling/plotting
+# install_github("rettopnivek/utilityf")
+library(utilityf)
+
+# Load in package for fitting mixed generalized linear models
+# install.packages( 'lme4' )
+library( lme4 )
+```
+
+```{r,echo=FALSE,warning=FALSE}
+# Define a function to determine Akaike Weights
+AkaikeWeights = function( object, mNames = NULL ) {
+  AIC_value = object$AIC
+  delta_AIC = AIC_value - min( AIC_value )
+  weights = exp( -.5*delta_AIC )
+  
+  if ( length( mNames ) == length( weights ) ) {
+    names( weights ) = mNames
+  }
+  
+  rel_weights = weights/sum( weights )
+  
+  return( list( weights = weights, rel_weights = rel_weights ) )
+}
+
+# Function to generate predictions from glmer models of a (very)
+# specific format
+lmerPred = function( object, d ) {
+  
+  object_sum = summary( object )
+  
+  # Extract intercept
+  int = object_sum$coefficients['(Intercept)',1]
+  
+  # Extract coefficients
+  prm = coef( object )
+  
+  # Create an increment for items
+  # Increment for items
+  inc_I = numeric( nrow(d) )
+  inc = 1
+  for ( i in sort( unique( d$I ) ) ) {
+    inc_I[ d$I == i ] = inc
+    inc = inc + 1
+  }
+  
+  pred = rep( int, nrow(d) )
+  nms = NULL
+  for ( k in 1:length(prm) ) {
+    
+    if ( names(prm)[k] == 'I' ) {
+      pred = pred + ( prm[[k]][inc_I,'(Intercept)'] - int )
+    }
+    if ( names(prm)[k] == 'S' ) {
+      pred = pred + ( prm[[k]][d$S,'(Intercept)'] - int )
+    }
+    
+    if ( ncol( prm[[k]] ) > 1 & length(nms)==0 ) {
+      
+      nms = colnames( prm[[k]] )[-1]
+      
+      for ( i in 1:length(nms) ) {
+        pred = pred + ( prm[[k]][1,nms[i]] )*d[,nms[i]]
+      }
+    }
+    
+  }
+  pred = logistic( pred )
+  
+  out = aggregate( pred, list( d$IT, d$SR, d$S ), mean )
+  colnames( out ) = c('IT','SR','S','P')
+  
+  return( out )
+}
+
+# Function to plot model predictions against observed data
+plotPred = function( objects, d, clr, grp = 1:8, new = T ) {
+  
+  obs = aggregate( d$Y, list( d$IT, d$SR, d$S ), mean )
+  colnames( obs ) = c('IT','SR','S','P')
+  
+  rif = obs$P[ obs$IT == 1 & obs$SR == 0 ] - 
+    obs$P[ obs$IT == 1 & obs$SR == 1 ]
+  tr = aggregate(  d$SR_T, list( d$S ), unique )
+  rnk = order( tr$x,decreasing=T)
+  
+  mp = c()
+  for ( i in 1:length( objects ) ) {
+    mp = c( mp, list( lmerPred( objects[[i]], d ) ) )
+  }
+  
+  if (new) x11(width=7,height=7)
+  layout( cbind( c(1,4,7), c(2,5,8), c(3,6,9) ) )
+  
+  for ( n in grp ) {
+    
+    par( mar=c( 2.5,2.5,2.5,.5 ) )
+    plot( c(.5,4.5),c(.5,1),type='n',bty='n',
+          xaxt='n',ylab = ' ', xlab = ' ' )
+    axis( 1, 2.5, paste( 'Subject', n ), tick = F, line = -.5 )
+    sel = obs$S == n
+    for (i in 1:length(objects)) {
+      pd = mp[[i]]$P[sel]
+      lines( 1:4, pd[c(3,1,4,2)], col = clr[i] )
+    }
+    ob = obs$P[sel]
+    points( 1:4, ob[c(3,1,4,2)], pch = 21, bg = 'grey', cex = 1.5 )
+    if (n<grp[4]) axis(3,1:4,c('T-SR','T-B','C-SR','C-B'),tick=F,
+                  cex.axis = .8 )
+    
+    if ( ob[3] < .85 & ob[1] < .85 ) pos = 'topleft'
+    if ( ob[3] > .65 & ob[1] > .65 ) pos = 'bottomleft'
+    if ( ob[4] > .85 & ob[2] > .85 ) pos = 'bottomright'
+    if ( ob[4] > .65 & ob[2] > .65 ) pos = 'bottomright'
+    
+    legend( pos, c(
+      paste('RIF: ',round( rif[n], 2 )*100,'%',sep=''),
+      paste('SR rank: ',rnk[n],'',sep='') ),
+      bty = 'n' )
+      
+  }
+  plot( c(0,1), c(0,1), type='n', xlab=' ', ylab=' ',
+        xaxt='n',yaxt='n',bty='n' )
+  legend( 'topleft', c('T = Target','C = Competitor',
+                  'SR = Selective retrieval',
+                                      'B = Baseline'), bty = 'n' )
+  legend( 'bottomleft', 'Observed', fill = 'grey', bty = 'n' )
+}
+
+# Load in data
+load( 'Data/Original_all_data.RData' )
+
+# Determine the sample size
+N = length( unique( OriginalAllData$Subject ) )
+
+# Create a data frame for data to be fitted
+AD = OriginalAllData[ OriginalAllData$Cond == 6, ] 
+```
+
+The initial predictors I worked with were limited to the 4 conditions in the final test and subject/item factors.
+
+```{r}
+d = as.data.frame( AD$Accuracy ) # Dependent variable
+colnames(d) = 'Y'
+# As per Wimber et al., missing responses are changed to be incorrect
+d$Y[ is.na(d$Y) ] = 0
+# Image type (0 = target, 1 = competitor)
+d$IT = AD$ImageType - 1
+# Selective retrieval ( 1 = yes, 0 = no )
+d$SR = 1 - AD$Baseline
+# Interaction between selective retrieval and image type
+d$ITxSR = d$IT * d$SR
+# Subject/item factors
+d$S = as.factor( AD$Subject )
+d$I = as.factor( AD$ImageNum )
+# Nuisance parameter for bernoulli distribution
+d$Trial = rep(1,nrow(d))
+```
+
+Here is a plot of the proportion correct by condition and subject, to give some insight into the patter of data I'm trying to fit.
+
+```{r,echo=FALSE}
+obs = aggregate( d$Y, list( d$IT, d$SR, d$S ), mean )
+colnames( obs ) = c('IT','SR','S','P')
+xa = seq( -.4,.4,length=N )
+plot( c(.5,4.5),c(.5,1),type='n',bty='l',ylab='P(Correct)',
+      xlab='Condition',xaxt='n' )
+abline( h = mean( d$Y ), lty = 2 )
+abline( v = c(1.5,2.5,3.5) )
+axis( 1, 1:4, c('T-SR','T-B','C-SR','C-B'), tick = F )
+
+cnd = cbind( c( 0, 0, 1, 1 ), c( 1, 0, 1, 0 ) )
+for ( i in 1:4 ) {
+  points( xa+i, obs$P[ obs$IT == cnd[i,1] & obs$SR == cnd[i,2] ],
+        pch = 19, col = rainbow(N) )
+}
+
+lines( 1:4, aggregate( obs$P, list( obs$IT, obs$SR ), 
+                       mean )$x[c(3,1,4,2)],
+       lwd = 2 )
+```
+
+
+The original authors argue that for targets, performance in the baseline and selective retrieval conditions should not differ. In turn, performance should be significantly lower for the selective retrieval condition with competitors relative to the baseline condition. Operating under the assumption that the two baseline conditions should not differ either, this indicates that the condition means should all be equal, except for a decrement in performance for the selective retrieval condition for competitors. I therefore created a set of covariates singling out each condition individually.
+
+```{r}
+# Targets in the selective retrieval condition
+d$TSR = numeric( nrow(d) )
+d$TSR[ d$IT == 0 & d$SR == 1 ] = 1
+# Competitors in the selective retrieval condition
+d$CSR = numeric( nrow(d) )
+d$CSR[ d$IT == 1 & d$SR == 1 ] = 1
+# Targets in the baseline condition
+d$TB = numeric( nrow(d) )
+d$TB[ d$IT == 0 & d$SR == 0 ] = 1
+# Competitors in the baseline condition
+d$CB = numeric( nrow(d) )
+d$CB[ d$IT == 0 & d$SR == 0 ] = 1
+```
+
+Some questions on the appropriateness of this particular comparison could be raised. For instance, why should the target and baseline conditions all be equal? The target images were practiced more often - it seems reasonable to expect improved performance. One possibility is fatigue. Since subjects saw the target images last, fatigue could mask any improvement in performance.
+
+A main part of this exploration was to try to find additional predictors using other stages from the task. Creating these covariates is not trivial, admittably. First, we wanted to create predictors based on the performance of subjects during the training stage (in which subjects carried out a recognition memory test with feedback twice for the target images, once for the competitor images). Certain decisions needed to be made here.
+
+For instance, a normalized score representing a subject's average performance across all training trials could be used. In contrast, a score representing a subject's performance on individual images could be used. Furthermore, should performance be weighted equally for targets and competitors, should competitors be downweighted to reflect the single training cycle, or should separate variables be used for targets and competitors?
+
+```{r,echo=FALSE}
+# Covariate for accuracy during training stage
+sel = OriginalAllData$Cond == 2 | OriginalAllData$Cond == 3 | 
+  OriginalAllData$Cond == 4
+dT = OriginalAllData[ sel, ]
+
+tmp = aggregate( dT$Accuracy, list( dT$ImageType, dT$Subject ), mean )
+
+cv = numeric( nrow( d ) )
+for ( n in 1:N ) {
+  
+  sel = d$S == n & d$IT == 0
+  sel2 = tmp[,2] == n & tmp[,1] == 1
+  cv[sel] = tmp$x[sel2]
+  
+  sel = d$S == n & d$IT == 1
+  sel2 = tmp[,2] == n & tmp[,1] == 2
+  cv[sel] = tmp$x[sel2]
+  
+}
+d$TS_1 = cv # Average performance across subjects and image type
+d$TS_1 = scale( d$TS_1 ) # Scale and center the variable
+
+# Clean up workspace
+rm( cv, tmp, sel, sel2, n )
+
+tmp = aggregate( dT$Accuracy, list( dT$ImageType, 
+                                    1-dT$Baseline, dT$Subject ), mean )
+cv = numeric( nrow( d ) )
+for ( n in 1:N ) {
+  
+  sel = d$S == n & d$IT == 0 & d$SR == 0
+  sel2 = tmp[,3] == n & tmp[,1] == 1 & tmp[,2] == 0
+  cv[sel] = tmp$x[sel2]
+  
+  sel = d$S == n & d$IT == 1 & d$SR == 0
+  sel2 = tmp[,3] == n & tmp[,1] == 2 & tmp[,2] == 0
+  cv[sel] = tmp$x[sel2]
+  
+  sel = d$S == n & d$IT == 0 & d$SR == 1
+  sel2 = tmp[,3] == n & tmp[,1] == 1 & tmp[,2] == 1
+  cv[sel] = tmp$x[sel2]
+  
+  sel = d$S == n & d$IT == 1 & d$SR == 1
+  sel2 = tmp[,3] == n & tmp[,1] == 2 & tmp[,2] == 1
+  cv[sel] = tmp$x[sel2]
+}
+
+# Average performance across subjects, image type, 
+# and selective retrieval conditions
+d$TS_2 = cv
+d$TS_2 = scale( d$TS_2 ) # Scale and center the variable
+
+# Clean up workspace
+rm( cv, tmp, sel, sel2, n )
+
+tmp = aggregate( dT$Accuracy, list( dT$ImageNum, dT$Subject ), 
+                 mean )
+
+cv = numeric( nrow( tmp ) )
+for ( n in 1:N ) {
+  sel = d$S == n
+  img = d$I[sel]
+  ord = order( img )
+  cv[sel][ord] = tmp$x[sel]
+}
+
+# Weight overall performance by specific image performance
+d$TS_3 = d$TS_2*( (cv + .5)*2/3 )
+d$TS_3[ d$TS_2 < 0 ] = d$TS_2[ d$TS_2 < 0 ]*( (1- cv[d$TS_2 < 0] + .5)*2/3 )
+
+# Clean up workspace
+rm( tmp, cv, sel, img, ord, dT )
+```
+
+The covariates I've created are  
+
+* TS_1: Overall performance across targets/competitors and subjects
+* TS_2: Overall performance across 4 conditions and subjects
+* TS_3: Overall performance across 4 conditions weighted by image performance
+
+I provide a brief table showing the possible values that each of these covariates can take on across the 4 conditions.
+
+```{r,echo=FALSE}
+print( round( d[c(73,74,77,78),c('IT','SR','TS_1','TS_2','TS_3')], 2 ) )
+print( round( d[c(24,25,26,27),c('IT','SR','TS_1','TS_2','TS_3')], 2 ) )
+```
+
+Additionally, it would be nice to incorporate predictors based on performance during the selective retrieval stage. This becomes particularly useful since Wimber et al. report a significant correlation between the number of intrusions a subject experienced and below-baseline forgetting. Put another way, we could potentially determine whether having a higher number of intrustions predicted less of an RIF effect (which I assume is what the original authors would predict).
+
+Again, several decisions must be made regarding the nature of the predictors. Furthermore, I've yet to properly extract the data from the selective retrieval stage from the raw output files provided by Wimber et al. The summary statistics are close (within 3 percentage points), but do not exactly match.
+
+```{r,echo=FALSE}
+# Selective retrieval stage
+sel = OriginalAllData$Cond == 5
+dSR = OriginalAllData[ sel, ]
+
+# Category for target images
+Targets = floor(dSR$Category)
+# Category for competitor images
+Competitors = round( (dSR$Category - Targets)*10 )
+# The category of the unrelated error
+Errors = apply( cbind( Targets, Competitors ), 1, 
+                function(x) { tar = 1:3 %in% x[1]; com = 1:3 %in% x[2];
+                err = 1 - (tar+com); (1:3)[err==1] } )
+# If unknown, subjects could pick a 4th response category
+Unknown = rep( 4, nrow( dSR ) )
+
+# Determine a subject's choice based on categories
+dSR$Choice = 0
+dSR$Choice[ dSR$Resp == Targets ] = 1
+dSR$Choice[ dSR$Resp == Competitors ] = 2
+dSR$Choice[ dSR$Resp == Errors ] = 3
+dSR$Choice[ dSR$Resp == Unknown ] = 4
+
+# Clean up workspace
+rm( Targets, Competitors, Errors, Unknown, sel )
+
+tmp = aggregate( dSR$Choice == 1, list( dSR$Subject ), mean )
+tmp$x = tmp$x/max(tmp$x) # Normalize covariate
+# Overall number of correct target identifications
+d$SR_T = rep( tmp$x, each = 144 )
+# Overall number of correct choices specific only to C-SR condition
+d$SR_T2 = d$SR_T*as.numeric( d$IT == 1 & d$SR == 1 )
+
+# d$SR_T = scale( d$SR_T ) # Center and scale variables
+# d$SR_T2 = scale( d$SR_T2 )
+
+tmp = aggregate( dSR$Choice == 2, list( dSR$Subject ), mean )
+tmp$x = tmp$x/max(tmp$x) # Normalize covariate
+# Overall number of intrusions
+d$SR_I = rep( tmp$x, each = 144 )
+# Overall number of intrusions specific only to C-SR condition
+d$SR_I2 = d$SR_I*as.numeric( d$IT == 1 & d$SR == 1 )
+
+# d$SR_I = scale( d$SR_I ) # Center and scale variables
+# d$SR_I2 = scale( d$SR_I2 )
+
+# Clean up workspace
+rm( tmp, dSR )
+```
+
+The covariates I've created are  
+
+* SR_T: Overall proportion of target identifications from selective retrieval
+* SR_T2: Overall target identifications, but the coefficient is active only for the selective retrieval condition for competitor images.
+* SR_I: Overall proportion of intrusions from selective retrieval
+* SR_I2: Overall intrusions, but the coefficient is active only for the selective retrieval condition for competitor images.
+
+I provide a brief table showing the possible values that each of these covariates can take on across the 4 conditions.
+
+```{r,echo=FALSE}
+print( round( d[c(73,74,77,78),c('IT','SR','SR_T','SR_T2','SR_I','SR_I2')], 2 ) )
+print( round( d[c(24,25,26,27),c('IT','SR','SR_T','SR_T2','SR_I','SR_I2')], 2 ) )
+```
+
+If subjects suppress the competitor images when retrieving the target images during selective retrieval, then a higher proportion of target recalls should predict worse performance in the selective retrieval condition for competitors. Conversely, a greater number of intrustions should predict better performance in this condition, because it indicates the subject failed to suppress the competitor images as well.
+
+```{r}
+# RIF model
+mRIF = glmer( Y ~ CSR + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+print( round( summary( mRIF )$coefficients[1:2,c(1,2,4)], 3 ) )
+
+# RIF model modulated by proportion of targets recalled 
+# during the selective retrieval stage
+mRIF_v2 = glmer( Y ~ CSR + SR_T2 + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+print( round( summary( mRIF_v2 )$coefficients[1:3,c(1,2,4)], 3 ) )
+
+# RIF model modulated by proportion of intrusions 
+# during the selective retrieval stage
+mRIF_v3 = glmer( Y ~ CSR + SR_I2 + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+print( round( summary( mRIF_v3 )$coefficients[1:3,c(1,2,4)], 3 ) )
+
+# Model comparison
+comp = anova( mRIF, mRIF_v2, mRIF_v3 )
+# Second model is preferred
+print( round( AkaikeWeights( comp, rownames(comp) )[[2]], 2 ) )
+```
+
+The second model was 3 times more likely to predict new data, according to the Akaike weights. This models assumes that performance in the baseline conditions and the selective retrieval condition for targets was equivalent. However, performance for the selective retrieval condition for competitors could be modulated by two factors. There was an overall decrement to performance, which could be further adjusted based on a normalized proportion of target recall during the selective retrieval stage. The performance of the subject who recalled the most targets was fully adjusted by the coefficient, whereas the subject with the worse recall was impacted the least by the coefficient.
+
+The positive (significant) coefficient indicates that the decrement in performance for the selective retrieval condition was sizably decreased by better recall of targets. This seems confusing to me, as it implies that people who were better at suppressing competitors were subsequently less likely to forget these self-same competitors. This result therefore warrants further checking to make sure I didn't make a mistake.
+
+This is complicated by feedback. I can easily imagine a scenario in which subjects experienced intrusions, saw the feedback for the correct category, and imagined a protypical example of the category which then sufficiently matched for the measure of the patterns in the BOLD response specific to the particular target image.
+
+We can also see how the preferred RIF model compares to a suite of other models (a null model, the original model fit by the authors, and a standard interaction model).
+
+```{r}
+# Null model
+mNull = glmer( Y ~ (1|S) + (1|I), data = d, 
+               family = binomial(link='logit'), weights = Trial )
+
+# Original model
+mOrig = glmer( Y ~ IT + SR + ITxSR + (1|S), data = d, 
+               family = binomial(link='logit'), weights = Trial )
+print( round( summary( mOrig )$coefficients[1:4,c(1,2,4)], 3 ) )
+
+# Item effects
+mAOV = glmer( Y ~ IT + SR + ITxSR + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+print( round( summary( mAOV )$coefficients[1:4,], 3 ) )
+
+# Model comparison
+comp = anova( mNull, mOrig, mAOV, mRIF_v2 )
+# The RIF model is strongly preferred
+print( round( AkaikeWeights( comp, rownames(comp) )[[2]], 2 ) )
+```
+
+The RIF model is strongly preferred. To answer why, we can look at the model predictions of performance on a subject-to-subject basis. I present a plot of 8 subjects, showing the observed proportions as dots, and the model predictions for the RIF model, null model, and the interaction model as blue, red, and green lines respectively.
+
+```{r,echo=FALSE}
+plotPred( list( mRIF_v2, mNull, mAOV ), d, c('blue','red','green'), 
+          grp = 9:16, new = F )
+legend( 'topright', c('RIF','Null','AOV'), fill = c('blue','red','green'),
+        bty = 'n' )
+```
+
+This gives us some insight into how the models are doing. In particular, the null model fails because it can't capture the the shifts for the competitive images from the selective retrieval to the baseline condition. There appears to be fairly reliable dip between these conditions. In contrast, while there can be quite large shifts outside the scope of the model predictions for the remaining conditions, the shifts can be either positive or negative depending on the subject, thereby canceling each other out. The interaction model can capture this pattern, but it does so with more parameters than the RIF model, hence the preference.
+
+We can also incorporate subject's previous overall performance for targets and for competitors. The covariate for training performance has been centered and scaled. We'll examine a model predicting performance just based on previous training, and a model that incorporates an additional decrement to competitor images in the selective retrieval condition based on the overall number of intrusions.
+
+```{r}
+mPrac = glmer( Y ~ TS_3 + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+print( round( summary( mPrac )$coefficients[1:2,c(1,2,4)], 3 ) )
+
+mPrac_v2 = glmer( Y ~ TS_3 + CSR + SR_T2 + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+print( round( summary( mPrac_v2 )$coefficients[1:4,c(1,2,4)], 3 ) )
+
+# Model comparison
+comp = anova( mPrac, mPrac_v2, mRIF_v2 )
+# The RIF model with practice is strongly preferred
+print( round( AkaikeWeights( comp, rownames(comp) )[[2]], 2 ) )
+```
+
+Previous performance weakly predicts subsequent performance. The model with the addition of the RIF effect is strongly preferred; previous overall training cannot fully account for the observed data. I present the full set of fits for each subjects for the preferred RIF model and the RIF model with practice effects.
+
+```{r,echo=FALSE}
+# x11()
+plotPred( list( mRIF_v2, mPrac_v2 ), d, c('blue','orange'),
+          grp = 1:8, new = F )
+legend( 'topright', c('RIF','Train'), fill = c('blue','orange'),
+        bty = 'n' )
+```
+
+```{r,echo=FALSE}
+# x11()
+plotPred( list( mRIF_v2, mPrac_v2 ), d, c('blue','orange'),
+          grp = 9:16, new = F )
+legend( 'topright', c('RIF','Train'), fill = c('blue','orange'),
+        bty = 'n' )
+```
+
+```{r,echo=FALSE}
+# x11()
+plotPred( list( mRIF_v2, mPrac_v2 ), d, c('blue','orange'),
+          grp = 17:24, new = F )
+legend( 'topright', c('RIF','Train'), fill = c('blue','orange'),
+        bty = 'n' )
+```
+
+
+```{r,echo=FALSE,eval=FALSE}
+# Miscellaneous code
+
+# Extract associated images with targets/competitors
+imgTar = floor( dSR$ImageNum )
+imgCom = round( (dSR$ImageNum - imgTar)*1000 )
+
+# Create covariate reflecting target accuracy on an image-by-image basis
+tmp = aggregate( dSR$Choice == 1, list( 
+  imgTar, dSR$Subject ), function(x) sum(x)/length(x) )
+
+sel = d$SR == 0 & d$IT == 0
+tmp2 = aggregate( rep(0,sum(sel)), 
+                  list( d$I[sel], d$S[sel] ), sum )
+
+tmp3 = aggregate( rep(0,nrow(dSR)), list( 
+  imgCom, dSR$Subject ), sum )
+
+sel = d$SR == 0 & d$IT == 1
+tmp4 = aggregate( rep(0,sum(sel)), 
+                  list( d$I[sel], d$S[sel] ), sum )
+
+cv = rbind( tmp, tmp2, tmp3, tmp4 )
+cv[,1] = as.numeric( cv[,1] )
+o = order( cv[,2], cv[,1] )
+cv = cv[o,]
+
+cv2 = numeric( nrow(d) )
+for ( n in 1:N ) {
+  sel = d$S == n
+  img = d$I[sel]
+  ord = order( img )
+  cv2[sel][ord] = cv$x[sel]
+}
+# Number of times target category 
+# was chosen for selective retrieval
+d$SR_1 = cv2
+
+# Create covariate reflecting target accuracy on an image-by-image basis
+tmp = aggregate( rep(0,nrow(dSR)), list( 
+  imgTar, dSR$Subject ), sum )
+
+sel = d$SR == 0 & d$IT == 0
+tmp2 = aggregate( rep(0,sum(sel)), 
+                  list( d$I[sel], d$S[sel] ), sum )
+
+tmp3 = aggregate( dSR$Choice == 2, list( 
+  imgCom, dSR$Subject ), function(x) sum(x)/length(x) )
+
+sel = d$SR == 0 & d$IT == 1
+tmp4 = aggregate( rep(0,sum(sel)), 
+                  list( d$I[sel], d$S[sel] ), sum )
+
+cv = rbind( tmp, tmp2, tmp3, tmp4 )
+cv[,1] = as.numeric( cv[,1] )
+o = order( cv[,2], cv[,1] )
+cv = cv[o,]
+
+cv2 = numeric( nrow(d) )
+for ( n in 1:N ) {
+  sel = d$S == n
+  img = d$I[sel]
+  ord = order( img )
+  cv2[sel][ord] = cv$x[sel]
+}
+# Number of times competitor category 
+# was chosen for selective retrieval
+d$SR_2 = cv2
+
+# Clean up workspace
+rm( tmp, tmp2, tmp3, tmp4, cv, o, cv2, sel, img, ord )
+
+tmp = aggregate( dSR$Choice == 2, list( dSR$Subject ), mean )
+tmp$x = tmp$x/max(tmp$x) # Normalize covariate
+# Overall number of intrusions
+d$SR_3 = rep( tmp$x, each = 144 )
+# Overall number of intrusions specific only to C-SR condition
+d$SR_4 = d$SR_3*as.numeric( d$IT == 1 & d$SR == 1 )
+d$SR_4 = scale( d$SR_4 ) # Center and scale variable
+
+tmp = aggregate( dSR$Choice == 1, list( dSR$Subject ), mean )
+tmp$x = tmp$x/max(tmp$x) # Normalize covariate
+# Overall number of correct categorizations
+d$SR_5 = rep( tmp$x, each = 144 )
+# Overall number of correct categorizations specific only to C-SR condition
+d$SR_6 = d$SR_5*as.numeric( d$IT == 1 & d$SR == 1 )
+d$SR_6 = scale( d$SR_6 ) # Center and scale variable
+
+# Clean up workspace
+rm( tmp, dSR )
+
+mPrac_v3 = glmer( Y ~ TS_5 + SR + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+mPrac_v4 = glmer( Y ~ TS_5 + SR_4 + SR_5 + (1|S) + (1|I), data = d, 
+              family = binomial(link='logit'), weights = Trial )
+
+x11()
+plotPred( list( mPrac_v2, mPrac_v3 ), d, c('blue','orange','purple'), 
+          grp = 1:8, new = F )
+x11()
+plotPred( list( mPrac_v2, mPrac_v3 ), d, c('blue','orange','purple'), 
+          grp = 9:16, new = F )
+x11()
+plotPred( list( mPrac_v2, mPrac_v3 ), d, c('blue','orange','purple'), 
+          grp = 17:24, new = F )
+
+
+# Model comparison
+comp = anova( mPrac_v2, mPrac_v3, mPrac_v4 )
+# The RIF model is strongly preferred
+print( round( AkaikeWeights( comp, rownames(comp) )[[2]], 2 ) )
+```
+
+In conclusion, there appears to be a reliable dip in performance for the selective retrieval condition with competitors. However, this dip (i.e. forgetting of competitors) is strangely decreased by better recall of targets. Furthermore, examinination of the individual data indicates a several response patterns the model cannot handle. The model results reflect instead the patterns that aren't canceled out by noise. One concern is that the bernoulli likelihood being used to model the data is somewhat inadequate, in that it does not fully capture the noisiness of the data (perhaps due to violations of the assumption of independence). I will need to check this concern more closely as well.
