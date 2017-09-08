@@ -1,0 +1,16 @@
+[1] "2017-07-16 13:16:09 EDT"
+[1] "Estimation started"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "1/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+Initial estimation failed

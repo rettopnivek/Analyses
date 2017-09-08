@@ -1,0 +1,89 @@
+[1] "2017-07-16 09:59:13 EDT"
+[1] "Estimation started"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "1/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "2/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "3/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "4/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "5/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "6/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "7/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "8/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "9/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "10/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "11/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "12/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "13/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "14/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "15/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "16/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "17/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "18/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "19/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "20/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "21/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "22/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "23/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "24/25 done"
+Maximizing -- use negfn and neggr
+Maximizing -- use negfn and neggr
+[1] "25/25 done"
+[1] "0% done"
+[1] "10% done"
+[1] "20% done"
+[1] "30% done"
+[1] "40% done"
+[1] "50% done"
+[1] "60% done"
+[1] "70% done"
+[1] "80% done"
+[1] "90% done"
+[1] "Estimation finished"
+Time difference of 2.659755 mins

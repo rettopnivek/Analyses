@@ -1,4 +1,0 @@
-Sex, Female
-Ethnicity, Hispanic or Latino
-Race, White
-Age, 21

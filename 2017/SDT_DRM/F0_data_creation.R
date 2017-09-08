@@ -1,7 +1,7 @@
 #--------------------#
 # Data creation      #
 # Kevin Potter       #
-# Updated 02/06/2017 #
+# Updated 02/28/2017 #
 #--------------------#
 
 # Clear workspace
@@ -60,17 +60,58 @@ allDat$Age[ allDat$group == 'old' ] = 1
 allDat$Old = 0
 allDat$Old[ allDat$old_new == 'old' ] = 1
 
-# Create numeric variable tracking conditions
+# Create two numeric variables tracking conditions
+
+# Cond14 allows unrelated lures to differ over 
+# semantic/phonetic conditions to produce 14 conditions
+# total:
 tmp = aggregate( allDat$acc, 
                  list( allDat$class, 
                        allDat$list_type, 
                        allDat$list_length ), mean )
-allDat$Cond = 1
+colnames( tmp ) = c( 'class', 'list_type', 'list_length', 'x' )
+
+allDat$Cond14 = NA
+for ( i in 1:14 ) {
+  allDat$Cond14[ allDat$class == tmp[ i, 1 ] & 
+                   allDat$list_type == tmp[ i, 2 ] & 
+                   allDat$list_length == tmp[ i, 3 ] ] = i
+}
+
+# Cond13 collapses unrelated lures over semantic/phonetic
+# conditions to produce 13 conditions total:
+allDat$Cond13 = 1
 for ( i in 1:12 ) {
-  allDat$Cond[ allDat$class == tmp[ i + 2, 1 ] & 
+  allDat$Cond13[ allDat$class == tmp[ i + 2, 1 ] & 
                  allDat$list_type == tmp[ i + 2, 2 ] & 
                  allDat$list_length == tmp[ i + 2, 3 ] ] = 1 + i
 }
+
+# Create a set of labels for the 14 conditions
+no = nrow( allDat ) # Total number of observations
+p1 = rep( 'URL', no ) # Abbreviate class type
+p1[ allDat$class == 'critical' ] = 'CL'
+p1[ allDat$class == 'related' ] = 'RL'
+p1[ allDat$class == 'target' ] = 'T'
+p2 = rep( 'P', no ) # Abbreviate list type
+p2[ allDat$list_type == 'semantic' ] = 'S'
+p3 = rep( '0', no ) # Abbreviate list length
+p3[ allDat$list_length == 2 ] = '2'
+p3[ allDat$list_length == 8 ] = '8'
+
+# Collapse all vector of abbreviated strings
+allDat$labels14 = paste( p1, '_', p2, '_', p3, sep = '' );
+
+# To check if labels are correct
+# aggregate( allDat$labels14, list( allDat$Cond14 ), unique )
+
+# Create a set of labels for the 13 conditions
+allDat$labels13 = allDat$labels14
+allDat$labels13[ allDat$labels13 == 'URL_P_0' | 
+                   allDat$labels13 == 'URL_S_0' ] = 'URL_0';
+
+# To check if labels are correct
+# aggregate( allDat$labels13, list( allDat$Cond13 ), unique )
 
 ###
 ### Identify subjects who may have flipped responses
@@ -128,39 +169,63 @@ for ( s in flipped ) {
 # ID:          Original subject ID (non-sequential)
 # Age:         Dummy-coded variable for age (1 = Old)
 # Old:         Dummy-coded variable for binary response (1 = Old) 
-# Cond:        Numerical index for all 13 conditions, where...
-#              1  = Unrelated lures
-#              2  = Related lures (Phonetic, 2 items)
-#              3  = Critical lures (Phonetic, 2 items)
-#              4  = Targets (Phonetic, 2 items)
-#              5  = Related lures (Phonetic, 8 items)
-#              6  = Critical lures (Phonetic, 8 items)
-#              7  = Targets (Phonetic, 8 items)
-#              8  = Related lures (Semantic, 2 items)
-#              9  = Critical lures (Semantic, 2 items)
-#              10 = Targets (Semantic, 2 items)
-#              11 = Related lures (Semantic, 8 items)
-#              12 = Critical lures (Semantic, 8 items)
-#              13 = Targets (Semantic, 8 items)
+# Cond14:      Numerical index for all 14 conditions, where...
+#              1  = Unrelated lures (Phonetic)
+#              2  = Unrelated lures (Semantic)
+#              3  = Critical lures  (Phonetic, 2 items)
+#              4  = Related lures   (Phonetic, 2 items)
+#              5  = Targets         (Phonetic, 2 items)
+#              6  = Critical lures  (Semantic, 2 items)
+#              7  = Related lures   (Semantic, 2 items)
+#              8  = Targets         (Semantic, 2 items)
+#              9  = Critical lures  (Phonetic, 8 items)
+#              10 = Related lures   (Phonetic, 8 items)
+#              11 = Targets         (Phonetic, 8 items)
+#              12 = Critical lures  (Semantic, 8 items)
+#              13 = Related lures   (Semantic, 8 items)
+#              14 = Targets         (Semantic, 8 items)
+# Cond13:      Numerical index for all 13 conditions, where...
+#              1  = Unrelated lures 
+#              2  = Critical lures  (Phonetic, 2 items)
+#              3  = Related lures   (Phonetic, 2 items)
+#              4  = Targets         (Phonetic, 2 items)
+#              5  = Critical lures  (Semantic, 2 items)
+#              6  = Related lures   (Semantic, 2 items)
+#              7  = Targets         (Semantic, 2 items)
+#              8  = Critical lures  (Phonetic, 8 items)
+#              9  = Related lures   (Phonetic, 8 items)
+#              10 = Targets         (Phonetic, 8 items)
+#              11 = Critical lures  (Semantic, 8 items)
+#              12 = Related lures   (Semantic, 8 items)
+#              13 = Targets         (Semantic, 8 items)
 
 ###
 ### Extract hits/false alarms for subjects
 ###
 # Lookup - 05
 
-ratesDat = aggregate( allDat$Old, 
-                      list( allDat$Cond, allDat$subject ), 
+ratesDat = aggregate( allDat$Old,
+                      list( allDat$Cond14, allDat$subject ),
                       length )
-colnames( ratesDat ) = c( 'Cond', 'S', 'N' )
+colnames( ratesDat ) = c( 'Cond14', 'S', 'N' )
 ratesDat$Y = aggregate( allDat$Old, 
-                      list( allDat$Cond, allDat$subject ), 
+                      list( allDat$Cond14, allDat$subject ), 
                       sum )$x
 ratesDat$P = aggregate( allDat$Old, 
-                        list( allDat$Cond, allDat$subject ), 
+                        list( allDat$Cond14, allDat$subject ), 
                         mean )$x
 ratesDat$A = aggregate( allDat$Age, 
-                        list( allDat$Cond, allDat$subject ), 
+                        list( allDat$Cond14, allDat$subject ), 
                         unique )$x
+ratesDat$Cond13 = aggregate( allDat$Cond13, 
+                        list( allDat$Cond14, allDat$subject ), 
+                        unique )$x
+ratesDat$label14 = aggregate( allDat$labels14, 
+                             list( allDat$Cond14, allDat$subject ), 
+                             unique )$x
+ratesDat$label13 = aggregate( allDat$labels13, 
+                              list( allDat$Cond14, allDat$subject ), 
+                              unique )$x
 
 ###
 ### Save results as an .RData file

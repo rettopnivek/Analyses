@@ -1,0 +1,23 @@
+02/28/2017
+This document summarizes the different scripts, their purpose, and their status:
+
+F0_data_creation.R (Finished)
+  - Reads in the original .csv file of data and converts it to a .RData file.
+  - Creates/adjusts variables.
+  - Adds variables with plotting labels.
+  - Identifies subjects who most likely flipped "old/new" responses and unflips them.
+  - Calculates the total number of subjects.
+  - Provides information on each variable and its levels.
+  - Creates a new data frame with hits/false alarm rates for subjects over conditions.
+F1_Useful_functions.R (Finished)
+  - Defines a set of functions for various calculations of an equal-variance SDT model.
+F2_Parameter_recovery.R
+  - Carries out a parametery recovery simulation study with a single subject.
+F3_Parameter_estimation.R
+  - Calculates the d' and criterion estimates for each subject using the algebraic method.
+  - Saves the estimates to a .csv file (separately for the 13 and 14 condition variants).
+F4_Model_checks.R
+  - Plots the residuals for the uncorrected and corrected data compared to the model predictions.
+  - Plots the distributions of parameter estimates over conditions.
+F5_Binary_SDT_algebraic.R
+  - Derives the algebraic solutions for a binary SDT model.
