@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1524503857221.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4093316850",
+    "id" : "FC105805",
+    "lastKnownWriteTime" : 1524694292,
+    "last_content_update" : 1524694291663,
+    "path" : "F:/CAM_postdoc/2018/Peer_influence_alcohol_04_17_2018/R/Conversion_from_csv_to_RData.R",
+    "project_path" : "R/Conversion_from_csv_to_RData.R",
+    "properties" : {
+        "cursorPosition" : "447,53",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,482 @@
+# SDT model estimation with real data
+# Written by Kevin Potter
+# email: kevin.w.potter@gmail.com
+# Please email me directory if you 
+# have any questions or comments
+# Last updated 2018-03-28
+
+# Table of contents
+# 1) Initial setup
+# 2) Computations for priors
+# 3) Model 1 (Null model, Effect of task / Timepoints only)
+# 4) Model 2 (Effect of drug, no self report)
+# 5) Model 3 (Effect of drug, self-reported high)
+
+###
+### 1) Initial setup
+###
+
+# Save current working directory
+orig_dir = getwd()
+
+# Navigate to project directory
+setwd( '..' )
+proj_dir = getwd()
+
+# Indicate which code segments to run
+run_code = c(
+  F, # Model 1
+  T, # Model 2
+  F  # Model 3
+)
+
+# Load in useful packages
+
+# Collection of useful functions
+# devtools::install_github("rettopnivek/utilityf")
+library( utilityf )
+
+# Package for easier manipulation of data frames
+# install.packages( 'dplyr' )
+library( dplyr )
+
+# Package for Bayesian estimation
+# install.packages( 'rstan' )
+library( rstan )
+# For parallel processing
+options(mc.cores = parallel::detectCores())
+# Avoid recompilation
+rstan_options(auto_write = TRUE)
+
+# Load in data
+setwd( 'Data' )
+load( "NBack_3_19_2018.RData" )
+setwd( proj_dir )
+
+# Load in useful functions
+setwd( 'R' )
+source( 'Useful_functions.R' )
+setwd( proj_dir )
+
+# Load in estimation functions 
+# and compile SDT model script
+setwd( 'R' )
+source( 'Estimation_functions.R' )
+
+# Exclude combined data
+dtbf = dat %>% 
+  filter( Task != 'Combined' )
+
+# Drop rows with missing 
+# self-report data for subject 
+# FN_041 (66)
+# Subject FN_041 did not have any 
+# self report data on how high
+# for the T1 drug condition
+dtbf = dtbf %>% 
+  filter( Self_report_on_high != '-' )
+
+###
+### 2) Computations for priors
+###
+
+# Determine average performance over tasks
+
+avg = dtbf %>% 
+  group_by( Response_type, Task ) %>% 
+  summarize( P = mean( Counts / Trials ) ) %>% 
+  arrange( desc( Response_type ) )
+
+Priors_task = data.frame(
+  Task = c( 'NBack_0', 'NBack_2' ),
+  dp = rep( NA, 2 ),
+  crt = rep( NA, 2 ) )
+
+Priors_task$crt = -.5 * ( 
+  qnorm( avg$P[ avg$Response_type == 'Hits' ] ) + 
+    qnorm( avg$P[ avg$Response_type == 'False_alarms' ] ) )
+Priors_task$dp = 2 * ( 
+  qnorm( avg$P[ avg$Response_type == 'Hits' ] ) + 
+    Priors_task$crt )
+
+###
+### 3) Model 1 (Null model, Effect of task / Timepoints only)
+###
+
+if ( run_code[1] ) {
+  
+  # Initialize design matrix for d'
+  Xd = matrix( 0, nrow( dtbf ), 6 )
+  colnames( Xd ) = c(
+    'Baseline_0',
+    'Time_0_2',
+    'Time_0_3',
+    'Baseline_2',
+    'Time_2_2',
+    'Time_2_3'
+  )
+  
+  # Baseline
+  sel = dtbf$Task == 'NBack_0'
+  Xd[sel,'Baseline_0'] = 1
+  sel = dtbf$Task == 'NBack_2'
+  Xd[sel,'Baseline_2'] = 1
+  
+  # Timepoints
+  pos = grep( 'Time', colnames( Xd ) )
+  inc = 1
+  for ( tsk in unique( dtbf$Task ) ) {
+    
+    for ( tp in unique( dtbf$Timepoints )[-1] ) {
+      
+      sel = dtbf$Task == tsk & dtbf$Timepoints == tp
+      Xd[sel,pos[inc]] = 1
+      inc = inc + 1
+    }
+  }
+  
+  # Check design matrix is properly specified
+  check = aggregate( Xd, list(
+    dtbf$Timepoints, dtbf$Condition, dtbf$Task ), unique )
+  
+  # Specify separate criterion for 
+  # each task and timepoint
+  # Initialize design matrix for d'
+  Xc = Xd
+  
+  # Check design matrix is properly specified
+  check = aggregate( Xc, list(
+    dtbf$Timepoints, dtbf$Condition, dtbf$Task ), unique )
+  
+  # Save design matrices
+  X1 = list( Xd, Xc )
+  
+  # Define priors for model
+  # Specify priors for model
+  Priors = rbind(
+    # d'
+    c( 4.1, 1.0 ), # Baseline (0) *R - 1*
+    c( 0.0, 1.0 ), # Time (0 - T2)
+    c( 0.0, 1.0 ), # Time (0 - T3)
+    c( 2.9, 1.0 ), # Baseline (2) *R - 4*
+    c( 0.0, 1.0 ), # Time (0 - T2)
+    c( 0.0, 1.0 ), # Time (0 - T3)
+    # Criterion
+    c( 0.1, 1.0 ), # Baseline (0) *R - 7*
+    c( 0.0, 1.0 ), # Time (0 - T2)
+    c( 0.0, 1.0 ), # Time (0 - T3)
+    c( 0.4, 1.0 ), # Baseline (2) *R - 10*
+    c( 0.0, 1.0 ), # Time (0 - T2)
+    c( 0.0, 1.0 ), # Time (0 - T3)
+    # Random effects
+    c( 2.0, 0.0 ), # Omega
+    c( 0.0, 1.0 )  # Tau
+  )
+  
+  # Estimate model using Stan
+  m1 = estimate_sdt( dtbf, 
+                     X1, 
+                     c(1,4,7,10), 
+                     Priors )
+  
+  setwd( 'Data/Posterior_estimates' )
+  save( m1, X1, file = 'Posterior_m1.RData' )
+  setwd( proj_dir )
+  
+  # Clean up workspace
+  rm( m1, X1 )
+  
+}
+
+###
+### 4) Model 2 (Effect of drug, no self report)
+###
+
+if ( run_code[2] ) {
+  
+  # Initialize design matrix for d'
+  Xd = matrix( 0, nrow( dtbf ), 12 )
+  colnames( Xd ) = c(
+    'Baseline_0',
+    'Placebo_0_T1',
+    'Placebo_0_T2',
+    'Placebo_0_T3',
+    'Drug_0_T2',
+    'Drug_0_T3',
+    'Baseline_2',
+    'Placebo_2_T1',
+    'Placebo_2_T2',
+    'Placebo_2_T3',
+    'Drug_2_T2',
+    'Drug_2_T3'
+  )
+  
+  # Position of random effects
+  ref_pos = c( 1,7 )
+  
+  # Baseline conditions
+  Xd[ dtbf$Task == 'NBack_0', ref_pos[1] ] = 1
+  Xd[ dtbf$Task == 'NBack_2', ref_pos[2] ] = 1
+  
+  cnd = cbind(
+    rep( rep( c( 'Placebo', 'Drug' ), each = 3 ), 2 ),
+    rep( c( 'NBack_0', 'NBack_2' ), each = 6 ),
+    rep( unique( dtbf$Timepoints ), 4 )
+  )
+  cnd = cnd[ -c(4,10), ]
+  
+  for ( i in 1:10 ) {
+    sel = dtbf$Condition == cnd[i,1] & 
+      dtbf$Task == cnd[i,2] & 
+      dtbf$Timepoints == cnd[i,3]
+    Xd[sel,(1:12)[-ref_pos][i]] = 1
+  }
+  
+  # Check design matrix is properly specified
+  check = aggregate( Xd, list(
+    dtbf$Timepoints, dtbf$Condition, dtbf$Task ), mean )
+  
+  # Initialize design matrix for criterion
+  Xc = matrix( 0, nrow( dtbf ), 12 )
+  colnames( Xc ) = c(
+    'Baseline_0',
+    'Placebo_0_T1',
+    'Placebo_0_T2',
+    'Placebo_0_T3',
+    'Drug_0_T2',
+    'Drug_0_T3',
+    'Baseline_2',
+    'Placebo_2_T1',
+    'Placebo_2_T2',
+    'Placebo_2_T3',
+    'Drug_2_T2',
+    'Drug_2_T3'
+  )
+  
+  # Position of random effects
+  ref_pos = c( ref_pos, ncol( Xd ) + ref_pos )
+  
+  # Baseline conditions
+  Xc[ dtbf$Task == 'NBack_0', ref_pos[1] ] = 1
+  Xc[ dtbf$Task == 'NBack_2', ref_pos[2] ] = 1
+  
+  cnd = cbind(
+    rep( rep( c( 'Placebo', 'Drug' ), each = 3 ), 2 ),
+    rep( c( 'NBack_0', 'NBack_2' ), each = 6 ),
+    rep( unique( dtbf$Timepoints ), 4 )
+  )
+  cnd = cnd[ -c(4,10), ]
+  
+  for ( i in 1:10 ) {
+    sel = dtbf$Condition == cnd[i,1] & 
+      dtbf$Task == cnd[i,2] & 
+      dtbf$Timepoints == cnd[i,3]
+    Xc[sel,(1:12)[-ref_pos][i]] = 1
+  }
+  
+  # Check design matrix is properly specified
+  check = aggregate( Xc, list(
+    dtbf$Timepoints, dtbf$Condition, dtbf$Task ), mean )
+  
+  # Save design matrices
+  X2 = list( Xd, Xc )
+  
+  # Define priors for model
+  # Specify priors for model
+  Priors = rbind(
+    # d'
+    c( 4.1, 1.0 ), # Baseline (0) *R - 1*
+    c( 0.0, 1.0 ), # Placebo (0 - T1 )
+    c( 0.0, 1.0 ), # Placebo (0 - T2 )
+    c( 0.0, 1.0 ), # Placebo (0 - T3 )
+    c( 0.0, 1.0 ), # Drug (0 - T2)
+    c( 0.0, 1.0 ), # Drug (0 - T3)
+    c( 2.9, 1.0 ), # Baseline (2) *R - 7*
+    c( 0.0, 1.0 ), # Placebo (2 - T1 )
+    c( 0.0, 1.0 ), # Placebo (2 - T2 )
+    c( 0.0, 1.0 ), # Placebo (2 - T3 )
+    c( 0.0, 1.0 ), # Drug (2 - T2)
+    c( 0.0, 1.0 ), # Drug (2 - T3)
+    # Criterion
+    c( 0.1, 1.0 ), # Baseline (0) *R - 13*
+    c( 0.0, 1.0 ), # Placebo (0 - T1 )
+    c( 0.0, 1.0 ), # Placebo (0 - T2 )
+    c( 0.0, 1.0 ), # Placebo (0 - T3 )
+    c( 0.0, 1.0 ), # Drug (0 - T2)
+    c( 0.0, 1.0 ), # Drug (0 - T3)
+    c( 0.4, 1.0 ), # Baseline (2) *R - 19*
+    c( 0.0, 1.0 ), # Placebo (2 - T1 )
+    c( 0.0, 1.0 ), # Placebo (2 - T2 )
+    c( 0.0, 1.0 ), # Placebo (2 - T3 )
+    c( 0.0, 1.0 ), # Drug (2 - T2)
+    c( 0.0, 1.0 ), # Drug (2 - T3)
+    # Random effects
+    c( 2.0, 0.0 ), # Omega
+    c( 0.0, 1.0 )  # Tau
+  )
+  
+  m2 = estimate_sdt( dtbf, 
+                     X2, 
+                     ref_pos, 
+                     Priors )
+  
+  setwd( 'Data/Posterior_estimates' )
+  save( m2, X2, file = 'Posterior_m2.RData' )
+  setwd( proj_dir )
+  
+  # Clean up workspace
+  rm( m2, X2 )
+}
+
+###
+### 5) Model 3 (Saturated)
+###
+
+if ( run_code[3] ) {
+  
+  # Initialize design matrix for d'
+  Xd = matrix( 0, nrow( dtbf ), 13 )
+  colnames( Xd ) = c(
+    'Baseline_0',
+    'Placebo_0_T1',
+    'Placebo_0_T2',
+    'Placebo_0_T3',
+    'Drug_0_T2',
+    'Drug_0_T3',
+    'Baseline_2',
+    'Placebo_2_T1',
+    'Placebo_2_T2',
+    'Placebo_2_T3',
+    'Drug_2_T2',
+    'Drug_2_T3',
+    'Self_report_high'
+  )
+  
+  # Position of random effects
+  ref_pos = c( 1,7 )
+  
+  # Baseline conditions
+  Xd[ dtbf$Task == 'NBack_0', ref_pos[1] ] = 1
+  Xd[ dtbf$Task == 'NBack_2', ref_pos[2] ] = 1
+  
+  cnd = cbind(
+    rep( rep( c( 'Placebo', 'Drug' ), each = 3 ), 2 ),
+    rep( c( 'NBack_0', 'NBack_2' ), each = 6 ),
+    rep( unique( dtbf$Timepoints ), 4 )
+  )
+  cnd = cnd[ -c(4,10), ]
+  
+  for ( i in 1:10 ) {
+    sel = dtbf$Condition == cnd[i,1] & 
+      dtbf$Task == cnd[i,2] & 
+      dtbf$Timepoints == cnd[i,3]
+    Xd[sel,(1:12)[-ref_pos][i]] = 1
+  }
+  
+  Xd[,'Self_report_high'] = 
+    ( as.numeric( dtbf$Self_report_on_high )/100 )
+
+  # Check design matrix is properly specified
+  check = aggregate( Xd, list(
+    dtbf$Timepoints, dtbf$Condition, dtbf$Task ), mean )
+  
+  # Initialize design matrix for d'
+  Xc = matrix( 0, nrow( dtbf ), 13 )
+  colnames( Xc ) = c(
+    'Baseline_0',
+    'Placebo_0_T1',
+    'Placebo_0_T2',
+    'Placebo_0_T3',
+    'Drug_0_T2',
+    'Drug_0_T3',
+    'Baseline_2',
+    'Placebo_2_T1',
+    'Placebo_2_T2',
+    'Placebo_2_T3',
+    'Drug_2_T2',
+    'Drug_2_T3',
+    'Self_report_high'
+  )
+  
+  # Position of random effects
+  ref_pos = c( ref_pos, ncol( Xd ) + ref_pos )
+  
+  # Baseline conditions
+  Xc[ dtbf$Task == 'NBack_0', ref_pos[1] ] = 1
+  Xc[ dtbf$Task == 'NBack_2', ref_pos[2] ] = 1
+  
+  cnd = cbind(
+    rep( rep( c( 'Placebo', 'Drug' ), each = 3 ), 2 ),
+    rep( c( 'NBack_0', 'NBack_2' ), each = 6 ),
+    rep( unique( dtbf$Timepoints ), 4 )
+  )
+  cnd = cnd[ -c(4,10), ]
+  
+  for ( i in 1:10 ) {
+    sel = dtbf$Condition == cnd[i,1] & 
+      dtbf$Task == cnd[i,2] & 
+      dtbf$Timepoints == cnd[i,3]
+    Xc[sel,(1:12)[-ref_pos][i]] = 1
+  }
+  
+  Xc[,'Self_report_high'] = 
+    ( as.numeric( dtbf$Self_report_on_high )/100 )
+  
+  # Check design matrix is properly specified
+  check = aggregate( Xc, list(
+    dtbf$Timepoints, dtbf$Condition, dtbf$Task ), mean )
+  
+  # Save design matrices
+  X3 = list( Xd, Xc )
+  
+  # Define priors for model
+  # Specify priors for model
+  Priors = rbind(
+    # d'
+    c( 4.1, 1.0 ), # Baseline (0) *R - 1*
+    c( 0.0, 1.0 ), # Placebo (0 - T1 )
+    c( 0.0, 1.0 ), # Placebo (0 - T2 )
+    c( 0.0, 1.0 ), # Placebo (0 - T3 )
+    c( 0.0, 1.0 ), # Drug (0 - T2)
+    c( 0.0, 1.0 ), # Drug (0 - T3)
+    c( 2.9, 1.0 ), # Baseline (2) *R - 7*
+    c( 0.0, 1.0 ), # Placebo (2 - T1 )
+    c( 0.0, 1.0 ), # Placebo (2 - T2 )
+    c( 0.0, 1.0 ), # Placebo (2 - T3 )
+    c( 0.0, 1.0 ), # Drug (2 - T2)
+    c( 0.0, 1.0 ), # Drug (2 - T3)
+    c( 0.0, 1.0 ), # Self-reported high
+    # Criterion
+    c( 0.1, 1.0 ), # Baseline (0) *R - 14*
+    c( 0.0, 1.0 ), # Placebo (0 - T1 )
+    c( 0.0, 1.0 ), # Placebo (0 - T2 )
+    c( 0.0, 1.0 ), # Placebo (0 - T3 )
+    c( 0.0, 1.0 ), # Drug (0 - T2)
+    c( 0.0, 1.0 ), # Drug (0 - T3)
+    c( 0.4, 1.0 ), # Baseline (2) *R - 20*
+    c( 0.0, 1.0 ), # Placebo (2 - T1 )
+    c( 0.0, 1.0 ), # Placebo (2 - T2 )
+    c( 0.0, 1.0 ), # Placebo (2 - T3 )
+    c( 0.0, 1.0 ), # Drug (2 - T2)
+    c( 0.0, 1.0 ), # Drug (2 - T3)
+    c( 0.0, 1.0 ), # Self-reported high
+    # Random effects
+    c( 2.0, 0.0 ), # Omega
+    c( 0.0, 1.0 )  # Tau
+  )
+  
+  m3 = estimate_sdt( dtbf, 
+                     X3, 
+                     ref_pos, 
+                     Priors )
+  
+  setwd( 'Data/Posterior_estimates' )
+  save( m3, X3, file = 'Posterior_m3.RData' )
+  setwd( proj_dir )
+  
+  # Clean up workspace
+  rm( m3, X3 )
+  
+}
+
+setwd( orig_dir )
