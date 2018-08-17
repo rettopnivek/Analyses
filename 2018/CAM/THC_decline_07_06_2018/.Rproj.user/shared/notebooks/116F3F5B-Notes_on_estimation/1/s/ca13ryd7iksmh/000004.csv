@@ -1,0 +1,1 @@
+"0","lines( xa, dnorm( xa, .25, .5 ), col = 'blue' )"

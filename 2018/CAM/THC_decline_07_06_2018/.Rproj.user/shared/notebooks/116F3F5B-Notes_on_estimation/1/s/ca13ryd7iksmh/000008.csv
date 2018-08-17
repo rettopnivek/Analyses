@@ -1,0 +1,4 @@
+"0","sel = associated_half_life > -10 & "
+"0","  associated_half_life < 10"
+"0","dn = density( associated_half_life[sel] )"
+"0","lines( dn$x, dn$y, col = 'blue' )"

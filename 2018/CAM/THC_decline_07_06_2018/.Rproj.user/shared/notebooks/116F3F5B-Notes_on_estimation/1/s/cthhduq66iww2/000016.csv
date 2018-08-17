@@ -1,0 +1,4 @@
+"0","legend( 'topright',"
+"0","        c( 'Observed', 'Censored', 'Generating', 'Estimated' ),"
+"0","        fill = c( 'black', 'grey', 'blue', 'red' ),"
+"0","        cex = 1.25, bty = 'n' )"

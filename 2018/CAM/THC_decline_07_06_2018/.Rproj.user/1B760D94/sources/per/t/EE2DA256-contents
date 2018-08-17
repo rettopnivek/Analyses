@@ -1,0 +1,845 @@
+# Non-linear decay models
+# Written by Kevin Potter
+# email: kevin.w.potter@gmail.com
+# Please email me directly if you 
+# have any questions or comments
+# Last updated 2018-07-18
+
+# Table of contents
+# 1) Initial setup
+# 2) Define functions
+#   2.1) my_standardize
+#   2.2) add_hist
+#   2.3) qsp
+#   2.4) tick; tock
+#   2.5) pl_ed_models_lm
+# 3) Plot of THCCOOH by day
+# 4) Non-linear models applied to means
+# 5) Least-squares estimation
+# 6) Scatter plots of starting point/decay by control variables
+# 7) Basic example of bayesian power law model
+# 8) Example of a random effects power law version
+# 9) Random effects power law model with predictors
+
+###
+### 1) Initial setup
+###
+
+source( 'S01_Folder_paths.R' )
+
+# Indicate which code segments to run
+run_code = c(
+  F, # 1. Plot of THCCOOH by day
+  F, # 2. Non-linear models applied to means
+  F, # 3. Least-squares estimation
+  F, # 4. Scatter plots of starting point/decay by control variables
+  F, # 5. Basic example of bayesian power law model
+  F, # 6. Example of a random effects power law version
+  F  # 7. Random effects power law model with predictors
+)
+
+# Indicate whether figures should be saved as a PDF file
+save_plot = F
+
+# Load in useful packages
+
+# Collection of useful functions
+my_package_load( 'utilityf', github = T )
+
+# Package for working with data frames
+my_package_load( 'dplyr' )
+
+# Package for Bayesian estimation
+my_package_load( 'brms' )
+
+# Load in data
+setwd( dat_dir )
+load( 'THC_decay.RData' )
+
+# Convert days from baseline measurement 
+# to days from THC ingestion
+dtbf = all_dat[ all_dat$Data_issues == '0', ]
+dtbf$Time = dtbf$Time + dtbf$Recency_of_MJ_use
+# Reset subject index
+dtbf$Subjects = createIncrement( dtbf$ID )
+
+# Number of subjects
+Ns = max( dtbf$Subjects )
+# Number of observations
+No = nrow( dtbf )
+
+###
+### 2) Define functions
+###
+
+# 2.2)
+add_hist = function( x, lwd = 2, col = 'grey' ) { 
+  # Purpose:
+  # Creates a custom histogram with default options
+  # Arguments:
+  # x   - A vector of values
+  # lwd - A plotting parameter governing line width
+  # col - The color of the bars for the histogram
+  # Returns:
+  # The x and y-axis dimensions.
+  
+  # Extract plotting information for a histogram
+  qh = hist( x, breaks = 'FD', plot = F )
+  
+  # Create a blank plot
+  xl = range( qh$breaks )
+  yl = lowerUpper( round( max( range( qh$counts ) )/5 ), qh$counts )
+  yl[1] = 0
+  blankPlot( xl, yl )
+  
+  # Number of bars
+  nb = length( qh$counts )
+  
+  # Create bars for histogram
+  for ( i in 1:nb )
+    polygon( qh$breaks[ c( i, i, i+1, i+1 ) ],
+             c( 0, qh$counts[ c(i,i) ], 0 ),
+             col = col, border = NA )
+  # Add borders
+  segments( qh$breaks[-1],
+            rep( 0, nb ), 
+            qh$breaks[-1],
+            qh$counts,
+            col = 'white', 
+            lwd = lwd )
+  
+  customAxes( xl, yl, lnSz = lwd )
+  
+  return( list( xl = xl, yl = yl ) )
+}
+
+# 2.3)
+qsp = function( x, y, lbls ) {
+  # Purpose:
+  # A custom function to quickly generate a scatter plot 
+  # of two standardized variables.
+  # Arguments:
+  # x    - The variable to plot along the x-axis
+  # y    - The variable to plot along the y-axis
+  # lbls - The labels for the x-axis (first value) 
+  #        and the y-axis (second value)
+  
+  # Standardize variables
+  zx = my_standardize( x )
+  zy = my_standardize( y )
+  
+  # Create blank plot
+  xl = range( c( zx, zy ) )
+  xl = max( abs( xl ) )
+  xl = c( -xl, xl )
+  xl = lowerUpper( 1, xl )
+  yl = xl
+  blankPlot( xl, yl )
+  
+  # Add simple regression line
+  lmf = lm( zy ~ -1 + zx )
+  R = coef( lmf )
+  segments( xl[1], xl[1] * R,
+            xl[2], xl[2] * R,
+            col = 'grey', lwd = 2 )
+  
+  # Add observations
+  points( zx, zy, pch = 19 )
+  
+  # Add axes and labels
+  customAxes( xl, yl )
+  mtext( lbls[1], side = 3, line = 0, cex = .7 )
+  mtext( lbls[2], side = 2, line = 0, cex = .7 )
+  
+}
+
+# 2.4)
+
+# Initialize variable to track run time
+run_time = NA
+tick = function() {
+  run_time <<- Sys.time()
+}
+tock <- function() {
+  run_time <<- Sys.time() - run_time
+}
+
+# 2.5) 
+pl_ed_models_lm = function( x, y, type ) {
+  # Purpose:
+  # Fits either a power law or exponential 
+  # decay model via linear regression 
+  # following a transform of the data.
+  # Arguments:
+  # x    - The indepdent variable
+  # y    - The dependent variable
+  # type - The type of model (1 = exponential
+  #        decay, 2 = power law)
+  # Returns:
+  # A list with a vector with the estimates of  
+  # the starting point and decay parameters,
+  # the 'lm' output, the predicted values 
+  # for the dependent variable, and the 
+  # residuals.
+  
+  # Straightforward estimation of the 
+  # power law and exponential decay models 
+  # requires log transformations, so we 
+  # need to exclude values of 0
+  no_zeroes = y != 0
+  ya = y[ no_zeroes ]
+  xa = x[ no_zeroes ]
+  
+  # Determine if the number of zeros exceeds
+  
+  # Exponential decay model
+  if ( type == 1 ) {
+    
+    # Form: y = alpha * exp( -beta * x )
+    
+    # We can obtain estimates of the starting 
+    # point and decay by fitting a linear 
+    # equation of the form:
+    # log( y ) ~ log( alpha ) - beta * x
+    lmf = lm( log( ya ) ~ xa )
+    
+    est = coef( lmf )
+    est[1] = exp( est[1] )
+    est[2] = -est[2]
+    
+    # Generate predicted values
+    pred = est[1] * exp( -est[2] * x )
+    
+    # Residuals
+    resid_val = y - pred
+    
+  }
+  
+  # Power law model
+  if ( type == 2 ) {
+    
+    # Form: y = alpha * x^( -beta )
+    
+    # We can obtain estimates of the starting 
+    # point and decay by fitting a linear 
+    # equation of the form:
+    # log( y ) ~ log( alpha ) - beta * log( x )
+    
+    # We shift x by 1 to avoid a log transform of 0
+    xa = xa + 1
+    lmf = lm( log( ya ) ~ log( xa ) )
+    
+    est = coef( lmf )
+    est[1] = exp( est[1] )
+    est[2] = -est[2]
+    
+    # Generate predicted values
+    pred = est[1] * pow( x+1, -est[2] )
+    
+    # Residuals
+    resid_val = y - pred
+    
+  }
+  
+  return( list( est = est, 
+                lm = lmf, 
+                pred = pred, 
+                resid = resid_val ) )
+}
+
+###
+### 3) Plot of THCCOOH by day
+###
+
+if ( run_code[1] ) {
+  
+  # New plotting window
+  if ( !save_plot ) {
+    x11( width = 12 )
+  } else {
+    setwd( fig_dir )
+    pdf( 'MLE_results.pdf', width = 12 )
+    setwd( proj_dir )
+  }
+  
+  # Create a blank plot
+  xl = c( -1, 35 )
+  yl = c( -5, 700 )
+  blankPlot( xl, yl )
+  
+  # Add small degree of jitter for plotting purposes
+  jfp = runif( Ns, -.2, .2 )
+  
+  # Add individual observations
+  points( dtbf$Time + jfp[ dtbf$Subjects ], dtbf$THCCOOH, pch = 19, col = 'grey' )
+  
+  # Plot mean and median THCCOOH by day
+  plt = dtbf %>% 
+    group_by( Time ) %>% 
+    summarise(
+      Mn = mean( THCCOOH ),
+      Md = median( THCCOOH )
+    )
+  lines( plt$Time, plt$Mn, lwd = 2 )
+  # lines( plt$Time, plt$Md, lwd = 2, lty = 2 )
+  
+  # Add axes and labels
+  customAxes( xl, yl )
+  
+  # x-axis
+  axis( 1, seq( 0, max( plt$Time ), 2 ),
+        tick = F, line = -1, cex.axis = 1.25 )
+  mtext( 'Days since last THC dose',
+         side = 1, line = 2, cex = 1.25 )
+  
+  # y-axis
+  axis( 2, seq( 0, yl[2], 100 ),
+        tick = F, line = -1, cex.axis = 1.25 )
+  mtext( 'THCCOOH - ng/mL',
+         side = 2, line = 2, cex = 1.25 )
+  
+  legend( 'top', 
+          c( 'Mean', 'Exponential decay', 'Power law' ),
+          fill = c( 'black', 'blue', 'purple' ), 
+          cex = 1.25, bty = 'n' )
+  
+}
+
+###
+### 4) Non-linear models applied to means
+###
+
+if ( all( run_code[1:2] ) ) {
+  
+  # Exponential decay model
+  
+  # Mean
+  est = pl_ed_models_lm( plt$Time, plt$Mn, 1 )
+  # Plot results
+  lines( plt$Time, est$pred, lwd = 2, col = 'blue' )
+  
+  # Median
+  # est = pl_ed_models_lm( plt$Time, plt$Md, 1 )
+  # Plot results
+  # lines( plt$Time, est$pred, lwd = 2, col = 'blue', lty = 2 )
+  
+  # Power law model
+  
+  # Mean
+  est = pl_ed_models_lm( plt$Time, plt$Mn, 2 )
+  # Plot results
+  lines( plt$Time, est$pred, lwd = 2, col = 'purple' )
+  
+  # Median
+  # est = pl_ed_models_lm( plt$Time, plt$Md, 2 )
+  # Plot results
+  # lines( plt$Time, est$pred, lwd = 2, col = 'purple', lty = 2 )
+  
+}
+
+if ( save_plot ) dev.off()
+
+###
+### 5) Least-squares estimation
+###
+
+if ( run_code[3] ) {
+  
+  # Identify subjects with 3 or more 
+  # non-zero values
+  sel = dtbf %>% 
+    group_by( ID ) %>% 
+    summarise(
+      No = length( ID ),
+      Z = sum( THCCOOH != 0 )
+    )
+  cd = dtbf[ dtbf$ID %in% sel$ID[ sel$No >= 3 & sel$Z >= 3 ], ]
+  # Also remove subject 10067
+  cd = cd[ cd$ID != '10067', ]
+  subj = unique( cd$ID )
+  
+  # Track predicted values and residuals
+  cd$Predicted_ED = NA
+  cd$Predicted_PL = NA
+  cd$Residuals_ED = NA
+  cd$Residuals_PL = NA
+  
+  # Compute run time
+  tick()
+  
+  # Create a progress bar using a base R function
+  pb = txtProgressBar( min = 0, max = length( subj ), style = 3 )
+  
+  # Loop over subjects with sufficient data
+  all_est = data.frame(
+    ID = subj,
+    start_point_ED = NA, 
+    decay_ED = NA, 
+    R2_ED = NA,
+    start_point_PL = NA, 
+    decay_PL = NA, 
+    R2_PL = NA,
+    stringsAsFactors = F
+  )
+  
+  # Save a figure of the individual estimates
+  if ( save_plot ) {
+    setwd( fig_dir )
+    pdf( 'LSQ_estimates.pdf' )
+    setwd( proj_dir )
+  }
+  
+  # Loop over subjects with sufficient data
+  for ( s in 1:length( subj ) ) {
+    
+    sel = cd$ID == all_est$ID[s]
+    
+    # Exponential decay
+    est = pl_ed_models_lm( cd$Time[sel],
+                           cd$THCCOOH[sel],
+                           1 )
+    # Save estimates
+    all_est$start_point_ED[s] = est$est[1]
+    all_est$decay_ED[s] = est$est[2]
+    all_est$R2_ED[s] = summary( est$lm )$adj.r.squared
+    cd$Predicted_ED[sel] = est$pred
+    cd$Residuals_ED[sel] = est$resid
+    
+    # Power law
+    est = pl_ed_models_lm( cd$Time[sel],
+                           cd$THCCOOH[sel],
+                           2 )
+    # Save estimates
+    all_est$start_point_PL[s] = est$est[1]
+    all_est$decay_PL[s] = est$est[2]
+    all_est$R2_PL[s] = summary( est$lm )$adj.r.squared
+    cd$Predicted_PL[sel] = est$pred
+    cd$Residuals_PL[sel] = est$resid
+    
+    # Plot results
+    if ( ( s %% 9 ) == 1 ) {
+      if ( !save_plot ) x11()
+      layout( matrix( 1:9, 3, 3, byrow = T ) )
+    }
+    
+    xl = c( -1, 35 )
+    yl = lowerUpper( 100, cd$THCCOOH[sel] )
+    yl[1] = -5
+    blankPlot( xl, yl )
+    
+    xa = cd$Time[sel]
+    points( xa, cd$THCCOOH[sel], pch = 19 )
+    lines( xa, cd$Predicted_ED[sel], col = 'blue', lwd = 2 )
+    lines( xa, cd$Predicted_PL[sel], col = 'purple', lwd = 2 )
+    
+    customAxes( xl, yl )
+    axis( 1, c( 0, 34 ),
+          tick = F, line = -1 )
+    axis( 2, c( 0, yl[2] ),
+          tick = F, line = -1 )
+    title( paste( 'Subject:', all_est$ID[s] ) )
+    
+    if ( ( s %% 9 ) == 1 ) {
+      mtext( 'Time (days)',
+             side = 1, line = -2, outer = T )
+      mtext( 'THCCOOH - ng/mL',
+             side = 2, line = -2, outer = T )
+    }
+    
+    # Update the progress bar
+    setTxtProgressBar(pb,s)
+  }
+  close(pb)
+  tock()
+  print( run_time )
+  # Save figure
+  if ( save_plot ) dev.off()
+  # Reset layout
+  layout( cbind(1) )
+  
+  # Add variables to data frame
+  
+  # Initialize variables
+  dtbf$Start_point = NA
+  dtbf$Decay = NA
+  dtbf$R2_for_PL = NA
+  dtbf$Start_point_ED = NA
+  dtbf$Decay_ED = NA
+  dtbf$R2_for_ED = NA
+  
+  for ( i in 1:length( unique( all_est$ID ) ) ) {
+    sel = dtbf$ID == all_est$ID[i]
+    
+    # Power law
+    dtbf$Start_point[sel] = 
+      all_est$start_point_PL[i]
+    dtbf$Decay[sel] = all_est$decay_PL[i]
+    dtbf$R2_for_PL[sel] = all_est$R2_PL[i]
+    
+    # Exponential decay
+    dtbf$Start_point_ED[sel] = 
+      all_est$start_point_ED[i]
+    dtbf$Decay_ED[sel] = all_est$decay_ED[i]
+    dtbf$R2_for_ED[sel] = all_est$R2_ED[i]
+  }
+  
+  # Create a data frame with individual estimates 
+  # and predictors
+  sel = !is.na( dtbf$Start_point )
+  sel = dtbf %>%
+    filter( sel ) %>% 
+    group_by( ID ) %>% 
+    summarize( 
+      FR = min( which( dtbf$ID %in% ID ) ) )
+  dflm = dtbf[ sel$FR, ]
+  setwd( dat_dir )
+  save( dflm, file = 'Power_law_estimates.RData' )
+  setwd( R_dir )
+  
+  b('
+  cf = lm( log( Start_point ) ~ 1 + Sex + Age + BMI + 
+             Years_of_MJ_use + Level_of_MJ_use + Level_of_alcohol_use,
+           data = dflm )
+  summary( cf )
+  cf = lm( log( Decay ) ~ 1 + Sex + Age + BMI + 
+             Years_of_MJ_use + Level_of_MJ_use + Level_of_alcohol_use,
+           data = dflm )
+  summary( cf )
+  ')
+  
+}
+
+###
+### 6) Scatter plots of starting point/decay by control variables
+###
+
+if ( run_code[4] ) {
+  
+  # Load in individual estimates
+  setwd( dat_dir )
+  load( file = 'Power_law_estimates.RData' )
+  setwd( R_dir )
+  
+  # Specify the dependent variable to plot
+  dv_type = c(
+    'Start_point',
+    'Decay'
+  )
+  dv_lab = c(
+    'log starting point',
+    'log decay rate'
+  )
+  
+  if ( save_plot ) {
+    
+    setwd( fig_dir )
+    pdf( 'Scatter_plots_by_parameter.pdf',
+         width = 7, height = 7 )
+    setwd( proj_dir )
+    
+  }
+  
+  for ( dv in 1:2 ) {
+    
+    # Variables to plot
+    vrb = c(
+      dv_type[dv],
+      'Sex',
+      'Age',
+      'BMI',
+      'Years_of_MJ_use',
+      'Level_of_MJ_use',
+      'Level_of_alcohol_use'
+    )
+    
+    # x and y-axis labels
+    vrb_label = c(
+      dv_lab[dv],
+      'Sex',
+      'Age',
+      'BMI',
+      'Years (MJ)',
+      'Level (MJ)',
+      'Level (Alcohol)'
+    )
+    
+    # Create multiple planels for plotting
+    nv = length( vrb )
+    lyt = matrix( 0, nv, nv )
+    clm = matrix( 1:nv, nv, nv, byrow = T )[lower.tri( lyt ) ]
+    rwm = matrix( 1:nv, nv, nv, byrow = F )[lower.tri( lyt ) ]
+    lyt[ lower.tri( lyt ) ] = 1:length(rwm)
+    # Plot only correlations
+    lyt = lyt[-1,]
+    lyt = lyt[,-nv]
+    lyt[ lyt == 0 ] = max( lyt ) + 1
+    
+    # Create new plotting window
+    if ( !save_plot ) x11( width = 8, height = 8 )
+    layout( lyt )
+    # Baseline measure
+    vst = dflm$Visit_number == 1
+    # Loop over scatter plots
+    for ( i in 1:length(rwm) ) {
+      
+      # Extract variables to plt
+      lbls = c( vrb[clm[i]], vrb[rwm[i]] )
+      xa = dflm[vst,lbls[1]]
+      ya = dflm[vst,lbls[2]]
+      
+      # Take the log of THCCOOH
+      if ( lbls[1] == vrb[1] ) {
+        xa = log( xa )
+      }
+      if ( lbls[2] == vrb[1] ) {
+        ya = log( ya )
+      }
+      # Set plotting margins
+      par( mar = c( 1, 1, 1, 1 ) )
+      
+      # Specify x and y-axis labels
+      lbls = c( ' ', ' ' )
+      if ( i %in% lyt[,1] ) {
+        lbls[2] = vrb_label[rwm[i]]
+      }
+      if ( i %in% diag( lyt ) ) {
+        lbls[1] = vrb_label[clm[i]]
+      }
+      
+      qsp( xa, ya, lbls )
+      
+    }
+    
+  }
+  
+  # Reset plotting parameters
+  if ( save_plot ) dev.off()
+  layout( cbind(1) )
+  par( mar = c( 4, 5, 3, 1 ) )
+  
+}
+
+###
+### 7) Basic example of bayesian power law model
+###
+
+if ( run_code[5] ) {
+  
+  # Identify subjects with 3 or more 
+  # non-zero values
+  sel = dtbf %>% 
+    group_by( ID ) %>% 
+    summarise(
+      No = length( ID ),
+      Z = sum( THCCOOH != 0 )
+    )
+  cd = dtbf[ dtbf$ID %in% sel$ID[ sel$No >= 3 & sel$Z >= 3 ], ]
+  # Also remove subject 10067
+  cd = cd[ cd$ID != '10067', ]
+  
+  # Analyze only non-zero values
+  cd = cd[ cd$THCCOOH != 0, ]
+  
+  # Fit power law model using least-squares approach
+  tst = pl_ed_models_lm( cd$Time, cd$THCCOOH, 2 )
+  
+  # Initialize priors for brms
+  
+  # Weakly informative prior on residual error
+  prs = set_prior( 'student_t( 10, 2, 1 )', 
+                   class = 'sigma' )
+  # Prior on non-linear intercept
+  prs = c( prs,
+           set_prior( 'normal( 4.9, 5 )', 
+                      class = 'b', coef = 'Intercept', 
+                      nlpar = 'b0' ) )
+  # Prior on non-linear half-life
+  prs = c( prs,
+           set_prior( 'normal( -.37, 2.5 )', 
+                      class = 'b', coef = 'Intercept', 
+                      nlpar = 'b1' ) )
+  
+  # Measure run time
+  tick()
+  
+  # Estimate model
+  res = brm(
+    # Non-linear formulation
+    bf( log( THCCOOH ) ~ b0 - exp( b1 ) * log( Time + 1 ), 
+        b0 ~ 1, 
+        b1 ~ 1, 
+        nl = TRUE ),
+    # Data and priors
+    data = cd, prior = prs,
+    # Estimation settings
+    warmup = 1000,
+    iter = 3500,
+    chains = 4,
+    cores = 4,
+    control = list( adapt_delta = 0.995,
+                    max_treedepth = 15 ) )
+  tock()
+  print( run_time )
+  
+  x11()
+  plot( res )
+  
+  x11()
+  plot( marginal_effects(res), points = TRUE )
+  
+  x11()
+  pp_check( res, nsamples = 100 )
+  
+}
+
+###
+### 8) Example of a random effects power law version
+###
+
+if ( run_code[6] ) {
+  
+  # Identify subjects with 3 or more 
+  # non-zero values
+  sel = dtbf %>% 
+    group_by( ID ) %>% 
+    summarise(
+      No = length( ID ),
+      Z = sum( THCCOOH != 0 )
+    )
+  cd = dtbf[ dtbf$ID %in% sel$ID[ sel$No >= 3 & sel$Z >= 3 ], ]
+  # Also remove subject 10067
+  cd = cd[ cd$ID != '10067', ]
+  
+  # Analyze only non-zero values
+  cd = cd[ cd$THCCOOH != 0, ]
+  
+  # Fit power law model using least-squares approach
+  tst = pl_ed_models_lm( cd$Time, cd$THCCOOH, 2 )
+  
+  # Initialize priors for brms
+  
+  # Weakly informative prior on residual error
+  prs = set_prior( 'student_t( 10, 2, 1 )', 
+                   class = 'sigma' )
+  # Prior on non-linear intercept
+  prs = c( prs,
+           set_prior( 'normal( 0, 5 )', 
+                      class = 'b', coef = 'Intercept', 
+                      nlpar = 'b0' ) )
+  # Prior on non-linear half-life
+  prs = c( prs,
+           set_prior( 'normal( 0, 2.5 )', 
+                      class = 'b', coef = 'Intercept', 
+                      nlpar = 'b1' ) )
+  
+  # Measure run time
+  tick()
+  
+  # Estimate model
+  res = brm(
+    # Non-linear formulation
+    bf( log( THCCOOH ) ~ b0 - exp( b1 ) * log( Time + 1 ), 
+        b0 ~ 1 + (1|p|ID), 
+        b1 ~ 1 + (1|p|ID), 
+        nl = TRUE ),
+    # Data and priors
+    data = cd, prior = prs,
+    # Estimation settings
+    warmup = 1000,
+    iter = 3500,
+    chains = 4,
+    cores = 4,
+    control = list( adapt_delta = 0.995,
+                    max_treedepth = 15 ) )
+  tock()
+  print( run_time )
+  
+  x11()
+  plot( res )
+  
+  x11()
+  plot( marginal_effects(res), points = TRUE )
+  
+  x11()
+  pp_check( res, nsamples = 100 )
+  
+}
+
+
+###
+### 9) Random effects power law model with predictors
+###
+
+if ( run_code[7] ) {
+  
+  # Identify subjects with 3 or more 
+  # non-zero values
+  sel = dtbf %>% 
+    group_by( ID ) %>% 
+    summarise(
+      No = length( ID ),
+      Z = sum( THCCOOH != 0 )
+    )
+  cd = dtbf[ dtbf$ID %in% sel$ID[ sel$No >= 3 & sel$Z >= 3 ], ]
+  # Also remove subject 10067
+  cd = cd[ cd$ID != '10067', ]
+  
+  # Analyze only non-zero values
+  cd = cd[ cd$THCCOOH != 0, ]
+  
+  # Fit power law model using least-squares approach
+  tst = pl_ed_models_lm( cd$Time, cd$THCCOOH, 2 )
+  
+  # Initialize priors for brms
+  
+  # Weakly informative prior on residual error
+  prs = set_prior( 'student_t( 10, 2, 1 )', 
+                   class = 'sigma' )
+  # Prior on non-linear intercept
+  prs = c( prs,
+           set_prior( 'normal( 0, 5 )', 
+                      class = 'b', coef = 'Intercept', 
+                      nlpar = 'b0' ) )
+  # Prior on non-linear half-life
+  prs = c( prs,
+           set_prior( 'normal( 0, 2.5 )', 
+                      class = 'b', coef = 'Intercept', 
+                      nlpar = 'b1' ) )
+  
+  # Measure run time
+  tick()
+  
+  # Estimate model
+  res = brm(
+    # Non-linear formulation
+    bf( log( THCCOOH ) ~ b0 - exp( b1 ) * log( Time + 1 ), 
+        b0 ~ 1 + 
+          Level_of_MJ_use + 
+          (1|p|ID), 
+        b1 ~ 1 + 
+        (1|p|ID), 
+        nl = TRUE ),
+    # Data and priors
+    data = cd, prior = prs,
+    # Estimation settings
+    warmup = 1000,
+    iter = 6500,
+    chains = 4,
+    cores = 4,
+    control = list( adapt_delta = 0.995,
+                    max_treedepth = 15 ) )
+  tock()
+  print( run_time )
+  
+  x11()
+  plot( res )
+  
+  x11()
+  plot( marginal_effects(res), points = TRUE )
+  
+  x11()
+  pp_check( res, nsamples = 100 )
+  
+}
+
+setwd( R_dir )

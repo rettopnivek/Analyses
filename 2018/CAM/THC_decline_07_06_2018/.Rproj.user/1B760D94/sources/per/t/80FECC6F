@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1532121744027.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2093834069",
+    "id" : "80FECC6F",
+    "lastKnownWriteTime" : 1532138116,
+    "last_content_update" : 1532138115699,
+    "path" : "F:/CAM_postdoc/2018/THC_decline_07_06_2018/R/S03_Estimating_exp_decay.R",
+    "project_path" : "R/S03_Estimating_exp_decay.R",
+    "properties" : {
+        "cursorPosition" : "145,61",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

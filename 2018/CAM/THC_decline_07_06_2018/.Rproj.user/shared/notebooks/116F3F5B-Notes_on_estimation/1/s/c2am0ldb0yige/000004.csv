@@ -1,0 +1,1 @@
+"0","lines( xa, dgamma( xa, shape = gam[1], scale = gam[2] ), col = 'blue' )"

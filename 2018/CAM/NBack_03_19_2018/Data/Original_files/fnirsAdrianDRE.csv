@@ -1,0 +1,137 @@
+Category,Subject,DRE_Eval.Impaired,Bloodshot_Eyes.Yes_No,Eyelid_Tremor.Modified_Romberg,Eyelid_Tremor.Finger_to_Nose,Room_Light.Left,Room_Light.Right,Near_Total_Darkness.Left,Near_Total_Darkness.Right,Direct_Light.Left,Direct_Light.Right,Time_Estimation.Off_from_30s,Body_Sway.Modified_Romberg ,Misses_Heel_to_Toe.Walk_and_turn,Arms_to_balance.Wald_and_turn
+Placebo,FN_030,0,N,Y,Y,5,5,7.5,7.5,4.5,4,4,Y,N,Y
+Placebo,FN_031,,,,,,,,,,,,,,
+Placebo,FN_032,,,,,,,,,,,,,,
+Placebo,FN_033,,,,,,,,,,,,,,
+Placebo,FN_034,,,,,,,,,,,,,,
+Placebo,FN_035,,,,,,,,,,,,,,
+Placebo,FN_036,,,,,,,,,,,,,,
+Placebo,FN_037,,,,,,,,,,,,,,
+Placebo,FN_038,,,,,,,,,,,,,,
+Placebo,FN_039,,,,,,,,,,,,,,
+Placebo,FN_040,,,,,,,,,,,,,,
+Placebo,FN_041,0,Y,Y,Y,4,4,6.5,7,3.25,3.25,8,Y,N,Y
+Placebo,FN_042,,,,,,,,,,,,,,
+Placebo,FN_043,0,N,N,N,4,4,7,7,3,3,5,N,N,y
+Placebo,FN_044,,,,,,,,,,,,,,
+Placebo,FN_045,,,,,,,,,,,,,,
+Placebo,FN_046,0,N,N,N,4,4,5,5,3,3,3,N,N,N
+Placebo,FN_047,1,N,N,N,5,5,6.5,6.5,3.5,3.5,14,Y,N,N
+Placebo,FN_048,,,,,,,,,,,,,,
+Placebo,FN_049,1,N,Y,Y,3.5,3.5,7,7,5,5.5,0,N,Y,Y
+Placebo,FN_050,0,N,N,N,3,3,6,6,2.5,2.5,7,Y,N,Y
+Placebo,FN_051,,,,,,,,,,,,,,
+Placebo,FN_052,1,N,N,N,4.5,4.5,7.5,7.5,4,4,35,N,N,N
+Placebo,FN_053,0,N,Y,Y,4,4,7.5,7.5,4.5,4.5,1,Y,N,N
+Placebo,FN_054,1,N,Y,Y,4,4,6.5,7,3,3.5,4,Y,N,N
+Placebo,FN_055,1,N,N,N,5.75,5.5,8,8,4,4,1,N,N,N
+Placebo,FN_056,0,N,N,N,4.5,4.5,6.5,7,4.75,4.75,2,Y,N,N
+Placebo,FN_057,0,N,N,N,4,4,6.5,6.5,3,3,12,N,N,N
+Placebo,FN_058,,,,,,,,,,,,,,
+Placebo,FN_059,0,N,N,N,4,4,7.5,7.5,4,4,6,N,N,N
+Placebo,FN_060,0,N,Y,Y,3,3,7,7.5,3,3,9,N,N,N
+Placebo,FN_061,0,N,N,N,4,4,7,7,3,3,2,N,N,N
+Placebo,FN_062,0,N,N,N,5,5,7,7,3,3,4,N,N,N
+Placebo,FN_063,1,N,N,N,4,4,7.5,7,3,3,16,N,N,Y
+Placebo,FN_064,,,,,,,,,,,,,,
+Placebo,FN_065,0,N,N,N,4.5,4.5,8,8,4,4,7,N,N,Y
+Placebo,FN_066,1,N,Y,Y,4.5,4.5,8,8,4.25,4.25,1,Y,N,Y
+Placebo,FN_067,0,N,N,N,4,4,6.5,6.5,3.5,3.5,2,N,N,N
+Placebo,FN_068,0,N,Y,Y,3,3,7.5,7.5,3.5,3.5,2,Y,N,Y
+Placebo,FN_069,0,N,N,N,4.5,4,7,7,3.5,3.5,12,N,N,N
+Placebo,FN_070,0,N,Y,Y,2.5,2.5,7,7,3.5,3.5,2,Y,N,Y
+Placebo,FN_071,0,N,N,N,3.5,3.5,7,7,3.5,3.5,8,N,N,N
+Placebo,FN_072,0,N,N,N,4.5,4.5,6,6.5,4,4,3,N,N,N
+Placebo,FN_073,,,,,,,,,,,,,,
+Placebo,FN_074,0,N,N,N,3.5,4,6.5,6.5,3,3.5,1,N,N,N
+Placebo,FN_075,0,N,N,N,4.5,4.5,8,8,4,4,2,N,N,N
+Placebo,FN_076,1,N,Y,Y,4,4,5.5,5.5,3,3,11,Y,N,N
+Placebo,FN_077,,,,,,,,,,,,,,
+Placebo,FN_078,,,,,,,,,,,,,,
+Placebo,FN_079,0,N,N,N,3.5,3.5,6,6,3,3,7,N,N,Y
+Placebo,FN_080,1,N,Y,Y,4,4,6,6,3.75,3.75,10,N,N,N
+Placebo,FN_081,0,N,N,N,4.5,4.5,7.5,7.5,3.5,3.5,1,Y,N,N
+Placebo,FN_082,0,Y,N,N,4,4,7,7,3,3,5,Y,N,N
+Placebo,FN_083,0,N,N,N,3.5,3.5,7,7,3,3,2,Y,N,N
+Placebo,FN_084,1,Y,Y,Y,4.5,4.5,6,6,3,3,1,N,N,N
+Placebo,FN_085,1,N,Y,Y,4.75,4.75,7.5,7.5,3,3,11,N,N,N
+Placebo,FN_086,,,,,,,,,,,,,,
+Placebo,FN_087,1,N,Y,Y,4,4,7.5,7.5,3,3,5,N,N,Y
+Placebo,FN_088,,,,,,,,,,,,,,
+Placebo,FN_089,0,N,Y,Y,3.5,3.5,6.25,6.25,3,3,5,N,N,N
+Placebo,FN_090,0,Y,N,N,5,5,7,7.5,3,3,,N,N,N
+Placebo,FN_091,,,,,,,,,,,,,,
+Placebo,FN_092,1,N,Y,Y,5,5,7,7,3.5,3.5,6,N,N,N
+Placebo,FN_093,0,Y,Y,Y,3,3.5,5,5,3,3,5,N,N,N
+Placebo,FN_094,1,N,Y,Y,4.5,4.5,8,8,4,4,3,N,Y,Y
+Placebo,FN_095,,,,,,,,,,,,,,
+Placebo,FN_096,0,N,N,N,5,5,8,8.5,3.5,4,2,Y,Y,Y
+Placebo,FN_097,1,N,Y,Y,6,5.5,8,8.5,4.75,4.75,3,Y,N,N
+Active Drug,FN_030,,,,,,,,,,,,,,
+Active Drug,FN_031,1,N,N,N,4,4,8,8.5,4.5,4.5,2,N,N,Y
+Active Drug,FN_032,,,,,,,,,,,,,,
+Active Drug,FN_033,,,,,,,,,,,,,,
+Active Drug,FN_034,,,,,,,,,,,,,,
+Active Drug,FN_035,,,,,,,,,,,,,,
+Active Drug,FN_036,,,,,,,,,,,,,,
+Active Drug,FN_037,1,Y,N,N,4.5,4.5,8,8.5,4.5,4.5,11,N,Y,N
+Active Drug,FN_038,,,,,,,,,,,,,,
+Active Drug,FN_039,1,Y,Y,Y,5,5,6.5,6.5,3.5,3.5,4,Y,Y,Y
+Active Drug,FN_040,0,N,Y,Y,3,3,7,6.5,3.5,3,4,Y,N,N
+Active Drug,FN_041,,,,,,,,,,,,,,
+Active Drug,FN_042,,,,,,,,,,,,,,
+Active Drug,FN_043,,,,,,,,,,,,,,
+Active Drug,FN_044,,,,,,,,,,,,,,
+Active Drug,FN_045,1,N,Y,Y,4.5,5,8,8.5,4,4.5,5,N,Y,N
+Active Drug,FN_046,,,,,,,,,,,,,,
+Active Drug,FN_047,,,,,,,,,,,,,,
+Active Drug,FN_048,0,Y,N,N,4.5,4.5,7.5,7.5,4,4,5,N,N,N
+Active Drug,FN_049,1,Y,Y,Y,4,4,8,8.5,5,5,2,Y,Y,Y
+Active Drug,FN_050,0,N,N,N,4,4,5.5,5.5,3,3,4,Y,N,N
+Active Drug,FN_051,1,N,N,N,5,5.5,8.5,8.5,4.5,4.5,9,Y,N,N
+Active Drug,FN_052,,,,,,,,,,,,,,
+Active Drug,FN_053,1,Y,Y,Y,4.75,4.75,7.5,7.5,4,4,,Y,N,Y
+Active Drug,FN_054,1,N,Y,Y,4.5,4.5,7.5,7.5,4,4,2,N,N,N
+Active Drug,FN_055,0,N,N,N,4.5,4.5,7.5,7.5,3,3,2,N,N,N
+Active Drug,FN_056,1,N,N,N,4.5,4.5,7.5,7.5,3,3,2,N,N,Y
+Active Drug,FN_057,1,Y,N,N,5.5,5,8.5,8.5,5.75,5.75,3,Y,Y,N
+Active Drug,FN_058,1,Y,Y,Y,3.72,3.75,6.5,6.5,4,4,11,Y,N,Y
+Active Drug,FN_059,0,N,N,N,4,3.5,7.5,7.5,3.25,3.25,6,Y,N,N
+Active Drug,FN_060,1,N,N,N,4,4,6,6,3.5,3.5,27,Y,Y,N
+Active Drug,FN_061,1,N,Y,Y,7,7,8.5,8.5,6.5,6.5,14,Y,Y,Y
+Active Drug,FN_062,1,N,N,N,4.5,5,7.5,7.5,3.5,3,4,N,N,N
+Active Drug,FN_063,1,N,Y,Y,4,4,8.5,8.5,4,4,7,N,N,N
+Active Drug,FN_064,0,N,Y,Y,2.5,2.5,3.5,3.5,7,7.5,1,Y,Y,N
+Active Drug,FN_065,1,N,N,N,4.5,4.5,8,8,4.5,4.5,2,Y,N,Y
+Active Drug,FN_066,1,Y,N,N,4.5,4,8.5,8,5,4.5,2,Y,N,Y
+Active Drug,FN_067,1,N,Y,Y,5,5,8,8.5,4,4,3,N,N,N
+Active Drug,FN_068,1,Y,Y,Y,4.5,4.5,8,8,3.5,4,8,N,N,N
+Active Drug,FN_069,1,Y,Y,Y,4,4,7.5,8,4,4.5,8,Y,Y,Y
+Active Drug,FN_070,1,Y,Y,Y,4,4,6,6,3,3,4,Y,N,Y
+Active Drug,FN_071,0,N,N,N,3.5,3.5,5.5,5.5,3,3,6,N,N,N
+Active Drug,FN_072,1,N,Y,Y,3.5,4,7.5,8,4.5,5,2,Y,N,Y
+Active Drug,FN_073,1,N,Y,Y,5,4.5,8,8,4.5,4.5,6,Y,N,Y
+Active Drug,FN_074,,,,,,,,,,,,,,
+Active Drug,FN_075,1,Y,N,N,5.5,6,8.5,8,5,5.5,7,Y,N,Y
+Active Drug,FN_076,0,N,N,N,4,4,5,5.5,3.25,3,10,N,N,N
+Active Drug,FN_077,1,N,N,N,3,3,6.5,6.5,3,3,0,N,N,N
+Active Drug,FN_078,1,Y,N,N,5,5,8.5,8.5,3.5,3.5,3,Y,N,N
+Active Drug,FN_079,1,Y,Y,Y,4.5,4.5,6,6,3.5,3.5,9,Y,Y,N
+Active Drug,FN_080,0,Y,Y,Y,4.5,4.5,7.25,7.25,4,4,1,N,N,N
+Active Drug,FN_081,1,Y,N,N,4,4,7,7,4.25,4.25,3,Y,N,Y
+Active Drug,FN_082,0,N,N,N,4,4,5.5,5.5,3,3,5,Y,N,Y
+Active Drug,FN_083,1,N,N,N,4,4,5.5,5.5,3,3,6,Y,N,N
+Active Drug,FN_084,1,Y,N,N,4.5,4.5,6.5,6.5,3,3,19,Y,N,Y
+Active Drug,FN_085,0,N,N,N,5,5,7,7,3,3,3,Y,N,N
+Active Drug,FN_086,1,N,Y,Y,4.5,4.5,7,7,3.5,3.5,9,N,N,Y
+Active Drug,FN_087,0,N,N,N,4.5,4.5,7.5,7.5,4,4,2,N,N,N
+Active Drug,FN_088,1,Y,N,N,7,7,9.5,9,4.5,4.5,5,Y,N,N
+Active Drug,FN_089,0,N,N,N,4.5,4.5,6,6,3,3,3,N,N,N
+Active Drug,FN_090,1,N,N,N,4.5,4.5,7.5,7.5,3.25,3.25,17,N,N,N
+Active Drug,FN_091,0,Y,N,N,5,5,8.5,8.5,4,4,5,N,N,N
+Active Drug,FN_092,1,Y,Y,Y,6,6,8.5,8.5,4,4,5,N,N,N
+Active Drug,FN_093,1,Y,N,N,5.5,5,9,8.5,4.5,4.5,2,Y,N,N
+Active Drug,FN_094,1,Y,Y,Y,5.5,5.5,8.5,8.5,4.5,5,5,Y,Y,Y
+Active Drug,FN_095,,,,,,,,,,,,,,
+Active Drug,FN_096,,,,,,,,,,,,,,
+Active Drug,FN_097,1,Y,Y,Y,5,5,8,8,4.5,4.5,6,N,N,N

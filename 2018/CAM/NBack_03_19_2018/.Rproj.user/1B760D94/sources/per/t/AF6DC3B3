@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1525294597265.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3773122218",
+    "id" : "AF6DC3B3",
+    "lastKnownWriteTime" : 1525470422,
+    "last_content_update" : 1525470421304,
+    "path" : "F:/CAM_postdoc/2018/NBack_03_19_2018/R/S05_NBack_model_estimation.R",
+    "project_path" : "R/S05_NBack_model_estimation.R",
+    "properties" : {
+        "cursorPosition" : "457,32",
+        "scrollLine" : "435"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,632 @@
+# Manuscript figures for N-back tasks
+# Written by Kevin Potter
+# email: kevin.w.potter@gmail.com
+# Please email me directory if you 
+# have any questions or comments
+# Last updated 2018-05-02
+
+# Table of contents
+# 1) Initial setup
+# 2) Diagnostic functions
+# 3) Figures for convergence diagnostics
+# 4) Model comparisons
+# 5) Posterior retrodictive checks (Model 3)
+# 4) 
+
+# Save current working directory
+orig_dir = getwd()
+
+# Navigate to project directory
+setwd( '..' )
+proj_dir = getwd()
+
+# Indicate which code segments to run
+run_code = c(
+  F, # Convergence diagnostics
+  T, #
+  F
+)
+
+# Indicate whether plots should be saved as PDFs
+savePlot = F
+
+# Load in useful packages
+
+# Collection of useful functions
+# devtools::install_github("rettopnivek/utilityf")
+library( utilityf )
+
+# Package for easier manipulation of data frames
+# install.packages( 'dplyr' )
+library( dplyr )
+
+# Package for estimating mixed effects models
+# install.packages( 'lme4' )
+
+# Package for estimating mixed effects models (Bayesian)
+# install.packages( 'rstanarm' )
+library( rstanarm )
+# For parallel processing
+options(mc.cores = parallel::detectCores())
+
+# Package for Bayes factors for Stan models
+# install.packages( 'bridgesampling' )
+library( bridgesampling )
+
+# Load in data
+setwd( 'Data' )
+load( "NBack_3_19_2018.RData" )
+setwd( proj_dir )
+
+# Load in useful functions
+setwd( 'R' )
+source( 'S02_Useful_functions.R' )
+setwd( proj_dir )
+
+# Exclude combined data
+cd = dat %>% 
+  filter( Task != 'Combined' )
+
+# Drop rows with missing 
+# self-report data for subject 
+# FN_041 (66)
+# Subject FN_041 did not have any 
+# self report data on how high
+# for the T1 drug condition
+cd = cd %>% 
+  filter( Self_report_on_high != '-' )
+
+# Determine count data for misses/correct rejections
+cd$Z = cd$Trials - cd$Counts
+cd$Y = cd$Counts
+
+# Break self-reported high into 
+SRH_range = seq( 0, 100, 20 )
+
+cd$SRH_bins = 0
+for ( i in 2:length( SRH_range ) ) {
+  sel = cd$Self_report_on_high > SRH_range[i-1] & 
+    cd$Self_report_on_high <= SRH_range[i]
+  cd$SRH_bins[sel] = SRH_range[i]
+}
+
+# Create a new data frame that
+# b) Has separate variables for hits and false alarms
+all_ptbp = cd %>% 
+  filter( Response_type == 'Hits' ) %>% 
+  arrange( Task, Condition, Timepoints, Subject ) %>% 
+  mutate( H = Counts / Trials,
+          fH = Counts, 
+          Npos = Trials )
+tmp = cd %>% 
+  filter( Response_type == 'False_alarms' ) %>% 
+  arrange( Task, Condition, Timepoints, Subject ) %>% 
+  mutate( FA = Counts / Trials,
+          fFA = Counts,
+          Nneg = Trials )
+all_ptbp$FA = tmp$FA
+all_ptbp$fFA = tmp$fFA
+all_ptbp$Nneg = tmp$Nneg
+
+# Add in correct rejections and 
+# misses
+all_ptbp$CR = 1 - all_ptbp$FA
+all_ptbp$fCR = all_ptbp$Nneg - all_ptbp$fFA
+all_ptbp$M = 1 - all_ptbp$H
+all_ptbp$fM = all_ptbp$Npos - all_ptbp$fH
+
+# Clean up workspace
+rm( tmp )
+
+# Convert the hit/false alarm rates into 
+# estimates of d' and bias
+all_ptbp = all_ptbp %>% 
+  mutate( dp = sdt_calc_binary( fH, Npos, fFA, Nneg, 1, T ),
+          crt = sdt_calc_binary( fH, Npos, fFA, Nneg, 1, F ) )
+
+
+# Create variables for constructing 
+# design matrices for d' and bias
+init_X = create_design_mat( cd )
+
+# Path to folder with model results
+setwd( 'Data/Posterior_estimates' )
+model_dir = getwd()
+# Filenames for model results
+fname_models = paste( 'M', 1:4, 
+         '_Nback_posteriors.RData', sep = '' )
+setwd( proj_dir )
+
+# Path to directory for figures
+setwd( 'Figures' )
+plot_dir = getwd()
+setwd( proj_dir )
+
+###
+### 2) Diagnostic functions
+###
+
+# 2.1)
+convergenceExtract = function( fit, parName = NULL ) {
+  # Purpose:
+  # Extract convergence diagnostics from a Stan fit object.
+  # Arguments:
+  # fit     - A Stan fit object
+  # parName - An optional string giving the final parameter label 
+  #           of the subset of the output to include
+  # Notes:
+  # Extracting the convergence statistics can be slow, especially 
+  # when a large number of parameters were stored.
+  # Returns:
+  # A list with the Gelman-Rubin convergence statistic, the 
+  # effective number of samples, and the total number of samples.
+  
+  Rhat = summary(fit)[,"Rhat"]
+  n_eff = summary(fit)[,"n_eff"]
+  totSampSize = nrow( as.matrix( fit ) )
+  
+  return( list( Rhat = Rhat, n_eff = n_eff, 
+                totSampSize = totSampSize ) )
+}
+
+# 2.2)
+findDec = function( x, spacing = 10 ) {
+  # Purpose:
+  # Determines the rounded leading digit and the 
+  # number of trailing zeros for a number or the 
+  # number of decimal places.
+  # Arguments:
+  # x       - A vector of values
+  # spacing - The value whose exponent should be increased
+  # Returns:
+  # A vector giving the leading digit, the number of 
+  # trailing/leading zeros, the same but in scientific 
+  # notation, and 1 if it's trailing zeros, -1 if it's 
+  # decimal places.
+  
+  mx = max( x )
+  rnd = mx
+  
+  if ( round( mx ) > 1 ) {
+    
+    inc = 0;
+    
+    while ( rnd > 1 ) {
+      inc = inc + 1;
+      rnd = round( mx/( spacing^inc ) )
+    }
+    
+    v = round( mx/spacing^(inc-1) )
+    f = spacing^(inc-1)
+    out = c( v,f,inc-1,1)
+  }
+  
+  if ( round( mx ) == 1 ) {
+    
+    out = c( 1, 1, 1, 0 )
+    
+  }
+  
+  if ( round( mx ) == 0 ) {
+    
+    inc = 0;
+    
+    while ( rnd < 1 ) {
+      inc = inc + 1;
+      rnd = round( mx*( spacing^inc ) )
+    }
+    
+    v = round( mx*spacing^(inc) )
+    f = spacing^(inc)
+    out = c( v,f,inc,-1)
+    
+  }
+  
+  return( out )
+}
+
+# 2.3)
+quick_CI_plot = function( pos, 
+                          pred, 
+                          center,
+                          lbls = paste( 'UI',
+                                        c(2.5,16,84,97.5), 
+                                        sep = '_' ),
+                          lt = .05, 
+                          lnSz = 2, 
+                          clr = 'grey' ) {
+  # Purpose:
+  # 
+  # Arguments:
+  # pos
+  # pred
+  # center
+  # lbls
+  # lt
+  # lnSz
+  # clr
+  
+  segments( pos, pred[,lbls[1]],
+            pos, pred[,lbls[2]], lwd = lnSz, col = clr )
+  errorBars( pos, rbind( pred[,lbls[3]], pred[,lbls[4]] ),
+             length = lt, lwd = lnSz, col = clr )
+  
+}
+
+###
+### 3) Figures for convergence diagnostics
+###
+
+if ( run_code[1] ) {
+  
+  if ( savePlot ) {
+    
+    setwd( plot_dir )
+    pdf( 'Convergence_check.pdf', width = 12 )
+    setwd( proj_dir )
+    
+    # Create a table of contents for figures
+    # Initialize table of contents
+    tbl_cnt = c(
+      'Model 1 (Null)',
+      'Model 2 (Intermediary)',
+      'Model 3 (Full)',
+      'Model 4 (Self-report' )
+    
+    # Generate table of contents
+    tableContents( tbl_cnt )
+    
+  }
+  
+  # Loop over models
+  for ( i in 1:4 ) {
+    
+    # Load in model results
+    setwd( model_dir )
+    load( fname_models[i] )
+    setwd( proj_dir )
+    
+    if ( exists( 'm1' ) ) mdl = m1
+    if ( exists( 'm2' ) ) mdl = m2
+    if ( exists( 'm3' ) ) mdl = m3
+    if ( exists( 'm4' ) ) mdl = m4
+    
+    conv = convergenceExtract( mdl$est, 'Tau' )
+    
+    # Subject-level parameters
+    sp = grep( 'Subject', names( conv$Rhat ) )
+    
+    # Plotting characteristics
+    lnSz = 2
+    txtSz = 1.5
+    axSz = 1.25
+    axPos = -1.5
+    
+    if ( !savePlot ) x11( width = 12 )
+    layout( cbind( 1, 2 ) )
+    
+    ### Gelman-Rubin
+    
+    xl = c( 0, length( conv$Rhat ) + 1 )
+    yl = lowerUpper( .05, conv$Rhat )
+    if ( yl[2] < 1.1 ) yl[2] = 1.11
+    
+    # Create a blank plot
+    blankPlot( xl, yl )
+    
+    # Grid lines
+    
+    # Group-level means
+    vertLines( min( sp ) - .5, yl, col = 'grey', lwd = 2 )
+    # Subject-level parameters
+    vertLines( max( sp ) + .5, yl, col = 'grey', lwd = 2 )
+    
+    # Poor convergence
+    horizLines( 1, xl, col = 'grey', lwd = 2 )
+    # Cut-off for poor convergence
+    horizLines( 1.1, xl, lty = 2, lwd = 2 )
+    text( length( conv$Rhat )/2, 
+          1.1, 'Poor convergence', cex = axSz, pos = 3 )
+    
+    # Gelman-Rubin statistics
+    points( 1:length( conv$Rhat ), conv$Rhat, pch = 19 )
+    
+    # Axes and labels
+    customAxes( xl, yl,
+                label = c( ' ', 
+                           'Gelman-Rubin Statistic' ),
+                lnSz = lnSz, lbSz = txtSz )
+    axis( 2, c( yl[1], 1, 1.1, yl[2] ),
+          tick = F, line = axPos, cex.axis = axSz )
+    
+    title( 'Convergence diagnostics',
+           cex = txtSz )
+    
+    ### Effective sample size
+    
+    xl = c( 0, length( conv$n_eff ) + 1 )
+    yl = c(0,conv$totSampSize)
+    
+    # Create a blank plot
+    blankPlot( xl, yl )
+    
+    # Grid lines
+    
+    horizLines( seq( yl[1], yl[2], 1000 ),
+                xl, col = 'grey', lwd = lnSz )
+    
+    # Group-level means
+    vertLines( min( sp ) - .5, yl, col = 'grey', lwd = 2 )
+    # Subject-level parameters
+    vertLines( max( sp ) + .5, yl, col = 'grey', lwd = 2 )
+    
+    # Effective sample-size
+    points( 1:length( conv$n_eff ), conv$n_eff, pch = 19 )
+    
+    # Axes and labels
+    customAxes( xl, yl,
+                label = c( ' ', 
+                           'Effective sample size' ),
+                lnSz = lnSz, lbSz = txtSz )
+    axis( 2, seq( 0, yl[2], 1000 ),
+          tick = F, line = axPos, cex.axis = axSz )
+    
+    title( 'MCMC samples',
+           cex = txtSz )
+    
+    mtext( 'Parameters', side = 1, cex = txtSz,
+           line = -2, outer = T )
+    
+    mtext( paste( 'Model', i ), side = 3, cex = txtSz,
+           line = -2, outer = T )
+    
+    # Clean up workspace
+    rm( mdl )
+    if ( i == 1 ) rm( m1, m1_priors )
+    if ( i == 2 ) rm( m2, m2_priors )
+    if ( i == 3 ) rm( m3, m3_priors )
+    if ( i == 4 ) rm( m4, m4_priors )
+    
+  }
+  
+  if ( savePlot ) dev.off()
+}
+
+###
+### 4) Model comparisons
+###
+
+if ( run_code[2] ) {
+  
+  # Indicate whether to estimate models
+  est = T
+  
+  if ( est ) {
+    
+    # Initialize list for 
+    # leave-one_out cross validation
+    # measure
+    loo_cv = list(
+      M1 = c(),
+      M2 = c(),
+      M3 = c(),
+      M4 = c()
+    )
+    kf = list(
+      M1 = c(),
+      M2 = c(),
+      M3 = c(),
+      M4 = c()
+    )
+    
+    # Loop over models
+    for ( i in 1:4 ) {
+      
+      # Load in model results
+      setwd( model_dir )
+      load( fname_models[i] )
+      setwd( proj_dir )
+      
+      if ( exists( 'm1' ) ) mdl = m1$est
+      if ( exists( 'm2' ) ) mdl = m2$est
+      if ( exists( 'm3' ) ) mdl = m3$est
+      if ( exists( 'm4' ) ) mdl = m4$est
+      
+      loo_cv[[i]] = loo( mdl )
+      kf[[i]] = kfold( mdl )
+      
+      # Clean up workspace
+      rm( mdl )
+      if ( i == 1 ) rm( m1, m1_priors )
+      if ( i == 2 ) rm( m2, m2_priors )
+      if ( i == 3 ) rm( m3, m3_priors )
+      if ( i == 4 ) rm( m4, m4_priors )
+    }
+    
+    # Data frame with model comparison results
+    mc = 
+      data.frame(
+        Model = 1:4,
+        LOO_IC = c( M1 = loo_cv[[1]]$estimates[3,1],
+                    M2 = loo_cv[[2]]$estimates[3,1],
+                    M3 = loo_cv[[3]]$estimates[3,1],
+                    M4 = loo_cv[[4]]$estimates[3,1] )
+      )
+    # Compute Akaike weights
+    mc$AW = icWeights( mc$LOO_IC )
+    mc$MW = as.numeric( loo_model_weights( loo_cv ) )
+    
+    setwd( 'Data' )
+    setwd( 'Posterior_estimates' )
+    save( loo_cv, kf, file = 'Model_comparisons.RData' )
+    setwd( proj_dir )
+  
+  } else {
+    setwd( 'Data' )
+    setwd( 'Posterior_estimates' )
+    load( file = 'Model_comparisons.RData' )
+    setwd( proj_dir )
+  }
+  
+}
+
+###
+### 5) Posterior retrodictive checks (Model 3)
+###
+
+# 5.1)
+quick_pred = function( ppc ) {
+  # Purpose:
+  # A convenience function to quickly generate 
+  # model predictions for the overall hit and 
+  # correct rejection rates.
+  # Arguments:
+  # ppc      - A matrix with the simulated observations 
+  #            over the posterior samples
+  
+  h = cd$Response_type == 'Hits'
+  fn = function(x) by( h * (1 - x/cd$Trials ) + 
+                         (!h)*x/cd$Trials, 
+                       list( 
+                         cd$Timepoints,
+                         cd$Condition,
+                         cd$Task,
+                         cd$Response_type ), mean )[1:24]
+  ppc_1 = apply( apply( ppc, 1, fn ), 1, 
+                 quick_desc )
+  
+  out = aggregate( h * (1 - cd$Z/cd$Trials ) + 
+                     (!h)*cd$Z/cd$Trials,
+                   list( cd$Timepoints,
+                         cd$Condition,
+                         cd$Task,
+                         cd$Response_type ),
+                   mean )
+  colnames( out ) = c(
+    'Timepoints', 'Condition', 
+    'Task', 'Response_type', 'Observed' )
+  out = cbind( out, t( ppc_1 ) )
+  sel = out$Response_type == 'Hits'
+  out$Response_type[!sel] = 'Correct rejections'
+  
+  return( out )
+}
+
+if ( run_code[3] ) {
+  
+  # Indicate which model to plot
+  mn = 4
+  
+  # Load in model results
+  setwd( model_dir )
+  load( fname_models[mn] )
+  setwd( proj_dir )
+  
+  if ( exists( 'm1' ) ) mdl = m1
+  if ( exists( 'm2' ) ) mdl = m2
+  if ( exists( 'm3' ) ) mdl = m3
+  if ( exists( 'm4' ) ) mdl = m4
+  
+  # Extract posterior predictive distributions
+  pred = quick_pred( mdl$post_pc )
+  
+  # Indicate whether new plotting window should 
+  # be generated or if figure should be saved as PDF
+  if (!savePlot) x11(width = 12 )
+  
+  # Plotting characteristics
+  lnSz = 2
+  lnSz2 = 3
+  txtSz = 1.5
+  ptSz = 1.25
+  axPos = -1.75
+  pts = rep( rep( c(22,24), each = 3 ), 4 )
+  clr = rep( rep( c( 'black', 'white' ), each = 3 ), 4 )
+  
+  # Extract elements to plot
+  mean_val = numeric(24)
+  error_bars = matrix( NA, 4, 24 )
+  lbls = matrix( ' ', 4, 2 )
+  for ( i in 1:4 ) {
+    v1 = 1:3 + 6*(i-1)
+    v2 = 4:6 + 6*(i-1)
+    mean_val[v1] = pred$Observed[v2]
+    mean_val[v2] = pred$Observed[v1]
+    error_bars[1,v1] = pred$`Q2.5%`[v2]
+    error_bars[1,v2] = pred$`Q2.5%`[v1]
+    error_bars[2,v1] = pred$`Q97.5%`[v2]
+    error_bars[2,v2] = pred$`Q97.5%`[v1]
+    error_bars[3,v1] = pred$`Q16%`[v2]
+    error_bars[3,v2] = pred$`Q16%`[v1]
+    error_bars[4,v1] = pred$`Q84%`[v2]
+    error_bars[4,v2] = pred$`Q84%`[v1]
+    lbls[i,1] = unique( pred$Condition[v1] )
+    lbls[i,2] = unique( pred$Task[v1] )
+  }
+  lbls[ lbls[,2] == 'NBack_0', 2 ] = '0-back'
+  lbls[ lbls[,2] == 'NBack_2', 2 ] = '2-back'
+  
+  # Create a blank plot
+  xl = c( .5, 24.5 ); yl = c( .7, 1 )
+  blankPlot( xl, yl )
+  
+  # Add grid lines
+  horizLines( seq( .7, 1, .05 ), xl, col = 'grey80', 
+              lwd = lnSz )
+  customAxes( xl, yl )
+  # Separate task and conditions
+  vertLines( c( 6.5, 12.5, 18.5 ), yl, lwd = lnSz )
+  
+  # Add axis labels
+  axis( 3, 24/4 * 1:4 - 2.5, 
+        lbls[,1],
+        tick = F, line = axPos, cex.axis = txtSz )
+  axis( 1, 24/2 * 1:2 - 5.5, 
+        unique( lbls[,2] ),
+        tick = F, line = axPos, cex.axis = txtSz )
+  axis( 2, seq( .7, 1, .1 ),
+        seq( .7, 1, .1 ) * 100, 
+        tick = F, line = axPos, cex.axis = txtSz )
+  mtext( 'Average percentage', side = 2, line = 1.5, cex = txtSz )
+  
+  # Add plotting elements
+  
+  segments( 1:24, error_bars[1,],
+            1:24, error_bars[2,], 
+            lwd = lnSz, col = 'grey50' )
+  errorBars( 1:24, error_bars[3:4,], 
+             lwd = lnSz, length = .05, col = 'grey50' )
+  
+  # Lines by condition
+  for ( i in 1:8 ) {
+    v1 = 1:3 + 3*(i-1)
+    lines( v1, mean_val[v1], lwd = lnSz )
+  }
+  
+  # Add average percentages
+  points( 1:24, mean_val, pch = pts, bg = clr )
+  
+  # Add labels for timepoints
+  text( 1:3, rep( .69, 3 ), c( expression(T[1]),
+                               expression(T[2]),
+                               expression(T[3]) ),
+        pos = 1, cex = txtSz )
+  
+  legend( -.5, yl[1] - diff(yl)*.1, 
+          c( 'Correct Omissions', 'Hits' ),
+          pch = rev( unique( pts ) ), 
+          pt.bg = c( 'white', 'black' ),
+          bty = 'n', horiz = T, xpd = T, cex = txtSz )
+  
+  legend( 7.5, yl[1] - diff(yl)*.1, 
+          c( 'T1: pre-drug', 'T2: post-drug', 'T3: post-drug (2)' ),
+          bty = 'n', horiz = T, xpd = T, cex = txtSz )
+  
+  legend( 7.5, yl[2] + diff(yl)*.2,
+          c( 'Observed', 'Predicted' ),
+          fill = c( 'black', 'grey50' ), bty = 'n',
+          horiz = T, xpd = T, cex = txtSz )
+  
+}
+
+setwd( orig_dir )

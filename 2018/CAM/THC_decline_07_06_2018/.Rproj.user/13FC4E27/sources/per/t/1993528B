@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1534470070270.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2519565349",
+    "id" : "1993528B",
+    "lastKnownWriteTime" : 1534470294,
+    "last_content_update" : 1534470293583,
+    "path" : "D:/CAM_postdoc/2018/THC_decline_07_06_2018/R/S03_Exponential_decay.R",
+    "project_path" : "R/S03_Exponential_decay.R",
+    "properties" : {
+        "cursorPosition" : "18,34",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

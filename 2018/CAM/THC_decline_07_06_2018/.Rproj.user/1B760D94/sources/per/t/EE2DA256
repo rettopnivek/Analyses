@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1532123163290.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2219569257",
+    "id" : "EE2DA256",
+    "lastKnownWriteTime" : 1532123202,
+    "last_content_update" : 1532123200655,
+    "path" : "F:/CAM_postdoc/2018/THC_decline_07_06_2018/R/S03_Non_linear_decay.R",
+    "project_path" : "R/S03_Non_linear_decay.R",
+    "properties" : {
+        "cursorPosition" : "659,38",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

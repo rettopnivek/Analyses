@@ -1,0 +1,816 @@
+# Estimation of SDT model for N-back task
+# Written by Kevin Potter
+# email: kevin.w.potter@gmail.com
+# Please email me directory if you 
+# have any questions or comments
+# Last updated 2018-05-03
+
+# Table of contents
+# 1) Initial setup
+#   1.1) estimate_sdt
+#   1.2) quick_pred_plot
+# 2) Computations for priors
+#   2.1) quick_prior
+# 3) Model 1 (Null model, Effect of task / Timepoints only)
+# 4) Model 2 (Effect of drug, no self report)
+# 5) Model 3 (Effect of drug, self-reported high)
+# 6) Model 4 (Self-reported high)
+
+###
+### 1) Initial setup
+###
+
+# Save current working directory
+orig_dir = getwd()
+
+# Navigate to project directory
+setwd( '..' )
+proj_dir = getwd()
+
+# Indicate which code segments to run
+run_code = c(
+  F, # Model 1
+  F, # Model 2
+  F, # Model 3
+  T  # Model 4
+)
+
+# Indicate type of model estimation
+est_type = c(
+  F, # lme4 check
+  T, # Prior predictive check
+  T, # Estimation
+  T  # Posterior retrodictive check
+)
+
+# Load in useful packages
+
+# Collection of useful functions
+# devtools::install_github("rettopnivek/utilityf")
+library( utilityf )
+
+# Package for easier manipulation of data frames
+# install.packages( 'dplyr' )
+library( dplyr )
+
+# Package for estimating mixed effects models
+# install.packages( 'lme4' )
+
+# Package for estimating mixed effects models (Bayesian)
+# install.packages( 'rstanarm' )
+library( rstanarm )
+# For parallel processing
+options(mc.cores = parallel::detectCores())
+
+# Load in data
+setwd( 'Data' )
+load( "NBack_3_19_2018.RData" )
+setwd( proj_dir )
+
+# Load in useful functions
+setwd( 'R' )
+source( 'S02_Useful_functions.R' )
+setwd( proj_dir )
+
+# Exclude combined data
+cd = dat %>% 
+  filter( Task != 'Combined' )
+
+# Drop rows with missing 
+# self-report data for subject 
+# FN_041 (66)
+# Subject FN_041 did not have any 
+# self report data on how high
+# for the T1 drug condition
+cd = cd %>% 
+  filter( Self_report_on_high != '-' )
+
+# Determine count data for misses/correct rejections
+cd$Z = cd$Trials - cd$Counts
+cd$Y = cd$Counts
+
+# Break self-reported high into 
+SRH_range = seq( 0, 100, 20 )
+
+cd$SRH_bins = 0
+for ( i in 2:length( SRH_range ) ) {
+  sel = cd$Self_report_on_high > SRH_range[i-1] & 
+    cd$Self_report_on_high <= SRH_range[i]
+  cd$SRH_bins[sel] = SRH_range[i]
+}
+
+# Create variables for constructing 
+# design matrices for d' and bias
+init_X = create_design_mat( cd )
+
+# 1.1)
+estimate_sdt = function( dtbf, 
+                         glmer_formula, 
+                         priors, 
+                         est_type,
+                         seed ) {
+  # Purpose:
+  # Estimates an equal-variance SDT model 
+  # using multi-level probit regression.
+  # Arguments:
+  # dtbf          - A data frame with the 
+  #                 observed data and predictors
+  # glmer_formula - The formula object to pass 
+  #                 to the 'glmer' function
+  # priors        - A list with a matrix of the 
+  #                 means and standard deviations 
+  #                 for the normal priors on the 
+  #                 group-level regression coefficients,
+  #                 and the value of the prior on the 
+  #                 trace (sum of the diagonals) for the 
+  #                 covariance matrix governing 
+  #                 subject-level parameters
+  # est_type      - A logical vector, indicating whether 
+  #                 1) to estimate the model using the 
+  #                    'lme4' package (maximum likelihood)
+  #                 2) to estimate the prior predictive 
+  #                    check
+  #                 3) to estimate the model using the 
+  #                    'rstanarm' package (Bayesian)
+  #                 4) to estimate the posterior 
+  #                    retrodictive check
+  # seed          - The random seed to use for the 
+  #                 'stan_glmer' function (for 
+  #                 reproducibility)
+  # Returns:
+  # A list with the output of either the 'glmer' function 
+  # from the 'lme4' package (out$lme4), the results of the prior 
+  # predictive check (out$prior_pc), the output of the 
+  # 'stan_glmer' function from the 'rstanarm' package 
+  # (out$est), and the results of the posterior predictive 
+  # check.
+  
+  # Initialize output
+  out = list( run_time = Sys.time() )
+  
+  # Check for model formula
+  if ( est_type[1] ) {
+    
+    est = lme4::glmer( glmer_formula, 
+                       family = binomial(link = "probit"),
+                       data = dtbf,
+                       control = 
+                         lme4::glmerControl( optimizer="bobyqa", 
+                                             optCtrl = 
+                                               list( maxfun=2e5 ) )
+    )
+    
+    out$lme4 = est
+    
+  }
+  
+  # Prior predictive check
+  if ( est_type[2] ) {
+    
+    est = rstanarm::stan_glmer( glmer_formula,
+                                family = 
+                                  binomial(link = "probit"),
+                                prior = 
+                                  normal( priors[[1]][,1],
+                                          priors[[1]][,2] ),
+                                prior_covariance = 
+                                  decov( 1, 1, 1, priors[[2]] ), 
+                                data = dtbf,
+                                iter = 5000, 
+                                chains = 4,
+                                cores = 4, 
+                                prior_PD = T )
+    
+    out$prior_pc = posterior_predict(est)
+    
+  }
+  
+  # Bayesian estimation
+  if ( est_type[3] ) {
+    
+    est = rstanarm::stan_glmer( glmer_formula,
+                                family = 
+                                  binomial(link = "probit"),
+                                prior = 
+                                  normal( priors[[1]][,1],
+                                          priors[[1]][,2] ),
+                                prior_covariance = 
+                                  decov( 1, 1, 1, priors[[2]] ), 
+                                data = dtbf,
+                                iter = 5000, 
+                                chains = 8,
+                                cores = 8, 
+                                adapt_delta = .9999,
+                                seed = seed )
+    
+    out$est = est
+    out$glmer_formula = glmer_formula
+    
+  }
+  
+  # Posterior predictive check
+  if ( all( est_type[3:4] ) ) {
+    
+    post_pc = posterior_predict( est )
+    out$post_pc = post_pc
+    
+  }
+  
+  # Compute run time
+  out$run_time = Sys.time() - out$run_time
+  
+  return( out )
+}
+
+# 1.2)
+quick_pred_plot = function( ppc,
+                            plot_yes = T,
+                            new_plot = T ) {
+  # Purpose:
+  # A convenience function to quickly plot the 
+  # model predictions for the overall hit and 
+  # correct rejection rates.
+  # Arguments:
+  # ppc      - A matrix with the simulated observations 
+  #            over the posterior samples
+  # plot_yes - Logical; if true, plots the results
+  # new_plot - Logical; if true, generates a new plotting 
+  #            window
+  
+  h = dtbf$Response_type == 'Hits'
+  fn = function(x) by( h * (1 - x/dtbf$Trials ) + 
+                         (!h)*x/dtbf$Trials, 
+                       list( 
+                         dtbf$Timepoints,
+                         dtbf$Condition,
+                         dtbf$Task,
+                         dtbf$Response_type ), mean )[1:24]
+  ppc_1 = apply( apply( ppc, 1, fn ), 1, 
+               quick_desc )
+  
+  out = aggregate( h * (1 - dtbf$Z/dtbf$Trials ) + 
+                     (!h)*dtbf$Z/dtbf$Trials,
+                   list( dtbf$Timepoints,
+                         dtbf$Condition,
+                         dtbf$Task,
+                         dtbf$Response_type ),
+                   mean )
+  colnames( out ) = c(
+    'Timepoints', 'Condition', 
+    'Task', 'Response_type', 'Observed' )
+  
+  out = cbind( out, t( ppc_1 ) )
+  
+  if ( plot_yes ) {
+    
+    if ( new_plot ) x11()
+    xl = c( 0, 25 ); yl = c( 0, 1 )
+    blankPlot( xl, yl )
+    customAxes( xl, yl )
+    
+    horizLines( .5, xl, lwd = 2, lty = 2 )
+    vertLines( seq( 3, 21, 3 ) + .5, yl, lwd = 2 )
+    
+    segments( 1:24, out$`Q2.5%`,
+              1:24, out$`Q97.5%`,
+              lwd = 2, col = 'grey' )
+    errorBars( 1:24, rbind( out$`Q16%`, out$`Q84%` ),
+               length = .05, col = 'grey' )
+    points( 1:24, out$Mean, pch = 19, col = 'grey' )
+    points( 1:24, out$Mode, pch = 17, col = 'grey' )
+    
+    points( 1:24, out$Observed, pch = 19 )
+    
+  }
+  
+  return( out )
+}
+
+###
+### 2) Computations for priors
+###
+
+# Determine average performance over tasks
+avg = cd %>% 
+  group_by( Response_type, Task ) %>% 
+  summarize( P = mean( Counts / Trials ) ) %>% 
+  arrange( desc( Response_type ) )
+
+Priors_task = data.frame(
+  Task = c( 'NBack_0', 'NBack_2' ),
+  dp = rep( NA, 2 ),
+  crt = rep( NA, 2 ) )
+
+Priors_task$crt = -.5 * ( 
+  qnorm( avg$P[ avg$Response_type == 'Hits' ] ) + 
+    qnorm( avg$P[ avg$Response_type == 'False_alarms' ] ) )
+Priors_task$dp = 2 * ( 
+  qnorm( avg$P[ avg$Response_type == 'Hits' ] ) + 
+    Priors_task$crt )
+
+# 2.1)
+quick_prior = function( crt, dp, n = 10000 ) {
+  # Purpose:
+  # A convenience function to quickly examine 
+  # the impact of normal priors on hit, 
+  # correct rejection, miss, and false 
+  # alarm rates via Monte Carlo simulation.
+  # Arguments:
+  # crt - The mean and standard deviation for the 
+  #       prior on response bias
+  # dp  - The mean and standard deviation for the 
+  #       prior on d'
+  # n   - The number of samples for the Monte Carlo 
+  #       approximation
+  #        
+  # Returns:
+  # A matrix with the samples for the hit, 
+  # correct rejection, miss, and false 
+  # alarm rates.
+  
+  sim = matrix( NA, n, 4 )
+  colnames( sim ) = c( 'H', 'CR', 'M', 'FA' )
+  crt = rnorm( n, crt[1], crt[2] )
+  dp = rnorm( n, dp[1], dp[2] )
+  sim[,1] = 1 - pnorm( crt - dp/2 )
+  sim[,2] = pnorm( crt + dp/2 )
+  sim[,3] = pnorm( crt - dp/2 )
+  sim[,4] = 1 - pnorm( crt + dp/2 )
+  
+  out = apply( sim, 2, quick_desc )
+  
+  return( out )
+}
+
+###
+### 3) Model 1 (Null model, Effect of task / Timepoints only)
+###
+
+if ( run_code[1] ) {
+  
+  # Navigate to folder to save posterior estimates
+  setwd( 'Data' )
+  setwd( 'Posterior_estimates' )
+  
+  # Criterion
+  # Specify separate dummy-coded variables 
+  # for each task and timepoint, and an 
+  # order effect
+  Xc = cbind(
+    Baseline_0 = init_X$NBack_0,
+    Time_0_2 = init_X$T2_0,
+    Time_0_3 =  init_X$T3_0,
+    Baseline_2 = init_X$NBack_2,
+    Time_2_2 = init_X$T2_2,
+    Time_2_3 =  init_X$T3_2,
+    Visit_2 = init_X$O
+  )
+  
+  check = create_design_mat( cd, Xc )
+  
+  # d'
+  # For d' variables, weight dummy coded 
+  # values by .5 (False alarms) or -.5 (Hits)
+  Xd = Xc; cn = colnames( Xd )
+  sel = grep( 'Visit', cn )
+  Xd[,-sel] = Xd[,-sel] * .5
+  sel = cd$Response_type == 'Hits'
+  Xd[sel] = -1 * Xd[sel]
+  
+  colnames( Xc ) = paste( 'crt', colnames( Xc ), sep = '_' )
+  colnames( Xd ) = paste( 'dp', colnames( Xd ), sep = '_' )
+  
+  # Define design matrix
+  DM = cbind( Xc, Xd )
+  
+  # Define random effects
+  re_pos = c( 1, 4 )
+  re_pos = c( re_pos, re_pos + ncol(Xc) )
+  
+  # Create data to be fitted
+  dtbf = cd %>% 
+    select( Task, Condition, Timepoints, Response_type, SRH_bins, 
+            Subject, Trials, Z, Y )
+  dtbf = cbind( dtbf, DM )
+  # Make sure there are no missing values
+  is_na = apply( dtbf, 1, function(x) any( is.na(x) ) )
+  if ( sum( is_na ) > 0 ) {
+    # Pairwise deletion of missing data
+    dtbf = dtbf[ !is_na, ]
+  }
+  
+  m1_priors = list(
+    rbind(
+    # Criterion
+    c( 0.12, 0.15 ), # Baseline (0)  *R - 1*
+    c( 0.00, 0.15 ), # Time (0 - T2)
+    c( 0.00, 0.15 ), # Time (0 - T3)
+    c( 0.37, 0.15 ), # Baseline (2)  *R - 4*
+    c( 0.00, 0.15 ), # Time (0 - T2)
+    c( 0.00, 0.15 ), # Time (0 - T3)
+    c( 0.00, 0.15 ), # Visit 2  
+    # d'
+    c( 4.10, 0.2 ), # Baseline (0)  *R - 8*
+    c( 0.00, 0.2 ), # Time (0 - T2)
+    c( 0.00, 0.2 ), # Time (0 - T3)
+    c( 2.90, 0.2 ), # Baseline (2)  *R - 11*
+    c( 0.00, 0.2 ), # Time (0 - T2)
+    c( 0.00, 0.2 ), # Time (0 - T3)
+    c( 0.00, 0.2 )  # Visit 2
+  ),
+  # Prior on the trace (sum of the diagonal)
+  # for the subject level variabilities
+  prior_tau = sqrt( .2*4 ) )
+  
+  glmer_formula = paste(
+    # Dependent variable
+    'cbind( Z, Y ) ~ -1 + ',
+    # Group-level parameters
+    paste( colnames( DM ), collapse = ' + ' ),
+    # Subject-level parameters
+    ' + ( -1 + ',
+    paste( colnames( DM )[re_pos], collapse = ' + ' ),
+    ' |Subject)',
+    sep = '' )
+  glmer_formula = as.formula( glmer_formula )
+  
+  m1 = estimate_sdt( dtbf, glmer_formula,
+                     m1_priors, est_type,
+                     seed = 1941 )
+  
+  # Save results
+  save( m1, m1_priors, file = 'M1_Nback_posteriors.RData' )
+  setwd( proj_dir )
+  
+  # Clean up workspace
+  rm( m1, m1_priors )
+  
+}
+
+###
+### 4) Model 2 (Effect of drug, no self report)
+###
+
+if ( run_code[2] ) {
+  
+  # Navigate to folder to save posterior estimates
+  setwd( 'Data' )
+  setwd( 'Posterior_estimates' )
+  
+  # Criterion
+  # Specify separate dummy-coded variables 
+  # for each task and timepoint, and an 
+  # order effect
+  Xc = cbind(
+    Baseline_0 = init_X$NBack_0,
+    Placebo_0_T1 = init_X$T1_0_P,
+    Placebo_0_T2 =  init_X$T2_0_P,
+    Placebo_0_T3 = init_X$T3_0_P,
+    Drug_0_T2 =  init_X$T2_0_D,
+    Drug_0_T3 = init_X$T3_0_D,
+    Baseline_2 = init_X$NBack_2,
+    Placebo_2_T1 = init_X$T1_2_P,
+    Placebo_2_T2 =  init_X$T2_2_P,
+    Placebo_2_T3 = init_X$T3_2_P,
+    Drug_2_T2 =  init_X$T2_2_D,
+    Drug_2_T3 = init_X$T3_2_D,
+    Visit_2 = init_X$O
+  )
+  
+  check = create_design_mat( cd, Xc )
+  
+  # d'
+  # For d' variables, weight dummy coded 
+  # values by .5 (False alarms) or -.5 (Hits)
+  Xd = Xc; cn = colnames( Xd )
+  sel = grep( 'Visit', cn )
+  Xd[,-sel] = Xd[,-sel] * .5
+  sel = cd$Response_type == 'Hits'
+  Xd[sel] = -1 * Xd[sel]
+  
+  colnames( Xc ) = paste( 'crt', colnames( Xc ), sep = '_' )
+  colnames( Xd ) = paste( 'dp', colnames( Xd ), sep = '_' )
+  
+  # Define design matrix
+  DM = cbind( Xc, Xd )
+  
+  # Define random effects
+  ref_pos = c( 1,7 )
+  re_pos = c( re_pos, re_pos + ncol(Xc) )
+  
+  # Create data to be fitted
+  dtbf = cd %>% 
+    select( Task, Condition, Timepoints, Response_type, 
+            Subject, Trials, Z, Y )
+  dtbf = cbind( dtbf, DM )
+  # Make sure there are no missing values
+  is_na = apply( dtbf, 1, function(x) any( is.na(x) ) )
+  if ( sum( is_na ) > 0 ) {
+    # Pairwise deletion of missing data
+    dtbf = dtbf[ !is_na, ]
+  }
+  
+  m2_priors = list(
+    rbind(
+      # Criterion
+      c( 0.12, 0.15 ), # Baseline (0) *R - 1*
+      c( 0.00, 0.15 ), # Placebo (0 - T1 )
+      c( 0.00, 0.15 ), # Placebo (0 - T2 )
+      c( 0.00, 0.15 ), # Placebo (0 - T3 )
+      c( 0.00, 0.15 ), # Drug (0 - T2)
+      c( 0.00, 0.15 ), # Drug (0 - T3)
+      c( 0.37, 0.15 ), # Baseline (2) *R - 7*
+      c( 0.00, 0.15 ), # Placebo (2 - T1 )
+      c( 0.00, 0.15 ), # Placebo (2 - T2 )
+      c( 0.00, 0.15 ), # Placebo (2 - T3 )
+      c( 0.00, 0.15 ), # Drug (2 - T2)
+      c( 0.00, 0.15 ), # Drug (2 - T3)
+      c( 0.00, 0.15 ), # Visit 2
+      # d'
+      c( 4.1, 0.2 ), # Baseline (0) *R - 1*
+      c( 0.0, 0.2 ), # Placebo (0 - T1 )
+      c( 0.0, 0.2 ), # Placebo (0 - T2 )
+      c( 0.0, 0.2 ), # Placebo (0 - T3 )
+      c( 0.0, 0.2 ), # Drug (0 - T2)
+      c( 0.0, 0.2 ), # Drug (0 - T3)
+      c( 2.9, 0.2 ), # Baseline (2) *R - 7*
+      c( 0.0, 0.2 ), # Placebo (2 - T1 )
+      c( 0.0, 0.2 ), # Placebo (2 - T2 )
+      c( 0.0, 0.2 ), # Placebo (2 - T3 )
+      c( 0.0, 0.2 ), # Drug (2 - T2)
+      c( 0.0, 0.2 ), # Drug (2 - T3)
+      c( 0.0, 0.2 )  # Visit 2
+    ),
+    # Prior on the trace (sum of the diagonal)
+    # for the subject level variabilities
+    prior_tau = sqrt( .2*4 ) )
+  
+  glmer_formula = paste(
+    # Dependent variable
+    'cbind( Z, Y ) ~ -1 + ',
+    # Group-level parameters
+    paste( colnames( DM ), collapse = ' + ' ),
+    # Subject-level parameters
+    ' + ( -1 + ',
+    paste( colnames( DM )[re_pos], collapse = ' + ' ),
+    ' |Subject)',
+    sep = '' )
+  glmer_formula = as.formula( glmer_formula )
+  
+  m2 = estimate_sdt( dtbf, glmer_formula,
+                     m2_priors, est_type,
+                     seed = 1757 )
+  
+  # Save results
+  setwd( 'Data' )
+  setwd( 'Posterior_estimates' )
+  save( m2, m2_priors, file = 'M2_Nback_posteriors.RData' )
+  setwd( proj_dir )
+  
+  # Clean up workspace
+  rm( m2, m2_priors )
+  
+}
+
+###
+### 5) Model 3 (Effect of drug, self-reported high)
+###
+
+if ( run_code[3] ) {
+  
+  # Navigate to folder to save posterior estimates
+  setwd( 'Data' )
+  setwd( 'Posterior_estimates' )
+  
+  # Criterion
+  # Specify separate dummy-coded variables 
+  # for each task, condition, and timepoint, 
+  # along with coefficients for an 
+  # order effect and self-reported high
+  Xc = cbind(
+    Baseline_0 = init_X$NBack_0,
+    Placebo_0_T1 = init_X$T1_0_P,
+    Placebo_0_T2 =  init_X$T2_0_P,
+    Placebo_0_T3 = init_X$T3_0_P,
+    Drug_0_T2 =  init_X$T2_0_D,
+    Drug_0_T3 = init_X$T3_0_D,
+    Baseline_2 = init_X$NBack_2,
+    Placebo_2_T1 = init_X$T1_2_P,
+    Placebo_2_T2 =  init_X$T2_2_P,
+    Placebo_2_T3 = init_X$T3_2_P,
+    Drug_2_T2 =  init_X$T2_2_D,
+    Drug_2_T3 = init_X$T3_2_D,
+    Visit_2 = init_X$O, 
+    Self_report_high = init_X$SR
+  )
+  
+  check = create_design_mat( cd, Xc )
+  
+  # d'
+  # For d' variables, weight dummy coded 
+  # values by .5 (False alarms) or -.5 (Hits)
+  Xd = Xc; cn = colnames( Xd )
+  sel = c( grep( 'Visit', cn ),
+           grep( 'Self_report', cn ) )
+  Xd[,-sel] = Xd[,-sel] * .5
+  sel = cd$Response_type == 'Hits'
+  Xd[sel] = -1 * Xd[sel]
+  
+  colnames( Xc ) = paste( 'crt', colnames( Xc ), sep = '_' )
+  colnames( Xd ) = paste( 'dp', colnames( Xd ), sep = '_' )
+  
+  # Define design matrix
+  DM = cbind( Xc, Xd )
+  
+  # Define random effects
+  re_pos = c( 1,7 )
+  re_pos = c( re_pos, re_pos + ncol(Xc) )
+  
+  # Create data to be fitted
+  dtbf = cd %>% 
+    select( Task, Condition, Timepoints, Response_type, 
+            Subject, Trials, Z, Y )
+  dtbf = cbind( dtbf, DM )
+  # Make sure there are no missing values
+  is_na = apply( dtbf, 1, function(x) any( is.na(x) ) )
+  if ( sum( is_na ) > 0 ) {
+    # Pairwise deletion of missing data
+    dtbf = dtbf[ !is_na, ]
+  }
+  
+  m3_priors = list(
+    rbind(
+      # Criterion
+      c( 0.12, 0.15 ), # Baseline (0) *R - 1*
+      c( 0.00, 0.15 ), # Placebo (0 - T1 )
+      c( 0.00, 0.15 ), # Placebo (0 - T2 )
+      c( 0.00, 0.15 ), # Placebo (0 - T3 )
+      c( 0.00, 0.15 ), # Drug (0 - T2)
+      c( 0.00, 0.15 ), # Drug (0 - T3)
+      c( 0.37, 0.15 ), # Baseline (2) *R - 7*
+      c( 0.00, 0.15 ), # Placebo (2 - T1 )
+      c( 0.00, 0.15 ), # Placebo (2 - T2 )
+      c( 0.00, 0.15 ), # Placebo (2 - T3 )
+      c( 0.00, 0.15 ), # Drug (2 - T2)
+      c( 0.00, 0.15 ), # Drug (2 - T3)
+      c( 0.00, 0.15 ), # Visit 2
+      c( 0.00, 0.15 ), # Self-reported high
+      # d'
+      c( 4.1, 0.2 ), # Baseline (0) *R - 1*
+      c( 0.0, 0.2 ), # Placebo (0 - T1 )
+      c( 0.0, 0.2 ), # Placebo (0 - T2 )
+      c( 0.0, 0.2 ), # Placebo (0 - T3 )
+      c( 0.0, 0.2 ), # Drug (0 - T2)
+      c( 0.0, 0.2 ), # Drug (0 - T3)
+      c( 2.9, 0.2 ), # Baseline (2) *R - 7*
+      c( 0.0, 0.2 ), # Placebo (2 - T1 )
+      c( 0.0, 0.2 ), # Placebo (2 - T2 )
+      c( 0.0, 0.2 ), # Placebo (2 - T3 )
+      c( 0.0, 0.2 ), # Drug (2 - T2)
+      c( 0.0, 0.2 ), # Drug (2 - T3)
+      c( 0.0, 0.2 ), # Visit 2
+      c( 0.0, 0.2 )  # Self-reported high
+    ),
+    # Prior on the trace (sum of the diagonal)
+    # for the subject level variabilities
+    prior_tau = sqrt( .2*4 ) )
+  
+  glmer_formula = paste(
+    # Dependent variable
+    'cbind( Z, Y ) ~ -1 + ',
+    # Group-level parameters
+    paste( colnames( DM ), collapse = ' + ' ),
+    # Subject-level parameters
+    ' + ( -1 + ',
+    paste( colnames( DM )[re_pos], collapse = ' + ' ),
+    ' |Subject)',
+    sep = '' )
+  glmer_formula = as.formula( glmer_formula )
+  
+  m3 = estimate_sdt( dtbf, glmer_formula,
+                     m3_priors, est_type,
+                     seed = 1400 )
+  
+  # Save results
+  setwd( 'Data' )
+  setwd( 'Posterior_estimates' )
+  save( m3, m3_priors, file = 'M3_Nback_posteriors.RData' )
+  setwd( proj_dir )
+  
+  # Clean up workspace
+  rm( m3, m3_priors )
+  
+}
+
+###
+### 6) Model 4 (Self-reported high)
+###
+
+if ( run_code[4] ) {
+  
+  # Navigate to folder to save posterior estimates
+  setwd( 'Data' )
+  setwd( 'Posterior_estimates' )
+  
+  # Criterion
+  # Specify separate dummy-coded variables 
+  # for each task and timepoint, and an 
+  # order effect and self-reported high
+  Xc = cbind(
+    Baseline_0 = init_X$NBack_0,
+    Time_0_2 = init_X$T2_0,
+    Time_0_3 =  init_X$T3_0,
+    Baseline_2 = init_X$NBack_2,
+    Time_2_2 = init_X$T2_2,
+    Time_2_3 =  init_X$T3_2,
+    Visit_2 = init_X$O, 
+    Self_report_high = init_X$SR
+  )
+  
+  check = create_design_mat( cd, Xc )
+  
+  # d'
+  # For d' variables, weight dummy coded 
+  # values by .5 (False alarms) or -.5 (Hits)
+  Xd = Xc; cn = colnames( Xd )
+  sel = c( grep( 'Visit', cn ),
+           grep( 'Self_report', cn ) )
+  Xd[,-sel] = Xd[,-sel] * .5
+  sel = cd$Response_type == 'Hits'
+  Xd[sel] = -1 * Xd[sel]
+  
+  colnames( Xc ) = paste( 'crt', colnames( Xc ), sep = '_' )
+  colnames( Xd ) = paste( 'dp', colnames( Xd ), sep = '_' )
+  
+  # Define design matrix
+  DM = cbind( Xc, Xd )
+  
+  # Define random effects
+  re_pos = c( 1,4 )
+  re_pos = c( re_pos, re_pos + ncol(Xc) )
+  
+  # Create data to be fitted
+  dtbf = cd %>% 
+    select( Task, Condition, Timepoints, Response_type, 
+            Subject, Trials, Z, Y )
+  dtbf = cbind( dtbf, DM )
+  # Make sure there are no missing values
+  is_na = apply( dtbf, 1, function(x) any( is.na(x) ) )
+  if ( sum( is_na ) > 0 ) {
+    # Pairwise deletion of missing data
+    dtbf = dtbf[ !is_na, ]
+  }
+  
+  m4_priors = list(
+    rbind(
+      # Criterion
+      c( 0.12, 0.15 ), # Baseline (0)  *R - 1*
+      c( 0.00, 0.15 ), # Time (0 - T2)
+      c( 0.00, 0.15 ), # Time (0 - T3)
+      c( 0.37, 0.15 ), # Baseline (2)  *R - 4*
+      c( 0.00, 0.15 ), # Time (0 - T2)
+      c( 0.00, 0.15 ), # Time (0 - T3)
+      c( 0.00, 0.15 ), # Visit 2
+      c( 0.00, 0.15 ), # Self-reported high
+      # d'
+      c( 4.10, 0.2 ), # Baseline (0)  *R - 9*
+      c( 0.00, 0.2 ), # Time (0 - T2)
+      c( 0.00, 0.2 ), # Time (0 - T3)
+      c( 2.90, 0.2 ), # Baseline (2)  *R - 12*
+      c( 0.00, 0.2 ), # Time (0 - T2)
+      c( 0.00, 0.2 ), # Time (0 - T3)
+      c( 0.0, 0.2 ), # Visit 2
+      c( 0.0, 0.2 )  # Self-reported high
+    ),
+    # Prior on the trace (sum of the diagonal)
+    # for the subject level variabilities
+    prior_tau = sqrt( .2*4 ) )
+  
+  glmer_formula = paste(
+    # Dependent variable
+    'cbind( Z, Y ) ~ -1 + ',
+    # Group-level parameters
+    paste( colnames( DM ), collapse = ' + ' ),
+    # Subject-level parameters
+    ' + ( -1 + ',
+    paste( colnames( DM )[re_pos], collapse = ' + ' ),
+    ' |Subject)',
+    sep = '' )
+  glmer_formula = as.formula( glmer_formula )
+  
+  m4 = estimate_sdt( dtbf, glmer_formula,
+                     m4_priors, est_type,
+                     seed = 1683 )
+  
+  # Save results
+  setwd( 'Data' )
+  setwd( 'Posterior_estimates' )
+  save( m4, m4_priors, file = 'M4_Nback_posteriors.RData' )
+  setwd( proj_dir )
+  
+  # Clean up workspace
+  rm( m4, m4_priors )
+  
+}
+
+setwd( orig_dir )

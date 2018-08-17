@@ -1,0 +1,509 @@
+# Estimating exponential decay
+# Written by Kevin Potter
+# email: kevin.w.potter@gmail.com
+# Please email me directly if you 
+# have any questions or comments
+# Last updated 2018-07-20
+
+# Table of contents
+# 1) Initial setup
+# 2) Exponential decay model
+# 3) Simulation study
+# 4) Simulation study (version 2)
+
+###
+### 1) Initial setup
+###
+
+source( 'S01_Folder_paths.R' )
+
+# Load in useful packages
+
+# Collection of useful functions
+my_package_load( 'utilityf', github = T )
+
+# Indicate which code segments to run
+run_code = c(
+  F,  # Exponential decay model
+  F,  
+  F,
+  T,
+  F,
+  F
+)
+
+###
+### 2) Exponential decay model
+###
+
+if ( run_code[1] ) {
+  
+  
+  # Days since THC ingestion
+  x = 0:34
+  
+  # Parameters
+  alpha = 200
+  kappa = .5
+  # Measurement error
+  sigma = 2
+  epsilon = rnorm( length(x), 0, sigma )
+  
+  # Equation
+  y_log = log( alpha ) - kappa*x
+  y = exp( y_log )
+  
+  # Equation with log-normal noise
+  y_obs_log = log( alpha ) - kappa*x + epsilon
+  y_obs = exp( y_obs_log )
+  
+  # Equation with small observations rounded to 0
+  sel = y_obs < 1.2
+  y_obs_cen = y_obs; y_obs_cen[sel] = 0
+  y_obs_log_cen = log( y_obs_cen )
+  y_obs_log_est = y_obs_log_cen[ y_obs_cen > 0]
+  x_est = x; x_est = x_est[ y_obs_cen > 0 ]
+  # Hypothetical example to demonstrate concern with zero values
+  y_obs_iss = y_obs; y_obs_iss[sel] = 1e-5
+  y_obs_log_iss = log( y_obs_iss )
+  
+  # Estimate parameters
+  val = lm( y_log ~ 1 + x )
+  val2 = lm( y_obs_log ~ 1 + x )
+  val3 = lm( y_obs_log_est ~ 1 + x_est )
+  val4 = lm( y_obs_log_iss ~ 1 + x )
+  
+  # cd = data.frame(
+  #   y = y_obs_log_est,
+  #   x = x_est
+  # )
+  # val3 = lm( y ~ 1 + x, data = cd )
+  # nd = data.frame( x = log(1.2) )
+  # prd = predict( val3, newdata = nd, interval = 'confidence' )
+  prd = qnorm( .95, log(1.2), sigma(val3) )
+  
+  # New plotting window
+  x11( width = 10, height = 10 )
+  layout( matrix( 1:4, 2, 2 ) )
+  
+  # Raw data
+  
+  # Create a blank plot
+  xl = c( -1, 35 )
+  yl = c( -10, 300 )
+  blankPlot( xl, yl )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - ng/mL' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( 0, 300, 50 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  lines( x, y, lwd = 2, col = 'grey' )
+  points( x, y_obs, pch = 19 )
+  cf = coef( val2 )
+  lines( x, exp( cf[1] ) * exp( cf[2] * x ), lwd = 2, col = 'blue', lty = 2 )
+  
+  # Censored data
+  
+  # Create a blank plot
+  blankPlot( xl, yl )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - ng/mL' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( 0, 300, 50 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  lines( x, y, lwd = 2, col = 'grey' )
+  points( x, y_obs_cen, pch = 19 )
+  cf = coef( val3 )
+  lines( x, exp( cf[1] ) * exp( cf[2] * x ), lwd = 2, col = 'blue', lty = 2 )
+  
+  # Log-transformed data
+  
+  # Create a blank plot
+  yl = lowerUpper( 1, y_obs_log )
+  blankPlot( xl, yl )
+  
+  horizLines( log(1.2), xl, lwd = 2, lty = 2, col = 'grey' )
+  horizLines( prd, xl, col = 'grey', lty = 3, lwd = 2 )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - log(ng/mL)' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( -10, 5, 5 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  lines( x, y_log, lwd = 2, col = 'grey' )
+  points( x, y_obs_log, pch = 19 )
+  lines( x, cf[1] + cf[2]*x, lwd = 2, col = 'blue', lty = 2 )
+  
+  # Log-transformed censored data
+  blankPlot( xl, yl )
+  
+  horizLines( log(1.2), xl, lwd = 2, lty = 2, col = 'grey' )
+  horizLines( prd, xl, col = 'grey', lty = 3, lwd = 2 )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - log(ng/mL)' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( -10, 5, 5 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  lines( x, y_log, lwd = 2, col = 'grey' )
+  points( x, y_obs_log_cen, pch = 19 )
+  cf = coef( val3 )
+  lines( x, cf[1] + cf[2] * x, lwd = 2, col = 'blue', lty = 2 )
+  
+  points( x, y_obs_log_iss, pch = 4 )
+  cf = coef( val4 )
+  lines( x, cf[1] + cf[2] * x, lwd = 2, col = 'red', lty = 2 )
+  
+}
+
+###
+### 3) Simulation study
+###
+
+if ( run_code[2] ) {
+  
+  # Number of repetitions for simulation
+  Nrep = 1000
+  
+  # Days since THC ingestion
+  x = 0:34
+  
+  # Generating parameters
+  alpha = runif( 1, 50, 500 )
+  kappa = runif( 1, .1, .5 )
+  # Measurement error
+  sigma = runif( 1, .5, 3 )
+  
+  # Equation
+  y_log = log( alpha ) - kappa*x
+  y = exp( y_log )
+  z = my_standardize(y)
+  
+  # Initialize output
+  output = matrix( NA, Nrep, 3 + 3 )
+  
+  for (nr in 1:Nrep ) {
+    
+    # Simulate observations
+    epsilon = rnorm( length( x ), 0, sigma )
+    
+    # Equation with log-normal noise
+    # and censored for small values
+    y_obs_log = log( alpha ) - kappa*x + epsilon
+    y_obs = exp( y_obs_log )
+    sel = y_obs < 1.2
+    # For demonstration purposes, fix small 
+    # values to constant non-zero value
+    y_obs2 = y_obs; y_obs2[sel] = 1e-5
+    
+    # For estimation purposes, remove 
+    # non-zero values
+    y_obs = y_obs[ !sel ]
+    x_est = x[ !sel ]
+    
+    # Estimate parameters
+    est = NULL
+    est = tryCatch(
+      lm( log( y_obs ) ~ 1 + x_est ),
+      error = function(e) return( NULL ) )
+    if ( !is.null( est ) ) {
+      cf = coef( est )
+      output[nr,1:2] = coef( est )
+      # Error
+      zhat = my_standardize( exp( cf[1] + cf[2]*x ) )
+      output[nr,3] = sum( pow( zhat - z, 2 ) )
+    }
+    
+    # Estimate parameters
+    est = NULL
+    est = tryCatch(
+      lm( log( y_obs2 ) ~ 1 + x ),
+      error = function(e) return( NULL ) )
+    if ( !is.null( est ) ) {
+      cf = coef( est )
+      output[nr,1:2+3] = coef( est )
+      # Error
+      zhat = my_standardize( exp( cf[1] + cf[2]*x ) )
+      output[nr,3+3] = sum( pow( zhat - z, 2 ) )
+    }
+    
+  }
+  
+  led = function( prm ) {
+    l = prm[1] + prm[2] * x
+    return( l )
+  }
+  
+  # Create a new plotting window
+  x11( width = 12 )
+  layout( cbind( 1, 2 ) )
+  
+  # Create a blank plot
+  xl = c( -1, 35 )
+  yl = c( -15, 10 )
+  blankPlot( xl, yl )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - log(ng/mL)' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( -15, 10, 5 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  apply( output, 1, function(o) {
+    yhat_log = led( o[1:2] )
+    lines( x, yhat_log, col = 'grey', lwd = 2 )
+  } )
+  yhat_log = led( colMeans( output )[1:2])
+  lines( x, yhat_log, lty = 2, lwd = 2 )
+  
+  lines( x, y_log, lwd = 2, col = 'black' )
+  
+  # Create a blank plot
+  xl = c( -1, 35 )
+  yl = c( -15, 10 )
+  blankPlot( xl, yl )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - log(ng/mL)' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( -15, 10, 5 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  apply( output, 1, function(o) {
+    yhat_log = led( o[4:5] )
+    lines( x, yhat_log, col = 'grey', lwd = 2 )
+  } )
+  yhat_log = led( colMeans( output )[4:5])
+  lines( x, yhat_log, lty = 2, lwd = 2 )
+  
+  lines( x, y_log, lwd = 2, col = 'black' )
+  
+}
+
+###
+### 4) Simulation study (version 2)
+###
+
+if ( run_code[3] ) {
+  
+  # Number of repetitions for simulation
+  Nrep = 1000
+  
+  # Days since THC ingestion
+  x = 0:34
+  
+  # Initialize output
+  output = matrix( NA, Nrep, 4 )
+  
+  for (nr in 1:Nrep ) {
+    
+    # Generating parameters
+    alpha = runif( 1, 50, 500 )
+    kappa = runif( 1, .1, .5 )
+    # Measurement error
+    sigma = runif( 1, .5, 3 )
+    
+    # Equation
+    y_log = log( alpha ) - kappa*x
+    y = exp( y_log )
+    z = my_standardize(y)
+    
+    # Simulate observations
+    epsilon = rnorm( length( x ), 0, sigma )
+    
+    # Equation with log-normal noise
+    # and censored for small values
+    y_obs_log = log( alpha ) - kappa*x + epsilon
+    y_obs = exp( y_obs_log )
+    sel = y_obs < 1.2
+    # For demonstration purposes, fix small 
+    # values to constant non-zero value
+    y_obs2 = y_obs; y_obs2[sel] = 1e-5
+    
+    # For estimation purposes, remove 
+    # non-zero values
+    y_obs = y_obs[ !sel ]
+    # y_obs = c( y_obs, 1e-5 )
+    x_est = x[ !sel ]
+    # x_est = c( x_est, max( x_est ) + 1 )
+    output[nr,3] = sum( sel )
+    
+    # Estimate parameters
+    est = NULL
+    est = tryCatch(
+      lm( log( y_obs ) ~ 1 + x_est ),
+      error = function(e) return( NULL ) )
+    if ( !is.null( est ) ) {
+      
+      oe = y_obs > qnorm( .9, log(1.2), sigma(est) )
+      est = tryCatch(
+        lm( log( y_obs[oe] ) ~ 1 + x_est[oe] ),
+        error = function(e) return( NULL ) )
+      cf = coef( est )
+      # Error
+      zhat = my_standardize( exp( cf[1] + cf[2]*x ) )
+      output[nr,1] = sum( pow( zhat - z, 2 ) )
+    }
+    
+    # Estimate parameters
+    est = NULL
+    est = tryCatch(
+      lm( log( y_obs2 ) ~ 1 + x ),
+      error = function(e) return( NULL ) )
+    if ( !is.null( est ) ) {
+      cf = coef( est )
+      # Error
+      zhat = my_standardize( exp( cf[1] + cf[2]*x ) )
+      output[nr,2] = sum( pow( zhat - z, 2 ) )
+    }
+    
+  }
+  
+  # Create a new plotting window
+  x11( width = 12 )
+  layout( cbind( 1, 2 ) )
+  
+  hist( output[ output[,3] > 10,1], breaks = 'FD',
+        col = 'grey', border = 'white',
+        bty = 'l', xlab = 'SSE', main = ' ' )
+  hist( output[output[,3] > 1,2], breaks = 'FD',
+        col = 'grey', border = 'white',
+        bty = 'l', xlab = 'SSE', main = ' ' )
+  
+}
+
+###
+### 5) Tobit log-linear model
+###
+
+tbt = function( prm, dat ) {
+  
+  # Extract parameters
+  alpha = prm[1]
+  kappa = prm[2]
+  sigma = prm[3]
+  
+  # Extract data
+  x = dat$x # Independant variable
+  y = dat$y # Dependent variable
+  a = dat$a # Cut-off for censored data
+  
+  # Indicator function for censored data
+  I_a = y < a
+  y_star = y; y_star[ I_a ] = a
+  y_star = log( y_star )
+  
+  # Compute mean
+  mu = log( alpha ) - kappa * x
+    
+  p1 = I_a * pnorm( ( y_star - mu )/sigma, log.p = T )
+  p2 = (1-I_a) * (dnorm( (y_star - mu)/sigma, log = T )- log( sigma ) )
+  sll = sum( p1 + p2 )
+  if ( is.na( sll ) ) sll = -Inf
+  
+  return( -sll )
+}
+
+led = function( val ) {
+  return( log( val[1] ) - val[2] * x )
+}
+
+if ( run_code[4] ) {
+  
+  # Simulate data
+  x = 0:34 # Days since ingestion
+  gp = runif( 3,
+              c( 50, .1, .5 ),
+              c( 500, .5, 3 ) )
+  names( gp ) = c( 'alpha', 'kappa', 'sigma' )
+  
+  y_log = log( gp[1] ) - gp[2] * x
+  y = exp( y_log )
+  # Add measurement error
+  y_obs = exp( y_log + rnorm( length(x), 0, gp[3] ) )
+  # Values less than 1 fixed to 0
+  y_obs[ y_obs < 1 ] = 0
+  
+  # Naive estimator
+  sel = y_obs > 1
+  ne = lm( log( y_obs[sel] ) ~ 1 + x[sel] )
+  st_val = c( coef( ne ), sigma( ne ) )
+  st_val[1] = exp( st_val[1] )
+  st_val[2] = -st_val[2]
+  
+  mf = optim( st_val, tbt, dat = list( x = x, y = y_obs, a = 1 ),
+              method = 'CG',
+              control = list( maxit = 10000 ) )
+  
+  
+  # New plotting window
+  x11( width = 12 )
+  layout( cbind(1,2) )
+  
+  # Raw data
+  
+  # Create a blank plot
+  xl = c( -1, 35 )
+  yl = lowerUpper( 100, c( y, y_obs ) )
+  yl[1] = -10
+  blankPlot( xl, yl )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - ng/mL' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( 0, yl[2], 50 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  lines( x, y, lwd = 2, col = 'grey' )
+  points( x, y_obs, pch = 19 )
+  
+  lines( x, exp( led( st_val ) ), col = 'red', lwd = 2 )
+  lines( x, exp( led( mf$par ) ), col = 'blue', lwd = 2 )
+  
+  # Log-transformed data
+  
+  # Create a blank plot
+  yl = lowerUpper( 1, c( y_log, log( y_obs[ y_obs > 0 ] ) ) )
+  blankPlot( xl, yl )
+  
+  horizLines( log(1), xl, lwd = 2, lty = 2, col = 'grey' )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - log(ng/mL)' ),
+              axSz = 1.25 )
+  axis( 1, seq( 1, 34, 4 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  axis( 2, seq( -10, 5, 5 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  lines( x, y_log, lwd = 2, col = 'grey' )
+  sel = y_obs > 0
+  points( x[sel], log( y_obs[sel] ), pch = 19 )
+  
+  lines( x, led( st_val ), col = 'red', lwd = 2 )
+  lines( x, led( mf$par ), col = 'blue', lwd = 2 )
+  
+}
+
+setwd( R_dir )
+

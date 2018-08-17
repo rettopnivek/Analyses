@@ -1,0 +1,876 @@
+---
+title: "THC decay"
+author:
+- "Tiana Raphel"
+- "Kevin Potter"
+- "Randi Schuster"
+date: "July 18, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE, message = FALSE}
+# Load in useful packages
+library( utilityf )
+library( dplyr )
+
+# Load in data
+load( 'THC_decay.RData' )
+
+# Define function to fit non-linear decay models
+pl_ed_models_lm = function( x, y, type ) {
+  # Purpose:
+  # Fits either a power law or exponential 
+  # decay model via linear regression 
+  # following a transform of the data.
+  # Arguments:
+  # x    - The indepdent variable
+  # y    - The dependent variable
+  # type - The type of model (1 = exponential
+  #        decay, 2 = power law)
+  # Returns:
+  # A list with a vector with the estimates of  
+  # the starting point and decay parameters,
+  # the 'lm' output, the predicted values 
+  # for the dependent variable, and the 
+  # residuals.
+  
+  # Straightforward estimation of the 
+  # power law and exponential decay models 
+  # requires log transformations, so we 
+  # need to exclude values of 0
+  no_zeroes = y != 0
+  ya = y[ no_zeroes ]
+  xa = x[ no_zeroes ]
+  
+  # Determine if the number of zeros exceeds
+  
+  # Exponential decay model
+  if ( type == 1 ) {
+    
+    # Form: y = alpha * exp( -beta * x )
+    
+    # We can obtain estimates of the starting 
+    # point and decay by fitting a linear 
+    # equation of the form:
+    # log( y ) ~ log( alpha ) - beta * x
+    lmf = lm( log( ya ) ~ xa )
+    
+    est = coef( lmf )
+    est[1] = exp( est[1] )
+    est[2] = -est[2]
+    
+    # Generate predicted values
+    pred = est[1] * exp( -est[2] * x )
+    
+    # Residuals
+    resid_val = y - pred
+    
+  }
+  
+  # Power law model
+  if ( type == 2 ) {
+    
+    # Form: y = alpha * x^( -beta )
+    
+    # We can obtain estimates of the starting 
+    # point and decay by fitting a linear 
+    # equation of the form:
+    # log( y ) ~ log( alpha ) - beta * log( x )
+    
+    # We shift x by 1 to avoid a log transform of 0
+    xa = xa + 1
+    lmf = lm( log( ya ) ~ log( xa ) )
+    
+    est = coef( lmf )
+    est[1] = exp( est[1] )
+    est[2] = -est[2]
+    
+    # Generate predicted values
+    pred = est[1] * pow( x+1, -est[2] )
+    
+    # Residuals
+    resid_val = y - pred
+    
+  }
+  
+  return( list( est = est, 
+                lm = lmf, 
+                pred = pred, 
+                resid = resid_val ) )
+}
+```
+
+### Sample
+
+Measurements were collected over 7 visits from 81 adolescents and young adults during a one month abstinence period. Subjects had used cannabis on a weekly basis or more.
+
+Dependent variables:
+
+* THCCOOH (Measure of THC metabolite from urine analysis)
+* Withdrawal intensity (Self-report)
+* Negative impact of withdrawal (Self-report)
+
+Primary independent variable:
+
+* Number of days since last THC ingestion (Number of days since baseline assessment + self-report on number of days since last MJ use)
+  + In other words, the estimated number of days since THC ingestion
+
+Additional predictors:
+
+* Sex (Male vs. Female)
+* Age (Years)
+* BMI
+* Years of MJ use
+* Level of MJ use (based on TFLB assessment)
+* Level of alcohol use (based on TFLB assessment)
+
+### Aims
+
+1. Examine what variables predict baseline THC level.
+2. Examine what variables predict the rate of clearance/change during abstinence.
+3. Examine whether there is a link between the magnitude of change in THC with abstinence and withdrawal symptoms experienced during same time.
+
+### Data pre-processing
+
+```{r, echo = FALSE, eval = FALSE}
+# Number of observations and data issues
+tbl = all_dat %>% 
+  group_by( ID ) %>% 
+  summarize( 
+    No = length( ID ), 
+    Ni = sum( Data_issues != '0' ),
+    Nz = sum( THCCOOH == 0, na.rm = T )
+  )
+
+# Find subjects who were removed
+sel = all_dat$ID %in% tbl$ID[ tbl$No == tbl$Ni ]
+
+# Subjects who did not recently use THC
+iss = grep( '2', all_dat$Data_issues[ sel ] )
+print( length( unique( all_dat$ID[sel][iss] ) ) )
+
+# Remaining issues that led to subject removal
+all_dat$Data_issues[sel][-iss]
+print( attributes(all_dat$Data_issues) )
+
+# Function to compute proportion of subjects with a given
+# data issue
+f = function( v, x ) {
+  round(
+    100 * length( grep( v, x ) )/sum( !sel )
+  )
+}
+all_dat %>% 
+  filter( !sel ) %>% 
+  summarise( 
+    No_issues = f( '0', Data_issues ),
+    THC_500 = f( '1', Data_issues )
+  )
+
+
+
+```
+
+Subjects who were removed before any analyses:
+
+Issue                    | Number of subjects
+------------------------ | ------------------
+No THC use within 2 days | 11                
+Failed to abstain        | 1                 
+Missing data             | 1                 
+Total                    | 13                
+
+For the remaining 68 subjects:
+
+Issue                   | Percentage of data
+----------------------- | ------------------
+None                    | 89
+Couldn't read THC > 500 | 4                 
+Missing data            | 7                 
+
+### THCCOOH by days since ingestion
+
+```{r, echo = FALSE }
+# Extract usable data
+dtbp = all_dat %>% 
+  filter( Data_issues == '0' )
+dtbp$Subjects = createIncrement( dtbp$ID )
+# Number of initial subjects
+Nas = length( unique( dtbp$ID ) )
+
+  # Create a blank plot
+  xl = c( -1, 35 )
+  yl = c( -5, 700 )
+  blankPlot( xl, yl )
+  
+  # Add small degree of jitter for plotting purposes
+  jfp = seq( -.2, .2, length = Nas )
+  
+  # Add individual observations
+  points( dtbp$Time + jfp[ dtbp$Subjects ], dtbp$THCCOOH, pch = 19, col = 'grey' )
+  
+  # Plot mean THCCOOH by time
+  plt = dtbp %>% 
+    group_by( Time ) %>% 
+    summarise(
+      Mn = mean( THCCOOH )
+    )
+  lines( plt$Time, plt$Mn, lwd = 2 )
+  
+  # Add axes and labels
+  customAxes( xl, yl )
+  
+  # x-axis
+  axis( 1, seq( 0, max( plt$Time ), 4 ),
+        tick = F, line = -1, cex.axis = 1.25 )
+  mtext( 'Days since last THC dose',
+         side = 1, line = 2, cex = 1.25 )
+  
+  # y-axis
+  axis( 2, seq( 0, yl[2], 100 ),
+        tick = F, line = -1, cex.axis = 1.25 )
+  mtext( 'THCCOOH - ng/mL',
+         side = 2, line = 2, cex = 1.25 )
+
+```
+
+### The model of THC decline
+
+Let $y_i$ refer to the level of THCCOOH at day $x_i$, where $i = \{ 1, ..., N_{observations}\}$. For instance, for a single subject typically $i = \{ 1, ..., 7\}$.
+
+1) Exponential decay:
+
+$$ y_i = \beta_0 e^{-\beta_1 x_i} + \epsilon $$
+
+We estimated this model in a linear fashion by transforming the data:
+
+$$ \log(y_i) = \log(\beta_0) - \beta_1 x_i + \epsilon $$
+
+2) Power law
+
+$$ y_i = \beta_0 (x_i+1)^{-\beta_1} + \epsilon $$
+
+Again, we estimated this model in a linear fashion by transforming the data:
+
+$$ \log(y_i) = \log(\beta_0) - \beta_1 \log(x_i+1) + \epsilon $$
+
+In both cases, $\epsilon \sim N( 0, \sigma )$.
+
+One issue is with this estimation approach is that we can't use observations in which THCCOOH levels equal zero. Unfortunately, several subjects had very few non-zero THCCOOH values...
+
+```{r, echo = FALSE}
+# Number of observations per subject 
+# and the number of observations 
+# equal to 0
+tbl = dtbp %>% 
+  group_by( ID ) %>% 
+  summarize(
+    No = length( ID ),
+    Nz = sum( THCCOOH == 0 )
+  )
+
+# Tabulate number of non-zero values over subjects
+output = table( tbl$No - tbl$Nz )
+output = rbind( as.numeric( names( output ) ),
+                as.numeric( output ) )
+row.names( output ) = c(
+  'Number of non-zero values:',
+  'Number of subjects       :'
+)
+colnames( output ) = rep( '   ', 7 )
+print( output )
+```
+
+### Estimates with no pooling
+
+```{r, echo = FALSE}
+# Select data to be fitted
+dtbf = all_dat %>% 
+  filter( Data_issues == '0' )
+# Filter out subjects who who had 
+# too few non-zero observations
+tbl = dtbf %>% 
+  group_by( ID ) %>% 
+    group_by( ID ) %>% 
+  summarize(
+    No = length( ID ),
+    Nz = sum( THCCOOH == 0 )
+  )
+sel = dtbf$ID %in% tbl$ID[ (tbl$No - tbl$Nz) >= 3 ]
+dtbf = dtbf[sel,]
+# Specify subject index
+dtbf$Subjects = createIncrement( dtbf$ID )
+```
+
+As a first step, we estimated the intercept and slope of each non-linear model separately by subject. We only used subjects with 3 or more non-zero observations. This left us with 55 subjects.
+
+```{r, echo = FALSE}
+# Create data frame to store estimates
+sel = dtbf %>% 
+  group_by( Subjects ) %>% 
+  summarize( 
+    FR = min( which( dtbf$ID %in% ID ) ) )
+dflm = dtbf[ sel$FR, ]
+# Initialize variables
+dflm$Start_point_ED = NA
+dflm$Decay_ED = NA
+dflm$R2_ED = NA
+dflm$Start_point_PL = NA
+dflm$Decay_PL = NA
+dflm$R2_PL = NA
+dtbf$Predicted_ED = NA
+dtbf$Residuals_ED = NA
+dtbf$Predicted_PL = NA
+dtbf$Residuals_PL = NA
+
+# Loop over subjects
+for ( s in 1:max( dtbf$Subjects ) ) {
+  
+  # Select subject
+  sel = dtbf$Subjects == s
+  
+  # Exponential decay
+  res = pl_ed_models_lm( dtbf$Time[sel],
+                        dtbf$THCCOOH[sel],
+                        1 )
+  # Save results
+  dflm$Start_point_ED[s] = res$est[1]
+  dflm$Decay_ED[s] = res$est[2]
+  dflm$R2_ED[s] = summary( res$lm )$adj.r.squared
+  
+  dtbf$Predicted_ED[sel] = res$pred
+  dtbf$Residuals_ED[sel] = res$resid
+  
+  # Exponential decay
+  res = pl_ed_models_lm( dtbf$Time[sel],
+                        dtbf$THCCOOH[sel],
+                        2 )
+  # Save results
+  dflm$Start_point_PL[s] = res$est[1]
+  dflm$Decay_PL[s] = res$est[2]
+  dflm$R2_PL[s] = summary( res$lm )$adj.r.squared
+  
+  dtbf$Predicted_PL[sel] = res$pred
+  dtbf$Residuals_PL[sel] = res$resid
+  
+}
+```
+
+One subject's non-zero THCCOOH values were clustered such that the model predicted an *increase* in THCCOOH rather than a decay:
+
+```{r, echo = FALSE}
+# Identify subject with blatant mis-estimation
+sel = which( dflm$Decay_PL < 0 )
+bad_est = dflm$ID[sel]
+sel = dtbf$ID == bad_est
+
+# Create a blank plot
+xl = c( -1, 35 )
+yl = c( -5, 100 )
+blankPlot( xl, yl )
+
+# Add predicted curves
+xa = dtbf$Time[sel]
+ya = dtbf$Predicted_ED[sel]
+lines( xa, ya, lwd = 2, col = 'blue' )
+ya = dtbf$Predicted_PL[sel]
+lines( xa, ya, lwd = 2, col = 'purple' )
+# Add observed data
+points( xa, dtbf$THCCOOH[sel], pch = 19 )
+
+# Add axes and labels
+customAxes( xl, yl )
+axis( 1, seq( 0, 32, 4 ),
+      tick = F, line = -1 )
+mtext( 'Days since THC ingestion', side = 1, line = 2 )
+axis( 2, seq( 0, 100, 25 ),
+      tick = F, line = -1 )
+mtext( 'THCCOOH - ng/mL', side = 2, line = 2 )
+
+title( paste( 'Subject', unique( dtbf$ID[sel] ) ) )
+
+legend( 'topright', c( 'Exp. decay', 'Power law' ),
+        fill = c( 'blue', 'purple' ),
+        bty = 'n' )
+
+# Remove this subject
+dtbf = dtbf[ !sel, ]
+dflm = dflm[ dflm$ID != bad_est, ]
+```
+
+This subject was removed from the analysis, leaving 54 subjects. Visual inspection of the predicted curves (after averaging parameter estimates over subjects) against the observed values suggests adequate fit.
+
+```{r, echo = FALSE }
+# Remaining number of subjects
+Nas = length( unique( dflm$ID ) )
+
+# Create a blank plot
+xl = c( -1, 35 )
+yl = c( -5, 700 )
+blankPlot( xl, yl )
+  
+# Add small degree of jitter for plotting purposes
+jfp = seq( -.2, .2, length = Nas )
+
+# Add individual observations
+points( dtbf$Time + jfp[ dtbf$Subjects ], dtbf$THCCOOH, pch = 19, col = 'grey' )
+  
+# Plot mean THCCOOH by time
+plt = dtbf %>% 
+    group_by( Time ) %>% 
+    summarise(
+      Mn = mean( THCCOOH )
+    )
+lines( plt$Time, plt$Mn, lwd = 2 )
+
+# Add axes and labels
+customAxes( xl, yl )
+  
+# x-axis
+axis( 1, seq( 0, max( plt$Time ), 4 ),
+      tick = F, line = -1, cex.axis = 1.25 )
+mtext( 'Days since last THC dose',
+       side = 1, line = 2, cex = 1.25 )
+  
+# y-axis
+axis( 2, seq( 0, yl[2], 100 ),
+      tick = F, line = -1, cex.axis = 1.25 )
+mtext( 'THCCOOH - ng/mL',
+       side = 2, line = 2, cex = 1.25 )
+
+legend( 'topright', c( 'Mean', 'Exp. decay', 'Power law' ),
+        fill = c( 'black', 'blue', 'purple' ),
+        bty = 'n' )
+
+
+# Predicted curves after averaging over 
+# parameters
+plt = dflm %>% 
+  summarize(
+    a_ED = mean( Start_point_ED ),
+    b_ED = mean( Decay_ED ),
+    a_PL = mean( Start_point_PL ),
+    b_PL = mean( Decay_PL )
+  )
+xa = 0:34
+lines( xa, plt$a_ED * exp( -plt$b_ED * xa ),
+       lwd = 2, col = 'blue' )
+lines( xa, plt$a_PL * pow( xa + 1, -plt$b_PL ),
+       lwd = 2, col = 'purple' )
+
+
+```
+
+An examination of adjusted $R^2$ values suggests that on average, the power law model provided better fit to each subject:
+
+```{r, echo = FALSE}
+qh = function( x, lbl ) {
+  # Purpose:
+  # Generates a histogram with personalized plotting options.
+  # Arguments:
+  # x   - The vector of values
+  # lbl - The x-axis label
+  
+  hist( x, 
+        col = 'grey',
+        border = 'white',
+        breaks = 'FD',
+        xlab = lbl,
+        main = ' ',
+        bty = 'n' )
+  
+}
+
+qh( dflm$R2_PL - dflm$R2_ED, 'Difference in adjusted R-squared' )
+title( 'Power law - Exp. decay' )
+```
+
+Therefore, we focus primarily on the power law estimates.
+
+### Predicting non-linear parameters
+
+The distributions over subjects for the estimates of the intercept are highly skewed, but this is resolved via a log transform:
+
+```{r, echo = FALSE}
+layout( cbind(1,2) )
+qh( dflm$Start_point_PL, 'Intercept (Power law)' )
+qh( log( dflm$Start_point_PL ), 'Log intercept (Power law)' )
+```
+
+The slopes do not need this transform:
+
+```{r, echo = FALSE}
+layout( cbind(1,2) )
+qh( dflm$Decay_PL, 'Slope (Power law)' )
+blankPlot()
+```
+
+We can plot the scatter plots between the predictors and the estimated log intercepts and slopes for the power law model:
+
+```{r, echo = FALSE }
+my_standardize = function( x, reverse = F ) {
+  # Purpose:
+  # A function to standardize (or unstandardize) 
+  # a variable.
+  # Arguments:
+  # x       - A numerical vector
+  # reverse - Logical; if true, the function extracts 
+  #           the 'mean' and 'scale' attributes 
+  #           and reverses the standardization
+  # Returns:
+  # If reverse is FALSE, returns the standardized values 
+  # for x, with attributes giving the mean and scale;
+  # otherwise, returns the raw, unstandardized values 
+  # of x.
+  
+  if ( !reverse ) {
+    m = mean( x, na.rm = T )
+    s = sd( x, na.rm = T )
+    out = ( x - m ) / s
+    attributes( out ) = list( mean = m, scale = s )
+  } else {
+    m = attributes( x )$mean
+    s = attributes( x )$scale
+    out = x * s + m
+    attributes( out ) = NULL
+  }
+  
+  return( out )
+}
+
+qsp = function( x, y, lbls ) {
+  # Purpose:
+  # A custom function to quickly generate a scatter plot 
+  # of two standardized variables.
+  # Arguments:
+  # x      - The variable to plot along the x-axis
+  # y      - The variable to plot along the y-axis
+  # lbls   - The labels for the x-axis (first value) 
+  #          and the y-axis (second value)
+  
+  # Standardize variables
+  zx = my_standardize( x )
+  zy = my_standardize( y )
+  
+  # Create blank plot
+  xl = range( c( zx, zy ) )
+  xl = max( abs( xl ) )
+  xl = c( -xl, xl )
+  xl = lowerUpper( 1, xl )
+  yl = xl
+  blankPlot( xl, yl )
+  
+  # Add simple regression line
+  lmf = lm( zy ~ -1 + zx )
+  R = coef( lmf )
+  segments( xl[1], xl[1] * R,
+            xl[2], xl[2] * R,
+            col = 'grey', lwd = 2 )
+  R = cor.test( zx, zy )
+  
+  string = paste(
+    'R =', round( R$estimate, 2 ) )
+  if ( R$p.value < .05 )
+    string = paste( string, '*', sep = '' )
+  mtext( string, side = 3, line = 0, cex = .7 )
+  
+  # Add observations
+  points( zx, zy, pch = 19 )
+  
+  # Add axes and labels
+  customAxes( xl, yl )
+  mtext( lbls[1], side = 1, line = 0, cex = .7 )
+  mtext( lbls[2], side = 2, line = 0, cex = .7 )
+  
+}
+
+# Independent variables to plot
+IVs = c(
+  'Sex',
+  'Age',
+  'BMI',
+  'Years_of_MJ_use',
+  'Level_of_MJ_use',
+  'Level_of_alcohol_use'
+)
+iv_lab = c(
+  'Sex',
+  'Age',
+  'BMI',
+  'Years of MJ use',
+  'Level of MJ use',
+  'Level of alcohol use'
+)
+
+DV = c(
+  'Start_point_ED',
+  'Decay_ED',
+  'Start_point_PL',
+  'Decay_PL'
+)
+dv_lab = c(
+  'Intercept (Exp. decay)',
+  'Slope (Exp. decay)',
+  'Intercept (Power law)',
+  'Slope (Power law)'
+)
+
+# Loop over dependent variables
+for ( dv in 3:4 ) {
+  # Loop over predictors
+  layout( matrix( 1:6, 2, 3, byrow = T ) )
+  for ( iv in 1:length( IVs ) ) {
+    # Create scatter plot
+    y =  dflm[ ,DV[dv] ] 
+    if ( dv %in% c(1,3) ) y = log( y )
+    qsp( dflm[ ,IVs[iv] ], y, 
+         c( dv_lab[dv],
+            iv_lab[iv] ) )
+  }
+  
+}
+```
+
+Fitting a log-linear model to the intercepts and a standard multiple regression to the slopes yields the following results:
+
+```{r, echo = FALSE}
+# Create standardized variables
+tmp = apply( dflm[,IVs[-1]], 2, my_standardize )
+colnames( tmp ) = paste( 'z', IVs[-1], sep = '' )
+dflm = cbind( dflm, tmp )
+
+print( 'Intercept' )
+cf = lm(
+  log( Start_point_PL ) ~ 1 + 
+    Sex + zAge + zBMI + 
+    zYears_of_MJ_use + zLevel_of_MJ_use + zLevel_of_alcohol_use,
+  data = dflm )
+print( summary( cf ) )
+
+print( 'Decay' )
+cf = lm(
+  Decay_PL ~ 1 + 
+    Sex + zAge + zBMI + 
+    zYears_of_MJ_use + zLevel_of_MJ_use + zLevel_of_alcohol_use,
+  data = dflm )
+print( summary( cf ) )
+    
+```
+
+### Withdrawal symptoms
+
+Withdrawal intensity and its negative impact does not seem to vary on average too much during the time course of abstinence:
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Extract usable data
+dtbp = all_dat %>% 
+  filter( Data_issues == '0' & 
+            ID %in% dtbf$ID )
+dtbp$Subjects = createIncrement( dtbp$ID )
+# Number of subjects
+Nas = length( unique( dtbp$ID ) )
+
+### Withdrawal intensity
+
+# Create a blank plot
+xl = c( -1, 35 )
+yl = c( -5, 120 )
+blankPlot( xl, yl )
+
+# Add small degree of jitter for plotting purposes
+jfp = seq( -.2, .2, length = Nas )
+
+# Add individual observations
+points( dtbp$Time + jfp[ dtbp$Subjects ], dtbp$Withdrawal_intensity, 
+        pch = 19, col = 'grey' )
+
+# Plot mean THCCOOH by time
+plt = dtbp %>% 
+  group_by( Time ) %>% 
+  summarise(
+    Mn = mean( Withdrawal_intensity )
+  )
+# lines( plt$Time, plt$Mn, lwd = 2 )
+
+# Sort data
+dtbp = dtbp %>% 
+  arrange( dtbp$Time )
+
+# Function to compute Sum of squared-errors for LOESS
+calcSSE = function(x) {
+  
+  # Initialize output
+  sse = Inf
+  
+  # Fit loess model
+  loessMod = try(
+    loess( Withdrawal_intensity ~ Time, 
+                data = dtbp, span = x ), 
+    silent = T )
+  # Extract residuals
+  res = try( loessMod$residuals, silent = T )
+  # If there are no errors, compute SSE
+  if( class(res) != "try-error" ) {
+    
+    if ( (sum(res, na.rm = T) > 0 ) ) {
+      sse = sum(res^2)  
+    }
+    
+  }
+  
+  return(sse)
+}
+spn = seq( 0, 1, .01 )
+spn = spn[ which.min( sapply( spn, calcSSE ) ) ]
+
+sm_fit = loess( Withdrawal_intensity ~ Time, 
+                data = dtbp, span = .25 )
+sm_pred = predict( sm_fit )
+lines( sm_pred, x = dtbp$Time, lwd = 2 )
+
+# Add axes and labels
+customAxes( xl, yl )
+
+# x-axis
+axis( 1, seq( 0, max( plt$Time ), 4 ),
+      tick = F, line = -1, cex.axis = 1.25 )
+mtext( 'Days since last THC dose',
+       side = 1, line = 2, cex = 1.25 )
+
+# y-axis
+axis( 2, seq( 0, yl[2], 40 ),
+      tick = F, line = -1, cex.axis = 1.25 )
+mtext( 'Withdrawal intensity',
+       side = 2, line = 2, cex = 1.25 )
+
+### Withdrawal negative impact
+
+# Create a blank plot
+blankPlot( xl, yl )
+
+# Add individual observations
+points( dtbp$Time + jfp[ dtbp$Subjects ], dtbp$Withdrawal_negative_impact, 
+        pch = 19, col = 'grey' )
+
+# Plot mean THCCOOH by time
+plt = dtbp %>% 
+  group_by( Time ) %>% 
+  summarise(
+    Mn = mean( Withdrawal_negative_impact )
+  )
+# lines( plt$Time, plt$Mn, lwd = 2 )
+
+# Sort data
+dtbp = dtbp %>% 
+  arrange( dtbp$Time )
+
+# Function to compute Sum of squared-errors for LOESS
+calcSSE = function(x) {
+  
+  # Initialize output
+  sse = Inf
+  
+  # Fit loess model
+  loessMod = try(
+    loess( Withdrawal_negative_impact ~ Time, 
+                data = dtbp, span = x ), 
+    silent = T )
+  # Extract residuals
+  res = try( loessMod$residuals, silent = T )
+  # If there are no errors, compute SSE
+  if( class(res) != "try-error" ) {
+    
+    if ( (sum(res, na.rm = T) > 0 ) ) {
+      sse = sum(res^2)  
+    }
+    
+  }
+  
+  return(sse)
+}
+spn = seq( 0, 1, .01 )
+spn = spn[ which.min( sapply( spn, calcSSE ) ) ]
+
+sm_fit = loess( Withdrawal_negative_impact ~ Time, 
+                data = dtbp, span = .25 )
+sm_pred = predict( sm_fit )
+lines( sm_pred, x = dtbp$Time, lwd = 2 )
+
+# Add axes and labels
+customAxes( xl, yl )
+
+# x-axis
+axis( 1, seq( 0, max( plt$Time ), 4 ),
+      tick = F, line = -1, cex.axis = 1.25 )
+mtext( 'Days since last THC dose',
+       side = 1, line = 2, cex = 1.25 )
+
+# y-axis
+axis( 2, seq( 0, yl[2], 40 ),
+      tick = F, line = -1, cex.axis = 1.25 )
+mtext( 'Negative impact',
+       side = 2, line = 2, cex = 1.25 )
+
+```
+
+We can use a simple random intercept model to see whether the non-linear intercept and slope predict withdrawal intensity and negative impact:
+
+```{r, echo = FALSE, message = FALSE}
+# Initialize non-linear decay parameters
+dtbf$Start_point = NA
+dtbf$Decay = NA
+
+# Add parameters for each subject
+for ( i in 1:length( dflm$ID ) ) {
+  
+  sel = dtbf$ID == dflm$ID[i]
+  dtbf$Start_point[sel] = dflm$Start_point_PL[i]
+  dtbf$Decay[sel] = dflm$Decay_PL[i]
+  
+}
+
+# Standardize variables
+dtbf$zStart_point = my_standardize( dtbf$Start_point )
+dtbf$zDecay = my_standardize( dtbf$Decay )
+dtbf$zTime = my_standardize( dtbf$Time )
+
+# Set up a mixed effects model
+library( lme4 )
+
+# Create standardized variables
+tmp = apply( dtbf[,IVs[-1]], 2, my_standardize )
+colnames( tmp ) = paste( 'z', IVs[-1], sep = '' )
+dtbf = cbind( dtbf, tmp )
+
+print( 'Withdrawal intensity' )
+mdl = lmer( log( Withdrawal_intensity+1) ~ 1 + 
+              zTime + 
+              zStart_point + zDecay + 
+              Sex + zAge + zBMI + 
+              zYears_of_MJ_use + zLevel_of_MJ_use + zLevel_of_alcohol_use + 
+              (1|ID),
+            data = dtbf )
+sm = summary( mdl )$coefficients
+ci = confint( mdl )
+output = cbind( sm[,1:2], ci[-(1:2),] )
+print( round( output, 2 ) )
+
+print( 'Withdrawal negative impact' )
+mdl = lmer( log( Withdrawal_negative_impact+1) ~ 1 + 
+              zTime + 
+              zStart_point + zDecay + 
+              Sex + zAge + zBMI + 
+              zYears_of_MJ_use + zLevel_of_MJ_use + zLevel_of_alcohol_use + 
+              (1|ID),
+            data = dtbf )
+sm = summary( mdl )$coefficients
+ci = confint( mdl )
+output = cbind( sm[,1:2], ci[-(1:2),] )
+print( round( output, 2 ) )
+
+```
+
