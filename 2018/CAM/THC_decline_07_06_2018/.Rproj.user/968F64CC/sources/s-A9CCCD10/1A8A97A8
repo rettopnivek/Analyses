@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1542737337470.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "1A8A97A8",
+    "lastKnownWriteTime" : 1542839032,
+    "last_content_update" : 1542839032610,
+    "path" : "~/Shared_drive/THC_decline_07_06_2018/R/S06_Cross_validation.R",
+    "project_path" : "R/S06_Cross_validation.R",
+    "properties" : {
+        "cursorPosition" : "353,4",
+        "scrollLine" : "330",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

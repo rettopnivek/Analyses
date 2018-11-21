@@ -1,5 +1,0 @@
-"0","sel = sim_dat$log_THCCOOH.obs > log( cut_off )"
-"0","lmf = lm( log_THCCOOH.obs ~ Time, data = sim_dat[sel,] )"
-"0","est = coef( lmf )"
-"0","lines( sim_dat$Time, est[1] + est[2]*sim_dat$Time, "
-"0","       col = 'red', lwd = 2 )"

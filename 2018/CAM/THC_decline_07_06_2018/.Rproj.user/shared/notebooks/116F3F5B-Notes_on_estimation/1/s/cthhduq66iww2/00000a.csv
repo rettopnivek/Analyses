@@ -1,8 +1,0 @@
-"0","# Fit data using tobit regression"
-"0","x = sim_dat$Time"
-"0","y = exp( sim_dat$log_THCCOOH.obs )"
-"0","sel = sim_dat$log_THCCOOH.obs <= log( cut_off )"
-"0","y[sel] = 0"
-"0","trf = estimate_ed_lm( x, y )"
-"0","lines( trf$x, log( trf$pred ), "
-"0","       col = 'red', lwd = 2 )"

@@ -1,0 +1,26 @@
+
+
+### TO DO ###
+
+# 1) Re-run analyses with additional predictors
+# 2) Obtain summary statistics for half-life in other papers
+
+
+# Obtain 
+half_life = list(
+  # Johansson et al. 1989
+  paper_1 = 
+    c( 0.8, 1.5, 1.2, 2.0, 2.0, 2.2, 2.2, 2.0, 3.5, 3.1, 4.3, 4.7, 9.8 ),
+  # Johansson et al. 1990
+  paper_2 = 
+    list(
+      Smoking = 
+        cbind( Naive = round( c( 25.9/24, 17.3/24 ), 1 ),
+               Heavy = round( c(14.1/24,14.3/24), 1 )
+        ),
+      Oral = cbind(
+        Naive = round( c( 18/24, 25.9/24 ), 1 ),
+        Heavy = round( c( 14.5/24, 15.9/24 ), 1 )
+      )
+    )
+)

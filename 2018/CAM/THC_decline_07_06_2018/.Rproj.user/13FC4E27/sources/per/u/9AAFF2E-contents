@@ -1,0 +1,607 @@
+
+###
+###
+###
+
+source( 'S01_Folder_paths.R' )
+
+# Load in useful packages
+
+# Collection of useful functions
+my_package_load( 'utilityf', github = T )
+
+# Package for working with data frames
+my_package_load( 'dplyr' )
+
+# Package for Bayesian estimation
+my_package_load( 'brms' )
+
+# Package for estimating bayes factors
+my_package_load( 'BayesFactor' )
+
+# Make sure 'loo' package is installed
+# install.packages( 'loo' )
+
+# Load in data
+setwd( dat_dir )
+load( 'THC_decay.RData' )
+
+# Compute summed CUDIT score
+all_dat$CUDIT.SS = 
+  rowSums( all_dat[,grep('CUDIT',colnames(all_dat))] )
+for ( s in 1:length( unique( all_dat$ID ) ) ) {
+  sel = all_dat$ID == unique( all_dat$ID )[s]
+  val =  all_dat$CUDIT.SS[sel]
+  val = val[ !is.na( val ) ]
+  if ( length( val ) > 0 )
+    all_dat$CUDIT.SS[sel] = val
+}
+
+# Convert days from baseline measurement 
+# to days from THC ingestion
+cd = all_dat[ all_dat$Data_issues == '0', ]
+cd$Days_from_baseline = cd$Time
+cd$Time = cd$Time + cd$Recency_of_MJ_use
+
+
+###
+### 2) Define functions
+###
+
+# 2.1)
+ed_model = function( param, x, log = F ) {
+  # Purpose:
+  # Computes the predicted THCCOOH values 
+  # using an exponential decay model.
+  # Arguments:
+  # param - A vector with the starting level of 
+  #         THCCOOH and the elimation rate
+  # x     - A vector with the days since THC 
+  #         ingestion
+  # log   - Logical; if TRUE, returns the 
+  #         log THCCOOH values instead
+  # Returns:
+  # The predicted log THCCOOH levels per each day.
+  
+  yhat = log( param[1] ) - param[2] * x
+  if ( !log ) yhat = exp( yhat )
+  
+  return( yhat )
+}
+
+# 2.2)
+mle_ed_tobit = function( param, dat ) {
+  # Purpose:
+  # Computes the negative of the summed log-likelihoods 
+  # for a tobit regression approach to fit an 
+  # exponential decay model with log-normal error.
+  # Arguments:
+  # param - The starting value, elimination rate, and the 
+  #         residual standard deviation parameters.
+  # dat   - A list with the days since THC ingestion, 
+  #         the THCCOOH levels, and the cut-off below 
+  #         which values are rounded down to 0.
+  # Returns:
+  # The negative of the summed log-likelihoods.
+  
+  # Extract data
+  x = dat$x # Independent variable
+  y = dat$y # Dependent variable
+  a = dat$a # Cut-off for censored data
+  
+  # Indicator function for censored data
+  I_a = y < a
+  y_star = y; y_star[ I_a ] = a
+  y_star = log( y_star )
+  
+  # Compute mean
+  mu = ed_model( param[1:2], x, log = T )
+  # Extract standard devation for residuals
+  sigma = param[3]
+  
+  # Carry out tobit regression
+  p1 = I_a * pnorm( ( y_star - mu )/sigma, log.p = T )
+  p2 = (1-I_a) * (dnorm( (y_star - mu)/sigma, log = T )- log( sigma ) )
+  sll = sum( p1 + p2 )
+  if ( is.na( sll ) ) sll = -Inf
+  
+  return( -sll )
+}
+
+# 2.3)
+estimate_ed_lm = function( x, y ) {
+  # Purpose:
+  # Fits an exponential decay model via 
+  # tobit log-linear regression.
+  # Arguments:
+  # x    - The independent variable
+  # y    - The dependent variable
+  # Returns:
+  # A list with the parameter estimates,
+  # the predicted THCCOOH levels, 
+  # and the residals.
+  
+  # Straightforward estimation of the 
+  # power law and exponential decay models 
+  # requires log transformations, so we 
+  # first check for zeroes in the dependent 
+  # variable
+  is_zero = y == 0
+  
+  # If there are no zero values, we can simply 
+  # use a log-linear model to estimate the 
+  # 3 parameters in the model
+  if ( !any( is_zero ) ) {
+    
+    lmf = lm( log( y ) ~ 1 + x )
+    est = c( coef( lmf ), sigma( lmf ) )
+    est[1] = exp( est[1] )
+    est[2] = -est[2]
+    
+  } else {
+    
+    # If there are zeros, we can treat them 
+    # as censored data (i.e., the actual 
+    # values are actually non-zero, but 
+    # any value less than a cut-off was 
+    # rounded down to zero). Therefore, 
+    # we can use tobit regression to 
+    # fit the log-linear model
+    
+    # First, we use the naive estimator 
+    # to determine the starting values 
+    # for the optimization routine
+    sel = y > 0
+    ne = lm( log( y[sel] ) ~ 1 + x[sel] )
+    st_val = c( coef( ne ), sigma( ne ) )
+    st_val[1] = exp( st_val[1] )
+    st_val[2] = -st_val[2]
+    
+    # Set up data to analyze
+    dat = list(
+      x = x,
+      y = y,
+      a = 1
+    )
+    # We can then use the tobit regression likelihood 
+    # to estimate the parameters of interest despite 
+    # the censored data
+    tbtf = tryCatch(
+      optim( st_val, mle_ed_tobit, dat = dat,
+             control = list( maxit = 1000 ) ),
+      error = function(e) NULL
+    )
+    
+    # If the MLE worked
+    if ( !is.null( tbtf ) ) {
+      
+      est = tbtf$par
+      
+    } else {
+      est = st_val
+      warning( 'Tobit regression failed' )
+    }
+    
+  }
+  names( est ) = c( 'Baseline', 'Elimination', 'Error' )
+  
+  # Generate predicted THCCOOH levels
+  pred = ed_model( est, x )
+  # Compute residuals
+  resid_val = y - pred
+  
+  return( list( est = est, 
+                x = x, 
+                pred = pred, 
+                resid = resid_val ) )
+  
+}
+
+# 2.4) 
+plot_decay = function( dat, new = T, estimate = T ) {
+  # Purpose:
+  # Plots the decay in THCCOOH and log THCCOOH levels 
+  # over days since ingestion.
+  # Arguments:
+  # dat      - A data frame with the Time, THCCOOH,
+  #            and ID variables. If there are 
+  #            multiple subjects, the average 
+  #            will also be plotted
+  # new      - Logical; if true, a new plotting 
+  #            pane is generated
+  # estimate - Logical; if true, the 
+  #            exponential decay model is fit 
+  #            to the data using a tobit regression 
+  #            approach.
+  
+  # Extract data
+  x = dat$Time
+  y = dat$THCCOOH
+  y_log = log( y )
+  id = dat$ID
+  Ns = length( unique( id ) )
+  
+  if ( Ns > 1 ) {
+    plt = dat %>% 
+      group_by( Time ) %>% 
+      summarise(
+        R = mean( THCCOOH )
+      )
+    plt2 = dat %>%
+      filter( THCCOOH > 0 ) %>% 
+      group_by( Time ) %>% 
+      summarise(
+        R = mean( log( THCCOOH ) )
+      )
+    
+  }
+  
+  if ( estimate ) {
+    est = estimate_ed_lm( x, y )
+    o = order( est$x )
+    x_est = est$x[o]
+    y_hat = est$pred[o]
+  }
+  
+  # Create two panes
+  if ( new ) x11( width = 12 )
+  layout( cbind( 1, 2 ) )
+  
+  ### Raw data
+  
+  # Create a blank plot
+  xl = c( -1, 35 )
+  yl = lowerUpper( 100, y )
+  yl[1] = -7.5
+  blankPlot( xl, yl )
+  
+  # Add observations
+  points( x, y, pch = 19, col = 'grey' )
+  
+  # Add mean
+  if ( Ns > 1 ) lines( plt$Time, plt$R, lwd = 2 )
+  # Add estimates
+  if ( estimate ) lines( x_est, y_hat, lwd = 2, col = 'blue' )
+  
+  # Add axes and labels
+  customAxes( xl, yl )
+  
+  # x-axis
+  axis( 1, seq( 0, 32, 4 ),
+        tick = F, line = -1, cex.axis = 1.25 )
+  mtext( 'Days since THC ingested',
+         side = 1, line = 2, cex = 1.25 )
+  
+  # y-axis
+  axis( 2, round( seq( 0, yl[2], length = 5 ) ),
+        tick = F, line = -1, cex.axis = 1.25 )
+  mtext( 'THCCOOH - ng/mL',
+         side = 2, line = 2, cex = 1.25 )
+  
+  ### Log-transformed data
+  
+  # Create a blank plot
+  sel = y_log > -Inf & y_log < Inf
+  yl = lowerUpper( 1, y_log[sel] )
+  blankPlot( xl, yl )
+  
+  horizLines( log(1), xl, lwd = 2, lty = 2, col = 'grey' )
+  
+  customAxes( xl, yl,
+              label = c( 'Days since THC ingestion', 'THCCOOH - log(ng/mL)' ),
+              axSz = 1.25 )
+  axis( 1, seq( 0, 32, 4 ),
+        tick = F, line = -1, cex.axis = 1.25 )
+  axis( 2, round( seq( yl[1], yl[2], length = 5 ), 1 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  
+  points( x, y_log, pch = 19 )
+  # Add mean
+  if ( Ns > 1 ) lines( plt2$Time, plt2$R, lwd = 2 )
+  # Add estimates
+  if ( estimate ) {
+    sel = log( y_hat ) > yl[1]
+    lines( x_est[sel], log( y_hat[sel] ), lwd = 2, col = 'blue' )
+  }
+  
+}
+
+
+# Determine subjects with sufficient data
+check = cd %>% 
+  group_by( ID ) %>% 
+  summarize(
+    # Number of observations
+    No = length( ID ),
+    # Number of zeros
+    Nz = sum( THCCOOH == 0 )
+  )
+# Non-zero values
+check$Nnz = 
+  check$No - check$Nz
+check$Nog1 = 
+  check$No > 1
+check$Nnzg1 = 
+  check$Nnz > 1
+
+# Take subjects with 2 or more non-zero observations
+dtbf = cd %>% 
+  filter( ID %in% check$ID[ check$Nog1 & check$Nnzg1 ] )
+subj = unique( dtbf$ID )
+Ns = length( subj )
+
+all_est = matrix( NA, Ns, 3 )
+all_output = c()
+for ( s in 1:Ns ) all_output = c( all_output, list(NULL) )
+
+# Measure run time
+tick()
+# Initialize progress bar
+pb = txtProgressBar( min = 0, max = Ns, style = 3 )
+for ( s in 1:Ns ) {
+  
+  sel = dtbf$ID == subj[s]
+  est = estimate_ed_lm( dtbf$Time[sel],
+                        dtbf$THCCOOH[sel] )
+  chk = sum( dtbf$THCCOOH[sel] > 0 )
+  if ( chk == 2 ) est$est[3] = 0.0
+  all_est[s,] = est$est
+  all_output[[s]] = list( est )
+  
+  # Update the progress bar
+  setTxtProgressBar(pb,s)
+}
+close(pb)
+tock()
+print( run_time )
+
+# Data imputation for zeros
+for ( s in 1:Ns ) {
+  sel = dtbf$ID == subj[s]
+  is_zero = dtbf$THCCOOH[sel] == 0
+  if ( any( is_zero ) ) {
+    dtbf$THCCOOH[sel][is_zero] = 
+      all_output[[s]][[1]][['pred']][is_zero]
+  }
+}
+
+# Convert to data frame
+all_est = data.frame(
+  ID = subj,
+  Start_point = all_est[,1],
+  Log_start_point = log( all_est[,1] ), 
+  Elimination_rate = all_est[,2],
+  Residual_SD = all_est[,3],
+  stringsAsFactors = F
+)
+
+### Set up primary variables
+
+dtbf$log_THCCOOH = 
+  log( dtbf$THCCOOH )
+dtbf$Start_point = 1
+dtbf$Elimination_rate = -dtbf$Time
+
+### Set up predictors for start point
+
+dtbf$Sex.SP = dtbf$Sex
+
+# Standardize predictors
+dtbf$zBMI.SP = 
+  my_standardize( dtbf$BMI )
+dtbf$zYears_of_MJ_use.SP = 
+  my_standardize( dtbf$Years_of_MJ_use )
+dtbf$zLevel_of_MJ_use.SP = 
+  my_standardize( dtbf$Level_of_MJ_use )
+
+### Set up predictors for elimination rate
+
+dtbf$Sex.ER = dtbf$Sex * dtbf$Time
+
+# Standardize predictors
+dtbf$zBMI.ER = 
+  dtbf$zBMI * dtbf$Time
+dtbf$zYears_of_MJ_use.ER = 
+  dtbf$zYears_of_MJ_use * dtbf$Time
+dtbf$zLevel_of_MJ_use.ER = 
+  dtbf$zLevel_of_MJ_use * dtbf$Time
+
+# Create table with the raw versus data imputation values
+tmp = cd[ cd$ID %in% dtbf$ID, ]
+tbl = tmp %>% 
+  arrange( ID, Time ) %>% 
+  select( ID, Time, Visit_number, THCCOOH )
+tmp2 = dtbf %>% arrange( ID, Time )
+# Check that ID and time variables are aligned correctly
+# all( tbl$ID == tmp2$ID & tbl$Time == tmp2$Time )
+tbl$Tobit = tmp2$THCCOOH
+colnames( tbl ) = c( 'ID', 'Days since last use', 'Visit', 'Original', 'Tobit' )
+
+# Add in rows for subjects 10028 and 10076
+tmp = tbl[1:2,]
+tmp$ID = c( '10028', '10076' )
+tmp$Visit = c( 4, 6 )
+for ( i in 1:2 ) {
+  sel = all_dat$ID == tmp$ID[i] & 
+    all_dat$Visit_number == tmp$Visit[i]
+  tmp$`Days since last use`[i]= all_dat$Time[sel] + 
+    all_dat$Recency_of_MJ_use[sel]
+  tmp$Original[i] = all_dat$THCCOOH[sel]
+}
+sel = all_est$ID %in% tmp$ID
+tmp$Tobit = exp( all_est$Log_start_point[sel] - 
+                   all_est$Elimination_rate[sel] * tmp$`Days since last use` )
+tmp$Tobit[2] = tmp$Original[2]
+tbl = rbind( tbl, tmp )
+
+# Sort data
+tbl = tbl %>% 
+  arrange( ID, Visit )
+
+tbl$Tobit = round( tbl$Tobit, 1 )
+tbl$Original = round( tbl$Original, 1 )
+sel = tbl$Original == 0
+# Note which values were censored
+tbl$Original[sel] = ' < 5'
+
+b("
+# Save results
+setwd( proj_dir )
+setwd( 'Documents' )
+write.table( tbl,
+             row.names = F,
+             quote = F,
+             sep = ',',
+             file = 'Imputed_values.csv' )
+")
+setwd( R_dir )
+
+# Clean up workspace
+rm( tmp, tbl, sel, tmp2 )
+
+###
+###
+###
+
+### Set up primary variables
+
+dtbf$log_THCCOOH = 
+  log( dtbf$THCCOOH )
+dtbf$Start_point = 1
+dtbf$Elimination_rate = -dtbf$Time
+
+### Set up predictors for start point
+
+dtbf$Sex.SP = dtbf$Sex
+dtbf$Nicotine_use.SP = dtbf$Nicotine_use
+dtbf$Race.SP = dtbf$Race
+
+# Standardize predictors
+dtbf$zBMI.SP = 
+  my_standardize( dtbf$BMI )
+dtbf$zYears_of_MJ_use.SP = 
+  my_standardize( dtbf$Years_of_MJ_use )
+dtbf$zLevel_of_MJ_use.SP = 
+  my_standardize( dtbf$Level_of_MJ_use )
+dtbf$zCUDIT.SP = 
+  my_standardize( dtbf$CUDIT.SS )
+
+### Set up predictors for elimination rate
+
+dtbf$Sex.ER = dtbf$Sex * dtbf$Time
+dtbf$Nicotine_use.ER = dtbf$Nicotine_use * dtbf$Time
+dtbf$Race.ER = dtbf$Race * dtbf$Time
+
+# Standardize predictors
+dtbf$zBMI.ER = 
+  dtbf$zBMI.SP * dtbf$Time
+dtbf$zYears_of_MJ_use.ER = 
+  dtbf$zYears_of_MJ_use.SP * dtbf$Time
+dtbf$zLevel_of_MJ_use.ER = 
+  dtbf$zLevel_of_MJ_use.SP * dtbf$Time
+dtbf$zCUDIT.ER = 
+  dtbf$zCUDIT.SP * dtbf$Time
+
+all_rng_s = seq( 2000, 3000, 1 )
+pb = txtProgressBar( min = 0, max = length( all_rng_s ), style = 3 )
+m = matrix = matrix( NA, length( all_rng_s ), 5 )
+
+# 2697
+
+for ( rng_s in 1:length( all_rng_s ) ) {
+  
+  # Specify seeds for randomization 
+  # for reproducibility
+  rng_seeds = c(
+    Splits = all_rng_s[ rng_s ],
+    F1 = 4391,
+    F2 = 7849,
+    F3 = 1623,
+    F4 = 1129
+  )
+  
+  # Outer fold uses 4-fold cross validation
+  K = 4
+  # Use function from R package 'loo' to 
+  # randomly split subjects into 
+  # 4 subsets
+  subj = unique( dtbf$ID )
+  set.seed( rng_seeds[1] ) # For reproducibility
+  four_fold = loo::kfold_split_random( 
+    K, 
+    N = length( unique( dtbf$ID ) ) )
+  
+  tst = list(
+    Fold_1 = list( NULL ),
+    Fold_2 = list( NULL ),
+    Fold_3 = list( NULL ),
+    Fold_4 = list( NULL )
+  )
+  
+  n_obs = dtbf %>% 
+    group_by( ID ) %>% 
+    summarize(
+      No = length( ID )
+    )
+  
+  vrb = c( 
+    'Start_point', 
+    'Elimination_rate',
+    # Predictors (Starting point)
+    'Sex.SP', 
+    'zBMI.SP', 
+    'zYears_of_MJ_use.SP',
+    'zLevel_of_MJ_use.SP',
+    'Race.SP', 
+    # Predictors (Elimination rate)
+    'Sex.ER', 
+    'zBMI.ER',
+    'zYears_of_MJ_use.ER', 
+    'zLevel_of_MJ_use.ER',
+    'Race.ER' )
+  
+  frm = paste(
+    'log_THCCOOH ~ 0 +',
+    paste( vrb, collapse = ' + ' ),
+    '+ (1 + Elimination_rate|ID)' )
+  vrb = c( vrb, 'Elimination_rate', 'ID', 'log_THCCOOH' )
+  
+  check = 
+    apply( dtbf[ four_fold == 2, vrb ], 1, 
+           function(x) any( is.na( x ) ) )
+  
+  for ( i in 1:4 ) {
+    
+    sel = dtbf$ID %in% n_obs$ID[ four_fold == i ]
+    
+    tst[[i]] = lme4::lmer( as.formula( frm ), data = dtbf[ sel, vrb ] )
+  }
+  
+  f = function( x ) {
+    sm = summary( x )
+    out = sm$coefficients[ 'zLevel_of_MJ_use.SP', ]
+    return( out )
+  }
+  chk = sapply( tst,f )
+  m[ rng_s, 2:5] = chk[3,]
+  m[ rng_s, 1 ] = all_rng_s[rng_s]
+  
+  if ( sum( chk[3,] > 4 ) == 3 ) break()
+  
+  b("
+  f = function( x, cl = 3 ) {
+    sm = summary( x )
+    out = round( sm$coefficients[ , cl ], 1 )
+    return( out )
+  }
+  sapply( tst,f )
+  ")
+  
+  setTxtProgressBar(pb,rng_s)
+  
+}
+close( pb )
+
+setwd( R_dir )
+
+

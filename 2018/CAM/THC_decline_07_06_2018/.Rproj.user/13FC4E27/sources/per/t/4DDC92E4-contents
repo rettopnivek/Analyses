@@ -3,7 +3,7 @@
 # email: kevin.w.potter@gmail.com
 # Please email me directly if you 
 # have any questions or comments
-# Last updated 2018-11-13
+# Last updated 2018-10-16
 
 # Table of contents
 # 1) Initial setup
@@ -41,14 +41,38 @@ setwd( dat_dir )
 setwd( 'Original_files' )
 
 # Read in .csv file
-all_files = dir()
-fname = all_files[ grepl( 'Combined_data_', all_files ) ]
 raw_dat = read.csv( 
-  file = fname,
+  file = 'CombinedTHC_10.14.18.csv',
   header = T,
   stringsAsFactors = FALSE )
-# Clean up workspace
-rm( all_files, fname )
+
+# 2.1) Fix data entry issues
+
+sel = raw_dat$id == '10053' & raw_dat$visit_number == 3
+# Original incorrect values
+# date = 6/9/16
+# days_since_baseline = 1
+# Corrected values
+raw_dat$date[sel] = "6/10/2016"
+raw_dat$days_since_baseline[sel] = 2
+
+sel = raw_dat$id == '10051' & raw_dat$visit_number == 1
+# Original incorrect values
+# date = 4/28/16
+# Corrected values
+raw_dat$date[sel] = "4/27/16"
+
+sel = raw_dat$id == '10051' & raw_dat$visit_number == 2
+# Original incorrect values
+# days_since_baseline = 0
+# Corrected values
+raw_dat$days_since_baseline[sel] = 1
+
+sel = raw_dat$id == '10051' & raw_dat$visit_number == 3
+# Original incorrect values
+# days_since_baseline = 1
+# Corrected values
+raw_dat$days_since_baseline[sel] = 2
 
 ###
 ### 3) Convert to data frame for analyses
@@ -144,19 +168,6 @@ attributes( all_dat$Years_of_MJ_use ) = list(
 )
 
 # Recency of cannabis use (0 - 2 days)
-# Make sure subjects only have one initial value for 
-# self-report on recency of use
-# Loop over subjects
-subj = unique( raw_dat$id )
-for ( s in 1:length( subj ) ) {
-  sel = raw_dat$id == subj[s]
-  x = raw_dat$tlfb_mj_8[sel]
-  x = unique( x[ !is.na( x ) ] )
-  raw_dat$tlfb_mj_8[sel] = NA
-  raw_dat$tlfb_mj_8[sel][1] = x
-}
-# Clean up workspace
-rm( subj, s, sel, x )
 all_dat$Recency_of_MJ_use = quick_proprogate( 'tlfb_mj_8' )
 attributes( all_dat$Recency_of_MJ_use ) = list(
   Units = 'Number of days since last use of MJ'
@@ -185,46 +196,6 @@ attributes( all_dat$Nicotine_use ) = list(
     Value = c(-1,1),
     stringsAsFactors = F ) )
 
-# Dipstick test
-all_dat$Dipstick = raw_dat$thc_qual
-attributes( all_dat$Dipstick ) = list(
-  Coding = data.frame(
-    Dipstick = c( 'Positive (>50)', 'Negative(<50)' ),
-    Value = c(1,0),
-    stringsAsFactors = F ) )
-
-# Positive test based on federal guidelines
-all_dat$Positive_test_fed = 0
-attributes( all_dat$Positive_test_fed ) = list(
-  Coding = data.frame(
-    Dipstick = c( 'Positive (Dipstick and THCCOOH<15)', 
-                  'Negative (No dipstick or THCCOOH>15)' ),
-    Value = c(1,0),
-    stringsAsFactors = F ) )
-# Define results based on federal guidelines
-# Positive tests need positive dipstick and 
-# unadjusted THC above 15
-sel = raw_dat$thc_qual == 1 & 
-  as.numeric( raw_dat$ua_conf_result ) > 15
-sel = sel & !is.na( sel )
-all_dat$Positive_test_fed[sel] = 1
-all_dat$Positive_test_fed[ is.na( raw_dat$thc_qual ) ] = NA
-
-# Age when subject first used MJ
-all_dat$Age_first_used_MJ = quick_proprogate( 'tlfb_mj_2' )
-attributes( all_dat$Age_first_used_MJ ) = list(
-  Units = 'Years'
-)
-
-# Urine pH
-all_dat$Urine_pH = raw_dat$ua_thc_ph
-# Urine specific gravity
-all_dat$Urine_specific_gravity = raw_dat$ua_thc_grav
-
-# THCCOOH no creatinine adjustment
-all_dat$THCCOOH_no_CN = 
-  as.numeric( raw_dat$ua_conf_result )
-
 # 3.3.3) Primary variables of interest
 
 # THCCOOH level (creatinine adjusted)
@@ -234,17 +205,9 @@ attributes( all_dat$THCCOOH ) = list(
 )
 
 # Time since baseline measurement
-
-all_dat$Days_from_baseline = 
-  raw_dat$days_since_baseline
-attributes( all_dat$Days_from_baseline ) = list(
+all_dat$Time = raw_dat$days_since_baseline
+attributes( all_dat$THCCOOH ) = list(
   Units = 'Days since first baseline measurement'
-)
-
-all_dat$Time = all_dat$Days_from_baseline + 
-  all_dat$Recency_of_MJ_use
-attributes( all_dat$Time ) = list(
-  Units = 'Days since last estimated use of MJ'
 )
 
 # Visit number
@@ -255,6 +218,13 @@ all_dat$Withdrawal_intensity = raw_dat$cws_intensity
 all_dat$Withdrawal_negative_impact = raw_dat$cws_negimpact
 
 # 3.3.4) Data issues
+
+# Correct data entry issues for subjects 
+# with IDs 10051 and 10053:
+sel = all_dat$ID == '10051'
+all_dat$Time[sel][1:3] = 0:2
+sel = all_dat$ID == '10053'
+all_dat$Time[sel][1:3] = 0:2
 
 # Define function that determines different types of 
 # data issues for each row of the data set
@@ -275,31 +245,23 @@ check_for_data_issues = function( r ) {
   
   # Flag observations with THC values over the readout ceiling 
   # of the instrument
-  if ( !is.na( raw_dat$thc_500_flag[r] ) ) {
-    if ( raw_dat$thc_500_flag[r] ) out = f(out,'1')
-  }
+  if ( !is.na( raw_dat$thc_500_flag[r] ) ) out = f(out,'1')
   
   # Flag subjects who did not recently use THC
-  if ( !is.na( raw_dat$thc_recency_flag[r] ) ) {
-    if ( raw_dat$thc_recency_flag[r] ) out = f(out,'2')
-  }
+  if ( !is.na( raw_dat$thc_recency_flag[r] ) ) out = f(out,'2')
   
   # Check for missing data over variables
   
   # Dependent variables
   if ( is.na( all_dat$THCCOOH[r] ) ) out = f(out,'3')
-  #if ( is.na( all_dat$Withdrawal_intensity[r] ) ) out = f(out,'4')
-  #if ( is.na( all_dat$Withdrawal_negative_impact[r] ) ) out = f(out,'5')
+  if ( is.na( all_dat$Withdrawal_intensity[r] ) ) out = f(out,'4')
+  if ( is.na( all_dat$Withdrawal_negative_impact[r] ) ) out = f(out,'5')
   
   # Independent variables
   if ( is.na( all_dat$Time[r] ) ) out = f(out,'6')
   
   # Flag subject who did not appear to maintain abstinence
-  if ( raw_dat$id[r] %in% 
-       c( '10016',
-          '060_COMM',
-          '076_COMM',
-          '10063' ) ) out = f(out,'7')
+  if ( raw_dat$id[r] == 10063 ) out = f(out,'7')
   
   return( out )
 }
@@ -384,21 +346,30 @@ rm( sel, s, sel1, sel2, subj, inc, inc2, di, i )
 ### 4) Extract CUDIT and CWS scores
 ###
 
+setwd( dat_dir )
+setwd( 'Original_files' )
+
+inv_dat = read.csv( file = "CombinedTHC_Updated_07252018 (002).csv", 
+                    header = T,
+                    stringsAsFactors = F )
+
 # Extract the CUDIT scores
-sel = paste( 'cudit', 1:8, sep = '_' )
+sel = grep( 'cudit', colnames( inv_dat ) )
+tmp = inv_dat[,sel]
+colnames( tmp ) = paste( 'CUDIT', 1:8, sep = '.' )
 init = matrix( NA, nrow( all_dat ), 8 )
-colnames( init ) = paste( 'CUDIT', 1:8, sep = '.' )
+colnames( init ) = colnames( tmp )
 all_dat = cbind( all_dat, init )
 
-for ( i in 1:ncol( init ) ) {
-  
-  all_dat[[ colnames( init )[i] ]] = 
-    quick_proprogate( sel[i] )
-  
-}
 
-# Clean up workspace
-rm( sel, init, i )
+subset = all_dat$ID %in% inv_dat$id
+align = rep( NA, nrow( inv_dat ) )
+for ( i in 1:nrow( inv_dat ) ) {
+  align[i] = which( inv_dat$id == all_dat$ID[subset][i] & 
+                      inv_dat$visit_number == 
+                      all_dat$Visit_number[subset][i] )
+}
+all_dat[subset,grep('CUDIT',colnames(all_dat))] = tmp[align,]
 
 ###
 ### 5) Save results
@@ -406,9 +377,6 @@ rm( sel, init, i )
 
 setwd( dat_dir )
 save( raw_dat, all_dat, file = 'THC_decay.RData' )
-
-# Clean up workspace
-rm( check_for_data_issues, quick_proprogate )
 
 setwd( R_dir )
 

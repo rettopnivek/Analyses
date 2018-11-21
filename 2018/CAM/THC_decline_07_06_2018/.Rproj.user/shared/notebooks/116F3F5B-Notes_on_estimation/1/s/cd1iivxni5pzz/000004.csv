@@ -1,2 +1,0 @@
-"0","lines( sim_dat$Time, sim_dat$log_THCCOOH,"
-"0","       lwd = 2, col = 'blue' )"

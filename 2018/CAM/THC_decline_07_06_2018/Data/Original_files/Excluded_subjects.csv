@@ -1,18 +1,88 @@
-Count,Excluded_subjects,Issue
-1,10011,Only one observation with detectable levels
-2,10021,Only one observation with detectable levels
-3,10031,Only one observation with detectable levels
-4,057_COMM,Did not use THC recently
-5,060_COMM,Did not use THC recently
-6,071_COMM,Did not use THC recently
-7,076_COMM,Did not use THC recently
-8,10017,Did not use THC recently
-9,10029,Did not use THC recently
-10,10033,Did not use THC recently
-11,10036,Did not use THC recently
-12,20018,Did not use THC recently
-13,20011,Did not use THC recently
-14,10060,Six or more missing observations
-15,019_COMM,Six or more missing observations
-16,10016,Six or more missing observations
-17,10063,Did not maintain abstinence
+ID,Issues
+10060,Six or more missing observations
+019_COMM,Six or more missing observations
+10031,Only one observation within detectable levels
+10021,Only one observation within detectable levels
+10011,Only one observation within detectable levels
+20018,Did not use THC recently
+20011,Did not use THC recently
+10036,Did not use THC recently
+10033,Did not use THC recently
+10029,Did not use THC recently
+10017,Did not use THC recently
+071_COMM,Did not use THC recently
+057_COMM,Did not use THC recently
+10063,Did not maintain abstinence
+060_COMM,Did not maintain abstinence
+10016,Cannot model exponential decay
+076_COMM,Cannot model exponential decay
+20024,No issues
+20014,No issues
+20008,No issues
+20007,No issues
+20002,No issues
+20001,No issues
+10076,No issues
+10075,No issues
+10074,No issues
+10071,No issues
+10070,No issues
+10067,No issues
+10066,No issues
+10062,No issues
+10061,No issues
+10056,No issues
+10055,No issues
+10053,No issues
+10051,No issues
+10045,No issues
+10038,No issues
+10037,No issues
+10035,No issues
+10034,No issues
+10032,No issues
+10030,No issues
+10028,No issues
+10027,No issues
+10026,No issues
+10025,No issues
+10024,No issues
+10023,No issues
+10022,No issues
+10020,No issues
+10019,No issues
+10018,No issues
+10015,No issues
+10014,No issues
+10013,No issues
+10012,No issues
+10010,No issues
+10009,No issues
+10008,No issues
+10007,No issues
+10006,No issues
+10005,No issues
+10004,No issues
+10003,No issues
+10002,No issues
+10001,No issues
+099_COMM,No issues
+096_COMM,No issues
+092_COMM,No issues
+086_COMM,No issues
+084_COMM,No issues
+082_COMM,No issues
+073_COMM,No issues
+065_COMM,No issues
+058_WEST,No issues
+045_WEST,No issues
+042_COMM,No issues
+040_COMM,No issues
+033_COMM,No issues
+031_COMM,No issues
+030_COMM,No issues
+029_COMM,No issues
+013_COMM,No issues
+012_COMM,No issues
+006_COMM,No issues
+003_COMM,No issues

@@ -1,4 +1,0 @@
-"0","clr = rep( 'black', nrow( sim_dat ) )"
-"0","clr[ sim_dat$log_THCCOOH.obs < log( cut_off ) ] = 'grey'"
-"0","points( sim_dat$Time, sim_dat$log_THCCOOH.obs, "
-"0","        pch = 19, col = clr )"

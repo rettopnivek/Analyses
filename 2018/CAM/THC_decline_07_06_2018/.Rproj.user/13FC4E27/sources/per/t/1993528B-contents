@@ -3,7 +3,7 @@
 # email: kevin.w.potter@gmail.com
 # Please email me directly if you 
 # have any questions or comments
-# Last updated 2018-08-16
+# Last updated 2018-10-16
 
 # Table of contents
 # 1) Initial setup
@@ -28,10 +28,12 @@
 #   8.3) Half-life
 #   8.4) Window of detection
 #   8.5) Starting level of CN-THCCOOH
-#   8.6) Figure 1
-#   8.7) Figure 2
-#   8.8) Figure S.1
-#   8.9) Figure S.2
+#   8.6) Correlations between dip-stick test and PK parameters
+#   8.7) Figure 1
+#   8.8) Figure 2
+#   8.9) Figure S.1
+#   8.10) Figure S.2
+# 9) CUDIT and withdrawal variables
 
 ###
 ### 1) Initial setup
@@ -44,9 +46,10 @@ run_code = c(
   F, # 1. Plot of THCCOOH by day
   T, # 2. Data imputation based on tobit regression
   F, # 3. Bayesian population-level model (example)
-  F, # 4. Nested cross-validation approach
+  T, # 4. Nested cross-validation approach
   F, # 5. Best-fitting model
-  T  # 6. Model results
+  F, # 6. Model results
+  F  # 7. CUDIT and withdrawal variables
 )
 
 # Indicate whether figures should be saved as a PDF file
@@ -62,6 +65,9 @@ my_package_load( 'dplyr' )
 
 # Package for Bayesian estimation
 my_package_load( 'brms' )
+
+# Package for estimating bayes factors
+my_package_load( 'BayesFactor' )
 
 # Make sure 'loo' package is installed
 # install.packages( 'loo' )
@@ -543,11 +549,13 @@ estimate_ed_brms = function( dtbf,
                 zBMI.SP + 
                 zYears_of_MJ_use.SP + 
                 zLevel_of_MJ_use.SP + 
+                Race.SP + 
                 # Predictors for elimination rate
                 Sex.ER + 
                 zBMI.ER + 
                 zYears_of_MJ_use.ER + 
-                zLevel_of_MJ_use.ER,
+                zLevel_of_MJ_use.ER + 
+                Race.ER,
               nl = TRUE )
     
     mf = brm( frm, 
@@ -560,7 +568,7 @@ estimate_ed_brms = function( dtbf,
               cores = 4,
               thin = thin, 
               seed = seed, 
-              control = list( adapt_delta = 0.9995,
+              control = list( adapt_delta = 0.9999,
                               max_treedepth = 15 ) )
     
   }
@@ -741,6 +749,57 @@ if ( run_code[2] ) {
     dtbf$zYears_of_MJ_use * dtbf$Time
   dtbf$zLevel_of_MJ_use.ER = 
     dtbf$zLevel_of_MJ_use * dtbf$Time
+  
+  # Create table with the raw versus data imputation values
+  tmp = cd[ cd$ID %in% dtbf$ID, ]
+  tbl = tmp %>% 
+    arrange( ID, Time ) %>% 
+    select( ID, Time, Visit_number, THCCOOH )
+  tmp2 = dtbf %>% arrange( ID, Time )
+  # Check that ID and time variables are aligned correctly
+  # all( tbl$ID == tmp2$ID & tbl$Time == tmp2$Time )
+  tbl$Tobit = tmp2$THCCOOH
+  colnames( tbl ) = c( 'ID', 'Days since last use', 'Visit', 'Original', 'Tobit' )
+  
+  # Add in rows for subjects 10028 and 10076
+  tmp = tbl[1:2,]
+  tmp$ID = c( '10028', '10076' )
+  tmp$Visit = c( 4, 6 )
+  for ( i in 1:2 ) {
+    sel = all_dat$ID == tmp$ID[i] & 
+      all_dat$Visit_number == tmp$Visit[i]
+    tmp$`Days since last use`[i]= all_dat$Time[sel] + 
+      all_dat$Recency_of_MJ_use[sel]
+    tmp$Original[i] = all_dat$THCCOOH[sel]
+  }
+  sel = all_est$ID %in% tmp$ID
+  tmp$Tobit = exp( all_est$Log_start_point[sel] - 
+                     all_est$Elimination_rate[sel] * tmp$`Days since last use` )
+  tmp$Tobit[2] = tmp$Original[2]
+  tbl = rbind( tbl, tmp )
+  
+  # Sort data
+  tbl = tbl %>% 
+    arrange( ID, Visit )
+  
+  tbl$Tobit = round( tbl$Tobit, 1 )
+  tbl$Original = round( tbl$Original, 1 )
+  sel = tbl$Original == 0
+  # Note which values were censored
+  tbl$Original[sel] = ' < 5'
+
+  # Save results
+  setwd( proj_dir )
+  setwd( 'Documents' )
+  write.table( tbl,
+               row.names = F,
+               quote = F,
+               sep = ',',
+               file = 'Imputed_values.csv' )
+  setwd( R_dir )
+  
+  # Clean up workspace
+  rm( tmp, tbl, sel, tmp2 )
   
 }
 
@@ -1025,12 +1084,14 @@ if ( all( run_code[c(2,4)] ) ) {
   # Specify seeds for randomization 
   # for reproducibility
   rng_seeds = c(
-    Splits = 3901,
-    F1 = 9931,
-    F2 = 8849,
-    F3 = 1223,
-    F4 = 9929
+    Splits = 2697,
+    F1 = 9832,
+    F2 = 7849,
+    F3 = 1623,
+    F4 = 1129
   )
+  
+  # 2697
   
   ### Set up primary variables
   
@@ -1042,6 +1103,8 @@ if ( all( run_code[c(2,4)] ) ) {
   ### Set up predictors for start point
   
   dtbf$Sex.SP = dtbf$Sex
+  dtbf$Nicotine_use.SP = dtbf$Nicotine_use
+  dtbf$Race.SP = dtbf$Race
   
   # Standardize predictors
   dtbf$zBMI.SP = 
@@ -1056,16 +1119,18 @@ if ( all( run_code[c(2,4)] ) ) {
   ### Set up predictors for elimination rate
   
   dtbf$Sex.ER = dtbf$Sex * dtbf$Time
+  dtbf$Nicotine_use.ER = dtbf$Nicotine_use * dtbf$Time
+  dtbf$Race.ER = dtbf$Race * dtbf$Time
   
   # Standardize predictors
   dtbf$zBMI.ER = 
-    dtbf$zBMI * dtbf$Time
+    dtbf$zBMI.SP * dtbf$Time
   dtbf$zYears_of_MJ_use.ER = 
-    dtbf$zYears_of_MJ_use * dtbf$Time
+    dtbf$zYears_of_MJ_use.SP * dtbf$Time
   dtbf$zLevel_of_MJ_use.ER = 
-    dtbf$zLevel_of_MJ_use * dtbf$Time
+    dtbf$zLevel_of_MJ_use.SP * dtbf$Time
   dtbf$zCUDIT.ER = 
-    my_standardize( dtbf$CUDIT.SS )
+    dtbf$zCUDIT.SP * dtbf$Time
   
   # Outer fold uses 4-fold cross validation
   K = 4
@@ -1151,7 +1216,9 @@ if ( all( run_code[c(2,4)] ) ) {
                             'Measurement_error' ) )
     
     # Extract significant predictors
-    which_sig = which( res1$X.p_value[-val] < .05 )
+    # Sampling error around .05
+    # qbinom( c( .025, .975 ), 10000, .05 )/10000
+    which_sig = which( res1$X.p_value[-val] < .0543 )
     
     ### Model 2 - Significant predictors only
     
@@ -1231,7 +1298,7 @@ if ( all( run_code[c(2,4)] ) ) {
   
   # Save results
   setwd( dat_dir )
-  save( output, Half_life_var, 
+  save( output, dtbf, 
         file = '4_fold_cross_validation_results.RData' )
   setwd( R_dir )
 }
@@ -1288,16 +1355,12 @@ if ( run_code[5] ) {
   bfm = estimate_ed_brms( dtbf, cvrts,
                           algorithm = algorithm )
   
-  # Save posterior estimates
-  setwd( dat_dir )
-  save( bfm, dtbf, param, which_coef, algorithm, cvrts,
-        file = 'Best_fitting_model.RData' )
-  setwd( R_dir )
-  
   # Check subject-level fits
+  setwd( fig_dir )
+  pdf( 'Individual_fits.pdf' )
   for ( i in 1:ceiling( Ns/9 ) ) {
     
-    x11()
+    # x11()
     ind = 1:9 + 9 * (i-1)
     if ( max( ind ) > Ns ) ind = min(ind):Ns
     conditions = data.frame( ID = unique(dtbf$ID)[ind], stringsAsFactors = F )
@@ -1309,6 +1372,32 @@ if ( run_code[5] ) {
     plot( Fit_by_subject, nrow = 3, ncol = 3, points = TRUE)
     
   }
+  dev.off()
+  
+  # Model with all predictors
+  
+  # Estimation settings
+  algorithm_fm = list(
+    wup = 1000,
+    d_iter = 10000/4,
+    thin = 1,
+    seed = 9348
+  )
+  
+  # Use horseshoe prior
+  cvrts_fm = list(
+    SP = NULL,
+    ER = NULL
+  )
+  fm = estimate_ed_brms( dtbf, cvrts_fm,
+                         algorithm = algorithm_fm,
+                         horseshoe = T )
+  
+  # Save posterior estimates
+  setwd( dat_dir )
+  save( bfm, fm, dtbf, param, which_coef, algorithm, cvrts,
+        file = 'Best_fitting_model.RData' )
+  setwd( R_dir )
   
 }
 
@@ -1349,6 +1438,7 @@ if ( run_code[6] ) {
   
   # Summarize results
   b('
+  # Best-fitting model
   cur_res = extract_brm_res( bfm$model_fit )
   row.names( cur_res ) = 1:nrow( cur_res )
   cur_res = cbind( cur_res[,1], 
@@ -1359,6 +1449,18 @@ if ( run_code[6] ) {
     "Effect_size", "SD", "Lower_CI_95", "Upper_CI_95",
     "p_value" )
   print( cur_res )
+  
+  # Full model
+  cur_res = extract_brm_res( fm$model_fit )
+  row.names( cur_res ) = 1:nrow( cur_res )
+    cur_res = cbind( cur_res[,1], 
+    round( cur_res[,c(-1,-6)], 2 ),
+    round( cur_res[,6], 3 ) )
+    colnames( cur_res ) = c(
+    "Variable",
+    "Effect_size", "SD", "Lower_CI_95", "Upper_CI_95",
+    "p_value" )
+    print( cur_res )
   ')
   
   # Extract posterior estimates for population-level 
@@ -1415,12 +1517,126 @@ if ( run_code[6] ) {
       mean( ln_m( x, post[,'sd_ID__Start_point'] ) ) ) ) )
   )
   
+  # 8.6) Correlations between dip-stick test and PK parameters
+  
+  # Load in dip-stick test results per visit
+  setwd( dat_dir )
+  setwd( 'Original_files' )
+  qd = read.csv(
+    file = 'Qualitative THC Dataset.csv',
+    header = T,
+    stringsAsFactors = F)
+  # Add day, starting point estimates, and 
+  # elimination rate to results
+  subjects = unique( qd$id )
+  tmp = all_dat[ all_dat$ID %in% subjects, ]
+  tmp = tmp %>% arrange( ID, Visit_number )
+  qd$Time = NA
+  qd$SP = NA
+  qd$ER = NA
+  for ( i in 1:nrow( qd ) ) {
+    sel = tmp$ID == qd$id[i] & 
+      tmp$Visit_number == qd$visit_number[i]
+    qd$Time[i] = tmp$Time[sel]
+    sel = grep( qd$id[i], names( sp ) )
+    qd$SP[i] = sp[sel]
+    qd$ER[i] = er[sel]
+  }
+  # Function to compute the last day with a positive result 
+  # and the first day with a negative result
+  f = function( Test, Time, positive = T ) {
+    
+    # Initialize output
+    out = NA
+    
+    # Check for missing values
+    no_na = !is.na( Test ) & !is.na( Time )
+    if ( any( no_na ) ) {
+      
+      # Last day with positive result
+      if ( positive ) {
+        
+        pos = which( Test[no_na] == 'POS' )
+        if ( length( pos ) > 0 ) {
+          pos = max( pos )
+          out = Time[no_na][ pos ]
+          
+        }
+      # First day with negative result
+      } else {
+        
+        pos = which( Test[no_na] == 'NEG' )
+        if ( length( pos ) > 0 ) {
+          pos = min( pos )
+          out = Time[no_na][ pos ]
+        }
+        
+      }
+      
+    }
+    
+    return( out )
+  }
+  
+  # Compute statistics per subject
+  val = qd %>% 
+    group_by( id ) %>% 
+    summarize(
+      LPD = f( thc_qual_1, Time ),
+      FND = f( thc_qual_1, Time, positive = F ),
+      SP = unique( SP ),
+      ER = unique( ER )
+    )
+  
+  # Define function to compute posterior p-values 
+  # for bivariate correlation
+  my_cor = function( x, y ) {
+    
+    no_na = !is.na( x ) & !is.na( y )
+    R = correlationBF( x[no_na], y[no_na] )
+    post = posterior( R, iterations = 10000 )
+    
+    out = list(
+      R = mean( post ),
+      p.value = mean( post < 0 )
+    )
+    
+    return( out )
+  }
+  
+  DV = c( 'LPD', 'FND' )
+  IV = c( 'SP', 'ER' )
+  
+  cor_results = data.frame(
+    DV = c( rep( DV, each = 2 ), DV[1] ),
+    IV = c( rep( IV, 2 ), DV[2] ),
+    R = NA,
+    p_val = NA,
+    stringsAsFactors = F
+  )
+  
+  inc = 1
+  for ( dv in 1:length( DV ) ) {
+    for ( iv in 1:length( IV ) ) {
+      tst = my_cor( val[[IV[iv]]], val[[DV[dv]]] )
+      cor_results$R[inc] = round( tst$R, 2 )
+      cor_results$p_val[inc] = round( tst$p.value, 3 )
+      if ( cor_results$p_val[inc] > .5 ) {
+        cor_results$p_val[inc] = 1 - 
+          cor_results$p_val[inc]
+      }
+      inc = inc + 1
+    }
+  }
+  tst = my_cor( val[[DV[1]]], val[[DV[2]]] )
+  cor_results$R[inc] = round( tst$R, 2 )
+  cor_results$p_val[inc] = round( tst$p.value, 3 )
+  
   ### Figures
   
-  setwd( proj_dir )
-  setwd( 'Figures' )
+  setwd( fig_dir )
   
-  # 8.6) Figure 1
+  # 8.7) Figure 1
   
   png( 'Figure_1.png', width = 480*2, height = 480 )
   
@@ -1562,7 +1778,7 @@ if ( run_code[6] ) {
   
   dev.off()
   
-  # 8.7) Figure 2
+  # 8.8) Figure 2
   
   png( 'Figure_2.png' )
   
@@ -1602,9 +1818,10 @@ if ( run_code[6] ) {
   points( x, y, pch = 19, col = 'grey' )
   
   # Add mean
-  lines( plt$Time, plt$R, lwd = 2 )
+  lines( plt$Time, plt$R, lwd = 2, col = 'grey40' )
+  points( plt$Time, plt$R, pch = 17 )
   # Add estimates
-  lines( xa, pred, col = 'blue', lwd = 2 )
+  lines( xa, pred, lwd = 2 )
   
   # Add axes and labels
   customAxes( xl, yl )
@@ -1623,7 +1840,7 @@ if ( run_code[6] ) {
   
   dev.off()
   
-  # 8.8) Figure S.1
+  # 8.9) Figure S.1
   
   png( 'Figure_S1.png' )
   
@@ -1698,7 +1915,7 @@ if ( run_code[6] ) {
   
   dev.off()
   
-  # 8.9) Figure S.2
+  # 8.10) Figure S.2
   
   png( 'Figure_S2.png' )
   
@@ -1763,5 +1980,245 @@ if ( run_code[6] ) {
   
 }
 
-setwd( R_dir )
+###
+### 9) CUDIT and withdrawal variables
+###
 
+if ( all( run_code[c(2,7)] ) ) {
+  
+  # Extract scores for individual items of CUDIT
+  cn = colnames( all_dat )
+  CUDIT = all_dat[,paste( 'CUDIT.', 1:8, sep = '' )]
+  CUDIT$ID = all_dat$ID
+  # Remove missing data
+  no_na = apply( CUDIT, 1, function(x) all( !is.na( x ) ) )
+  CUDIT = CUDIT[no_na,]
+  # Convert to long-form
+  # Skip item 1, since all subjects endorsed
+  CUDIT = data.frame(
+    ID = rep( CUDIT$ID, ncol( CUDIT ) - 2 ),
+    Item = rep( paste('Item', 2:8), each = nrow( CUDIT ) ),
+    Score = c( CUDIT$CUDIT.2,
+               CUDIT$CUDIT.3,
+               CUDIT$CUDIT.4,
+               CUDIT$CUDIT.5,
+               CUDIT$CUDIT.6,
+               CUDIT$CUDIT.7,
+               CUDIT$CUDIT.8 ),
+    Binary_score = 0,
+    stringsAsFactors = F
+  )
+  # Binary scores
+  CUDIT$Binary_score[ CUDIT$Score >= 2 ] = 1
+  # Rearrange data
+  CUDIT = CUDIT %>% arrange( ID, Item )
+  
+  # Load in RStan
+  library( rstan )
+  rstan_options(auto_write = TRUE)
+  
+  # Item and subject indices
+  item = createIncrement( CUDIT$Item )
+  subject = createIncrement( CUDIT$ID )
+  
+  # Priors on parameters
+  priors = rbind(
+    # Log-normal prior on alpha
+    c( .5^2, .5 ),
+    # Normal prior on beta
+    c( 0.0, 1.0 ),
+    # Normal prior on theta
+    c( 0.0, 1.0 )
+  )
+  
+  # Define a list of inputs for Stan
+  stan_dat = list(
+    Ni = max( item ),
+    Ns = max( subject ),
+    No = nrow( CUDIT ),
+    item = item,
+    subject = subject,
+    y = CUDIT$Binary_score,
+    priors = priors
+  )
+  
+  warm = 500 # Iterations of warm-up
+  niter = 2500 # Number of samples to approximate posterior per chain
+  chains = 4 # Number of chains to run in parallel
+  
+  # Determine run time
+  tick()
+  
+  # Compile a stan script for the 2PL model
+  setwd( R_dir )
+  sm = stan_model(stanc_ret = stanc_builder(
+    "Two_parameter_logistic.stan"))
+  
+  # Draw samples
+  fit = sampling( sm, data = stan_dat, 
+                  warmup = warm,
+                  iter = warm + niter, 
+                  chains = chains,
+                  seed = 6002, # For reproducibility
+                  control = list(
+                    adapt_delta = .95,
+                    max_treedepth = 15
+                  )
+  )
+  tock()
+  print( run_time )
+  
+  # Extract posterior samples
+  post = as.matrix( fit )
+  
+  # Extract subject estimates
+  cn = colnames( post )
+  sel = grep( 'theta', cn )
+  
+  CUDIT$Subject = subject
+  SS = CUDIT %>% 
+    group_by( ID ) %>% 
+    summarize( 
+      SS = sum( Binary_score ),
+      Subject = unique( Subject )
+    )
+  SS$Theta = 
+    colMeans( post[,sel] )[ SS$Subject ]
+  
+  all_est$CUDIT = NA
+  for ( s in 1:nrow( all_est ) ) {
+    sel = all_dat$ID == all_est$ID[s];
+    all_est$CUDIT[s] = unique( all_dat$CUDIT.SS[sel] )
+  }
+  all_est$Theta = NA
+  for ( i in 1:nrow( all_est ) ) {
+    sel = SS$ID == all_est$ID[i]
+  all_est$Theta[i] = SS$Theta[sel]  
+  }
+  
+  qp = function( x, y, labels ) {
+    
+    zx = my_standardize( x )
+    zy = my_standardize( y )
+    
+    pl = lowerUpper( 1, c( zx, zy ) )
+    blankPlot( pl, pl )
+    
+    xl = range( x )
+    xv = list( x = round( seq( xl[1], xl[2], length = 5 ), 1 ) )
+    xv$zx = ( xv$x - attributes( zx )$mean )/attributes( zx )$scale
+    yl = range( y )
+    yv = list( y = round( seq( yl[1], yl[2], length = 5 ), 1 ) )
+    yv$zy = ( yv$y - attributes( zy )$mean )/attributes( zy )$scale
+    
+    lmf = lm( zy ~ -1 + zx )
+    cf = coef( lmf )
+    
+    segments( xv$zx[1], xv$zx[1] * cf,
+              xv$zx[5], xv$zx[5] * cf,
+              lwd = 2, col = 'grey' )
+    
+    points( zx, zy, pch = 19 )
+    
+    legend( 'topright',
+            paste( 'R =', round( cf, 2 ) ),
+            bty = 'n',
+            cex = 1.25 )
+    
+    customAxes( pl, pl )
+    
+    axis( 1, round( xv$zx, 1 ), 
+          tick = F, line = -1.5, cex.axis = 1.25 )
+    mtext( labels[1], side = 1, line = 2, cex = 1.25 )
+    
+    axis( 2, round( yv$zy, 1 ), 
+          tick = F, line = -1.5, cex.axis = 1.25 )
+    mtext( labels[2], side = 2, line = 2, cex = 1.25 )
+    
+  }
+  
+  x11( width = 12, height = 12 )
+  layout( matrix( 1:4, 2, 2, byrow = F ) )
+    
+  qp( all_est$Theta, all_est$Start_point, 
+      c( 'Cannabis disorder propensity', 'Starting level of CN-THCCOOH' )  )
+  qp( all_est$Theta, all_est$Elimination_rate, 
+      c( 'Cannabis disorder propensity', 'Elimination rate' )  )
+  qp( all_est$CUDIT, all_est$Start_point, 
+      c( 'CUDIT (Summed scores)', 'Starting level of CN-THCCOOH' )  )
+  qp( all_est$CUDIT, all_est$Elimination_rate, 
+      c( 'CUDIT (Summed scores)', 'Elimination rate' )  )
+  
+  dtbp = dtbf %>% 
+    group_by( Time ) %>% 
+    summarize( 
+      WI = mean( Withdrawal_intensity, na.rm = T ), 
+      WNI = mean( Withdrawal_negative_impact, na.rm = T )
+    )
+  
+  x11( width = 12 );
+  layout( cbind( 1, 2 ) )
+  
+  xl = c( -1, 35 )
+  yl = lowerUpper( 10, dtbp$WI )
+  yl[1] = -2.5
+  blankPlot( xl, yl )
+  
+  points( dtbf$Time, dtbf$Withdrawal_intensity, 
+          pch = 19, col = 'grey' )
+  
+  lines( dtbp$Time, dtbp$WI, lwd = 2 )
+  
+  customAxes( xl, yl )
+  axis( 1, seq( 0, 34, 6 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  mtext( 'Days Since Last Cannabis Exposure',
+         side = 1, line = 2, cex = 1.25 )
+  
+  # y-axis
+  axis( 2, round( seq( 0, yl[2], 10 ) ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  mtext( 'Intensity of withdrawal symptoms',
+         side = 2, line = 2, cex = 1.25 )
+  
+  
+  xl = c( -1, 35 )
+  yl = lowerUpper( 10, dtbp$WNI )
+  yl[1] = -2.5
+  blankPlot( xl, yl )
+  
+  points( dtbf$Time, dtbf$Withdrawal_negative_impact, 
+          pch = 19, col = 'grey' )
+  
+  lines( dtbp$Time, dtbp$WNI, lwd = 2 )
+  
+  customAxes( xl, yl )
+  axis( 1, seq( 0, 34, 6 ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  mtext( 'Days Since Last Cannabis Exposure',
+         side = 1, line = 2, cex = 1.25 )
+  
+  # y-axis
+  axis( 2, round( seq( 0, yl[2], 10 ) ),
+        tick = F, line = -1.5, cex.axis = 1.25 )
+  mtext( 'Negative impact of withdrawal symptoms',
+         side = 2, line = 2, cex = 1.25 )
+  
+  dtba = dtbf
+  dtba$EM.Start_point = NA
+  dtba$EM.Elimination_rate = NA
+  for ( s in 1:nrow( all_est ) ) {
+    sel = dtba$ID == all_est$ID[s]
+    dtba$EM.Start_point[sel] = all_est$Log_start_point[s]
+    dtba$EM.Elimination_rate[sel] = all_est$Elimination_rate[s]
+  }
+  res1 = lme4::lmer(
+    Withdrawal_intensity ~ 1 + Time + EM.Start_point + EM.Elimination_rate + 
+      (1|ID), data = dtba )
+  res2 = lme4::lmer(
+    Withdrawal_negative_impact ~ 1 + Time + EM.Start_point + EM.Elimination_rate + 
+      (1|ID), data = dtba )
+  
+}
+
+setwd( R_dir )

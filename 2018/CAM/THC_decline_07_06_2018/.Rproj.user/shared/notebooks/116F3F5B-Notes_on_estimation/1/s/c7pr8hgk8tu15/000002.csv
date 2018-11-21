@@ -1,2 +1,0 @@
-"0","# Load in general purpose package for Bayesian estimation"
-"0","library( rstan )"

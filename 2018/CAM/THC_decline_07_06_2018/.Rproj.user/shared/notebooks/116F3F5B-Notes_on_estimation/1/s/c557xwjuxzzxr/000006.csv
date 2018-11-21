@@ -1,3 +1,0 @@
-"0","# Compile the models"
-"0","m1 = stan_model( model_code = model_1 )"
-"0","m2 = stan_model( model_code = model_2 )"
