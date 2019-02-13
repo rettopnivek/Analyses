@@ -1,0 +1,34 @@
+---
+title: "Prediction interval and sample size"
+author: "Kevin Potter"
+date: "January 2, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Breakdown of variance in prediction interval
+
+For subject $s$ on day $t$, we assume the log of the THC metabolite is:
+
+$$y_{ts} = \beta_{SP} + \eta^{SP}_s + ( \beta_{ER} + \eta^{ER}_s )(-t) + \epsilon_{ts}, \text{ (eq. 1})$$
+
+with
+
+$$\epsilon_{ts} \sim N(0,\sigma^2)$$
+
+and
+
+$$ \left[\begin{array}{rrr}
+\eta^{SP}_s \\
+\eta^{ER}_s
+\end{array}\right] \sim MVN( \mathbf{0},\Sigma).
+$$
+
+Here, the starting level $\beta_{SP}$, elimination rate $\beta_{ER}$, residual variance $\sigma$, and the covariance matrix $\Sigma$ are all population-level parameters. The error term $\epsilon_{ts}$ follows a normal distribution, while the subject-specific terms $\eta^{SP}_s$ and $\eta^{ER}_s(-t)$ follow a multivariate normal distribution. For simplicity, we ignore any additional covariates.
+
+The prediction interval can be approximated via a Monte Carlo approach by generating a predicted value $y_{ts^*}$ for a hypothetical subject $s^*$ per each posterior sample after MCMC estimation. Following substitution of posterior samples for the respective population-level parameters and generation of values of $\eta^{SP}_{s^*}$, $\eta^{ER}_{s^*}$, and $\epsilon_{s^*}$ from their respective distributions, one can apply eq. 1 to generate a value of $y_{ts^*}$. Let $\hat{Y}$ refer to the set of resulting values to approximate the prediction interval. One can then compute the variance for this set, giving an estimate of the variability in the prediction interval due to uncertainty in estimates, subject-level variability, and unexplained (residual) variance.
+
+One can also fix the values of the population-level parameters to their most probable estimates (i.e., the modes from the marginal posterior distributions). A prediction interval based on this approach incorporates variance due subject-level and residual variability, but excludes variability due to uncertainty in population-level estimates. Let $\hat{Y}_{fixed}$ refer to the set of values for this prediction interval. We can then obtain an estimate of the proportion of variance in the prediction interval due to uncertainty in estimates (which in turn is contigent on sample size) via $1 - \frac{\text{Var}(\hat{Y_{fixed}})}{\text{Var}(\hat{Y})}$.

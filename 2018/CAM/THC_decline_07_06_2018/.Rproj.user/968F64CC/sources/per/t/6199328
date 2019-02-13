@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1547475179726.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3040270114",
+    "id" : "6199328",
+    "lastKnownWriteTime" : 1548342450,
+    "last_content_update" : 1548342450468,
+    "path" : "~/Shared_drive/THC_decline_07_06_2018/R/Shiny_app/app.R",
+    "project_path" : "R/Shiny_app/app.R",
+    "properties" : {
+        "cursorPosition" : "263,40",
+        "scrollLine" : "249",
+        "tempName" : "Untitled4"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

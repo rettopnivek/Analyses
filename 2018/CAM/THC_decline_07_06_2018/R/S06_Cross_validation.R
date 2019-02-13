@@ -127,7 +127,7 @@ if ( run_code[1] ) {
   # Loop over multiple cases of 
   # K-fold cross-validation
   
-  for ( cur_cv_iter in 2:nrow( rng_seeds ) ) {
+  for ( cur_cv_iter in 26:nrow( rng_seeds ) ) {
     
     # Track progress
     print( paste( ' --- Start iteration', 

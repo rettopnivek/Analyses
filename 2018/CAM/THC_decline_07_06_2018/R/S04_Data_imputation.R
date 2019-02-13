@@ -3,7 +3,7 @@
 # email: kevin.w.potter@gmail.com
 # Please email me directly if you 
 # have any questions or comments
-# Last updated 2018-11-20
+# Last updated 2018-12-10
 
 # Table of contents
 # 1) Initial setup
@@ -22,7 +22,7 @@ source( 'S01_Folder_paths.R' )
 run_code = c(
   F,
   F,
-  T
+  F
 )
 
 # Collection of useful functions
@@ -213,7 +213,8 @@ if ( run_code[2] ) {
   
   tbl = all_dat %>% 
     filter( sel ) %>% 
-    select( ID_Alph,
+    select( ID,
+            ID_Alph,
             Visit_number,
             Days_from_baseline,
             Time,
@@ -230,7 +231,8 @@ if ( run_code[2] ) {
   IQR_75 = function(x) quantile( x, prob = .75, na.rm = T )
   
   sm = tbl %>% 
-    select( -ID_Alph, 
+    select( -ID,
+            -ID_Alph, 
             -Visit_number,
             -Days_from_baseline,
             -Time ) %>% 
@@ -256,19 +258,146 @@ if ( run_code[2] ) {
   # Convert results for dipstick to string
   tmp = rep( 'NEG', nrow( tbl ) )
   tmp[ tbl$Positive_test_fed == 1 ] = 'POS'
+  tmp[ is.na( tbl$Positive_test_fed ) ] = NA
   tbl$Positive_test_fed = tmp
   
   # Loop over each column, convert to string 
-  # and set missing data to '---ND' value
   for ( i in 1:ncol( tbl ) ) {
-    tmp = as.character( tbl[,i] )
-    tmp[ is.na( tmp ) ] = '---ND'
-    tbl[[ i ]] = tmp
+    tbl[[i ]] = as.character( tbl[[ i ]] )
+  }
+  
+  # Determine type of missing data
+  tmp = all_dat %>% 
+    filter( !is.na( ID_Alph ) ) %>% 
+    select( Data_issues ) %>% 
+    unlist()
+  # Initialize list tracking details about 
+  # missing data
+  missing_data = list()
+  
+  # ---DC = Lost to follow-up/Discontinued due to non-compliance
+  
+  # Set code for missing data
+  md_code = '---DC'
+  
+  sel = grepl( '7', tmp )
+  sel[ tbl$ID == '10019' & tbl$Visit_number %in% 7 ] = T
+  sel[ tbl$ID == '10056' & tbl$Visit_number %in% 3:7 ] = T
+  sel[ tbl$ID == '065_COMM' & tbl$Visit_number %in% 6:7 ] = T
+  sel[ tbl$ID %in% c( '20014', '20024' ) ] = F
+  
+  # Label all measurement columns
+  tbl$Days_from_baseline[sel] = md_code
+  tbl$Time[sel] = md_code
+  tbl$Positive_test_fed[sel] = md_code
+  tbl$THCCOOH[sel] = md_code
+  tbl$Urine_pH[sel] = md_code
+  tbl$Urine_specific_gravity[sel] = md_code
+  
+  # Number of observations/subjects
+  missing_data$DC = c(
+    Observations = sum(sel),
+    Subjects = length( unique( tbl$ID[sel] ) )
+  )
+  
+  # ---LV = Sample leaked and no assay due to low volume
+  
+  # Set code for missing data
+  md_code = '---LV'
+  
+  sel = tbl$ID == '10037' & 
+    tbl$Visit_number == 1
+  
+  # Label all columns for CN-THCCOOH
+  tbl$Positive_test_fed[sel] = md_code
+  tbl$THCCOOH[sel] = md_code
+  tbl$Urine_pH[sel] = md_code
+  tbl$Urine_specific_gravity[sel] = md_code
+  
+  # Number of observations/subjects
+  missing_data$LV = c(
+    Observations = 1,
+    Subjects = 1
+  )
+  
+  sel = tbl$ID == '003_COMM' & 
+    tbl$Visit_number == 1
+  
+  # Label all columns for CN-THCCOOH
+  tbl$Positive_test_fed[sel] = md_code
+  tbl$THCCOOH[sel] = md_code
+  tbl$Urine_pH[sel] = md_code
+  tbl$Urine_specific_gravity[sel] = md_code
+  
+  # Number of observations/subjects
+  missing_data$LV[1] = missing_data$LV[1] + 1
+  missing_data$LV[2] = missing_data$LV[2] + 1
+  
+  # ---ND = Exceeded linear range and not diluted
+  
+  # Set code for missing data
+  md_code = '---ND'
+  
+  sel = grepl( '1', tmp )
+  
+  # Label all columns for CN-THCCOOH
+  tbl$Positive_test_fed[sel] = md_code
+  tbl$THCCOOH[sel] = md_code
+  tbl$Urine_pH[sel] = md_code
+  tbl$Urine_specific_gravity[sel] = md_code
+  
+  # Number of observations/subjects
+  missing_data$ND = c( 
+    Observations = sum(sel),
+    Subjects = length( unique( tbl$ID_Alph[sel] ) )
+  )
+  
+  # ---NR = Not recorded
+  
+  # Set code for missing data
+  md_code = '---NR'
+  
+  # First visit excluded because not abstinent, but 
+  # abstinent by second visit
+  sel = rep( F, nrow( tbl ) )
+  sel[ tbl$ID == '20014' & tbl$Visit_number %in% 1 ] = T
+  sel[ tbl$ID == '20024' & tbl$Visit_number %in% 1 ] = T
+  
+  # Label all measurement columns
+  tbl$Days_from_baseline[sel] = md_code
+  tbl$Time[sel] = md_code
+  tbl$Positive_test_fed[sel] = md_code
+  tbl$THCCOOH[sel] = md_code
+  tbl$Urine_pH[sel] = md_code
+  tbl$Urine_specific_gravity[sel] = md_code
+  
+  # Number of observations/subjects
+  # Number of observations/subjects
+  missing_data$NR = c( 
+    Observations = sum(sel),
+    Subjects = length( unique( tbl$ID_Alph[sel] ) )
+  )
+  
+  # Re-label missing values for dipstick test
+  sel = is.na( tbl$Positive_test_fed )
+  tbl$Positive_test_fed[ sel ] = '---NR'
+  
+  # d (Below limit of detectability, imputted value instead)
+  
+  for ( i in 1:nrow( tbl ) ) {
+    if ( tbl$THCCOOH[i] == '0' & !is.na( tbl$THCCOOH[i] ) ) {
+      sel = dtbf$ID_Alph == tbl$ID_Alph[i] & 
+        dtbf$Visit_number == as.numeric( tbl$Visit_number[i] )
+      tbl$THCCOOH[i] = paste(
+        round( dtbf$THCCOOH[sel], 1 ),
+        '+d+', sep = '' )
+    }
   }
   
   # Add footer with details about 
   # summary statistics
   tbl_footer = data.frame(
+    ID = ' ', 
     ID_Alph = c( 'Mean', 'SD', 'Median', 'IQR', '%' ),
     Visit_number = ' ',
     Days_from_baseline = ' ',
@@ -317,6 +446,10 @@ if ( run_code[2] ) {
   # Add footer
   tbl = rbind( tbl, tbl_footer )
   
+  # Remove column for ID
+  tbl = tbl %>% 
+    select( -ID )
+  
   # Create header for table
   tbl_header = data.frame(
     col_keys = colnames( tbl ),
@@ -328,28 +461,28 @@ if ( run_code[2] ) {
   )
   # Subject ID
   tbl_header$colD[1] = 'Study'
-  tbl_header$colC[1] = 'participant'
+  tbl_header$colC[1] = 'Participant'
   # Visit number
   tbl_header$colD[2] = 'Visit'
-  tbl_header$colC[2] = 'number'
+  tbl_header$colC[2] = 'Number'
   # Days from baseline
   tbl_header$colD[3] = 'Study'
-  tbl_header$colC[3] = 'visit'
+  tbl_header$colC[3] = 'Daya'
   # Days from baseline
   tbl_header$colD[4] = 'Days'
-  tbl_header$colC[4] = 'since last'
-  tbl_header$colB[4] = 'cannabis'
-  tbl_header$colA[4] = 'exposure'
+  tbl_header$colC[4] = 'Since Last'
+  tbl_header$colB[4] = 'Cannabis'
+  tbl_header$colA[4] = 'Exposureb'
   # Dipstick test
   tbl_header$colD[5] = 'Urine THCCOOH'
   tbl_header$colC[5] = 'RDDT'
-  tbl_header$colB[5] = 'immunoassay'
+  tbl_header$colB[5] = 'Immunoassay'
   tbl_header$colA[5] = '(LOQ = 50 ng/mL)'
   # CN-THCCOOH
   tbl_header$colD[6] = 'Urine Creatinine-Adjusted'
   tbl_header$colC[6] = 'THCCOOH LC/MS/MS'
   tbl_header$colB[6] = '(ng/mg; LOQ for'
-  tbl_header$colA[6] = 'THCCOOH= 5 ng/mL)'
+  tbl_header$colA[6] = 'THCCOOH= 5 ng/mL)c'
   # Urine pH
   tbl_header$colD[7] = 'Urine pH'
   # Urine specific gravity
@@ -410,12 +543,61 @@ if ( run_code[2] ) {
   ft = ft %>% 
     autofit()
   
+  # Title and notes for table
+  str1 = paste(
+    'Supplemental Appendix 2. Individual Level Descriptives',
+    'of Urine Specimens for Participants with Verified Abstinence' )
+  
+  str2 = paste( 'a Tabulated from number of days since',
+                'baseline visit (Visit 1).' )
+  str3 = paste( 'b Tabulated from estimated day of last', 
+                'cannabis exposure.' )
+  str4 = paste( 'c Includes only analyzable specimens. ',
+                'Samples that were low volume, were beyond ',
+                'the linear range of the assay and were not ',
+                'diluted, as well as those from participants ',
+                'without verifiable abstinence are not included ',
+                'in table. Missing data is specified as follows: ',
+                '---DC, Lost to follow-up or discontinued due to ',
+                'study non-compliance (data points: n = ',
+                missing_data$DC[1],
+                '; participants: n = ',
+                missing_data$DC[2], '); ',
+                '---LV, Sample leaked in transit and quantitative ',
+                'assay could not be performed due to low volume ',
+                '(data points: n = ',
+                missing_data$LV[1],
+                '; participants: n = ',
+                missing_data$LV[2], '); ---ND, THCCOOH ',
+                'concentration exceeded the linear range ',
+                'of the assay and sample dilutions were not ',
+                'performed (data points: n = ',
+                missing_data$ND[1],
+                '; participants; n = ',
+                missing_data$ND[2],
+                '); ---NR, Not recorded (data points: n = ',
+                missing_data$NR[1],
+                '; participants: n = ',
+                missing_data$NR[2], ').', sep = '' )
+  
+  str5 = '+d+ THCCOOH < 5ng/mL. Value imputed from tobit regression. '
+  
   # Create Word document
   setwd( proj_dir )
   setwd( 'Documents' )
   read_docx() %>% 
+    body_add_par(str1, style = "Normal") %>% 
     body_add_flextable(ft) %>% 
+    body_add_par(str2, style = "Normal") %>% 
+    body_add_par(str3, style = "Normal") %>% 
+    body_add_par(str4, style = "Normal") %>% 
+    body_add_par(str5, style = "Normal") %>% 
     print( 'Supplementary_Appendix_2.docx' )
+  setwd( R_dir )
+  
+  # Save details for missing data
+  setwd( dat_dir )
+  save( missing_data, file = 'Summary_of_missing_data.RData' )
   setwd( R_dir )
   
 }

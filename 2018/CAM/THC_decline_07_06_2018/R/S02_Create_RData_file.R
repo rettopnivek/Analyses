@@ -3,7 +3,7 @@
 # email: kevin.w.potter@gmail.com
 # Please email me directly if you 
 # have any questions or comments
-# Last updated 2018-11-13
+# Last updated 2018-12-05
 
 # Table of contents
 # 1) Initial setup
@@ -135,6 +135,68 @@ attributes( all_dat$Race ) = list(
     Value = c(-1,1),
     stringsAsFactors = F ) )
 
+# Height (in inches)
+all_dat$Height = quick_proprogate( 'height' )
+attributes( all_dat$Height ) = list(
+  Units = 'Inches' )
+
+# Weight (in pounds)
+all_dat$Weight = quick_proprogate( 'weight' )
+attributes( all_dat$Weight ) = list(
+  Units = 'Pounds' )
+
+# Race (Original coding scheme)
+tmp_1 = quick_proprogate( 'race' )
+tmp_2 = quick_proprogate( 'ethnicity' )
+all_dat$Race_orig = 'W'
+sel = tmp_1 == 2
+all_dat$Race_orig[sel] = 'AA'
+sel = tmp_1 == 3
+all_dat$Race_orig[sel] = 'AS'
+sel = tmp_1 == 4
+all_dat$Race_orig[sel] = 'PI'
+sel = tmp_1 == 5
+all_dat$Race_orig[sel] = 'NA'
+sel = tmp_1 == 6
+all_dat$Race_orig[sel] = 'MOR'
+sel = tmp_1 == 7
+all_dat$Race_orig[sel] = 'OTH'
+
+# Add ethnicity status
+for ( i in 1:length( tmp_2 ) ) {
+  
+  if ( !is.na( tmp_2[i] ) & 
+       tmp_2[i] == 2 ) {
+    all_dat$Race_orig[i] = paste(
+      all_dat$Race_orig[i],
+      '(H)' )
+  }
+  
+}
+attributes( all_dat$Race_orig ) = list(
+  Coding = data.frame(
+    Race_orig = c( 
+      'White',
+      'Haitian, Black or African American',
+      'Asian',
+      'Hawaiian or other Pacific Islander',
+      'American Indian/Alaska Native',
+      'More than one race',
+      'Other',
+      'Hispanic' ),
+    Value = c( 
+      'W',
+      'AA',
+      'AS',
+      'PI',
+      'NA',
+      'MOR',
+      'OTH',
+      'H' ),
+    stringsAsFactors = F ) )
+# Clean up workspace
+rm( tmp_1, tmp_2, i )
+
 # 3.2.2) Measures of drug use
 
 # Years spent using cannabis
@@ -197,8 +259,8 @@ attributes( all_dat$Dipstick ) = list(
 all_dat$Positive_test_fed = 0
 attributes( all_dat$Positive_test_fed ) = list(
   Coding = data.frame(
-    Dipstick = c( 'Positive (Dipstick and THCCOOH<15)', 
-                  'Negative (No dipstick or THCCOOH>15)' ),
+    Dipstick = c( 'Positive (Dipstick and THCCOOH>15)', 
+                  'Negative (No dipstick or THCCOOH<15)' ),
     Value = c(1,0),
     stringsAsFactors = F ) )
 # Define results based on federal guidelines
@@ -224,6 +286,19 @@ all_dat$Urine_specific_gravity = raw_dat$ua_thc_grav
 # THCCOOH no creatinine adjustment
 all_dat$THCCOOH_no_CN = 
   as.numeric( raw_dat$ua_conf_result )
+
+# Days spent using in past 30
+all_dat$Days_used_past_30 = 
+  quick_proprogate( 'tlfb_mj_14b' )
+# Times used in past 30
+all_dat$Times_used_past_30 = 
+  quick_proprogate( 'tlfb_mj_15b' )
+# Amount used in past 30
+all_dat$Amount_used_past_30 = 
+  quick_proprogate( 'tlfb_mj_16b' )
+# Times per day smoked
+all_dat$Times_smoked_per_day = 
+  quick_proprogate( 'tlfb_mj_6' )
 
 # 3.3.3) Primary variables of interest
 
@@ -288,8 +363,8 @@ check_for_data_issues = function( r ) {
   
   # Dependent variables
   if ( is.na( all_dat$THCCOOH[r] ) ) out = f(out,'3')
-  #if ( is.na( all_dat$Withdrawal_intensity[r] ) ) out = f(out,'4')
-  #if ( is.na( all_dat$Withdrawal_negative_impact[r] ) ) out = f(out,'5')
+  # if ( is.na( all_dat$Withdrawal_intensity[r] ) ) out = f(out,'4')
+  # if ( is.na( all_dat$Withdrawal_negative_impact[r] ) ) out = f(out,'5')
   
   # Independent variables
   if ( is.na( all_dat$Time[r] ) ) out = f(out,'6')
@@ -300,6 +375,25 @@ check_for_data_issues = function( r ) {
           '060_COMM',
           '076_COMM',
           '10063' ) ) out = f(out,'7')
+  
+  # Flag specific time points in which subject did not 
+  # maintain abstinence
+  if ( raw_dat$id[r] == '003_COMM'
+       & raw_dat$visit_number[r] > 5 ) out = f( out, '7' )
+  if ( raw_dat$id[r] == '006_COMM'
+       & raw_dat$visit_number[r] > 5 ) out = f( out, '7' )
+  if ( raw_dat$id[r] == '084_COMM'
+       & raw_dat$visit_number[r] > 3 ) out = f( out, '7' )
+  if ( raw_dat$id[r] == '086_COMM'
+       & raw_dat$visit_number[r] > 4 ) out = f( out, '7' )
+  if ( raw_dat$id[r] == '10005'
+       & raw_dat$visit_number[r] > 5 ) out = f( out, '7' )
+  if ( raw_dat$id[r] == '10037'
+       & raw_dat$visit_number[r] > 5 ) out = f( out, '7' )
+  if ( raw_dat$id[r] == '20014'
+       & raw_dat$visit_number[r] < 2 ) out = f( out, '7' )
+  if ( raw_dat$id[r] == '20024'
+       & raw_dat$visit_number[r] < 2 ) out = f( out, '7' )
   
   return( out )
 }

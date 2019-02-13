@@ -1,0 +1,582 @@
+---
+title: "Notes on estimation for exponential decay with censored data"
+author: "Kevin Potter"
+date: "July 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introduction
+
+Our study examined the elimination of THCCOOH (the metabolite for THC that can be measured in a urine analysis) for subjects undergoing a month of abstinence from cannabis use. The urine analysis could not detect THCCOOH values less than 5 ng/mL. This document discusses
+
+1. A very basic pharmacokinetic model that can be fit to the data;
+2. A potential issue with bias in parameter estimation due to the censored data;
+3. A solution to the bias in estimation due to the censored data;
+4. Prior distributions for the elimination rate and half-life;
+5. Transformations of the marginal posterior for elimination rate.
+
+### 1. The exponential decay model
+
+Given sufficient observations, the starting level of THC and its elimination rate over days since ingestion can be well-characterized via a simple exponential decay model. If *i* refers to the $i^{th}$ day since THC ingestion, then
+
+$$ \widehat{THCCOOH_i} = \alpha e^{ -\kappa i },$$
+where $\alpha$ is the starting level of THCCOOH, and $\kappa$ is the elimination rate. A straight-forward way to estimate the model is via a log-linear regression, where
+
+$$ \log( THCCOOH_i ) = \log( \alpha ) - \kappa i + \epsilon_i,$$
+where $\epsilon_i \sim N( 0, \sigma)$ (i.e., the residual error for the THCCOOH values follows a log-normal distribution).
+
+### 2. The impact of left-censored data
+
+Figure 1 illustrates the potential impact of left-censored data on the estimation of the parameters for the exponential decay model. The figure plots the log THCCOOH against time, measured in terms of days since ingestion (black points). There is normally distributed measurement error (inflated above realistic values to emphasize the impact for presentational purposes). Values below 0 have been censored, and are marked in grey. The true generating line is shown in blue, and the predicted line after fitting the non-censored data is shown in red. As can be seen, the estimated line underestimates the start point and elimination rate, due to measurement error pushing values above the cut-off that bias.
+
+```{r, echo = FALSE}
+library( utilityf )
+
+ed_model = function( param, x, log = F ) {
+  # Purpose:
+  # Computes the predicted THCCOOH values 
+  # using an exponential decay model.
+  # Arguments:
+  # param - A vector with the starting level of 
+  #         THCCOOH and the elimation rate
+  # x     - A vector with the days since THC 
+  #         ingestion
+  # log   - Logical; if TRUE, returns the 
+  #         log THCCOOH values instead
+  # Returns:
+  # The predicted log THCCOOH levels per each day.
+  
+  yhat = log( param[1] ) - param[2] * x
+  if ( !log ) yhat = exp( yhat )
+  
+  return( yhat )
+}
+
+# Generating parameters
+gp = c(
+  alpha = 100,
+  kappa = .25,
+  sigma = 1
+)
+
+# Simulate data
+sim_dat = data.frame(
+  Time = seq( 0, 34, length = 100 ),
+  epsilon = NA, 
+  log_THCCOOH = NA,
+  THCCOOH.obs = NA,
+  log_THCCOOH.obs = NA
+)
+
+set.seed( 393 )
+sim_dat$epsilon = rnorm( nrow(sim_dat), 0, gp[3] )
+sim_dat$log_THCCOOH = ed_model( gp, sim_dat$Time, log = T )
+sim_dat$log_THCCOOH.obs = sim_dat$log_THCCOOH + sim_dat$epsilon
+sim_dat$THCCOOH.obs = exp( sim_dat$log_THCCOOH.obs )
+
+cut_off = 1
+
+xl = c( -1, 35 )
+yl = lowerUpper( 1, sim_dat$log_THCCOOH.obs )
+blankPlot( xl, yl )
+
+lines( sim_dat$Time, sim_dat$log_THCCOOH,
+       lwd = 2, col = 'blue' )
+
+horizLines( log( cut_off ), xl, lwd = 2, lty = 2 )
+
+clr = rep( 'black', nrow( sim_dat ) )
+clr[ sim_dat$log_THCCOOH.obs < log( cut_off ) ] = 'grey'
+points( sim_dat$Time, sim_dat$log_THCCOOH.obs, 
+        pch = 19, col = clr )
+
+sel = sim_dat$log_THCCOOH.obs > log( cut_off )
+lmf = lm( log_THCCOOH.obs ~ Time, data = sim_dat[sel,] )
+est = coef( lmf )
+lines( sim_dat$Time, est[1] + est[2]*sim_dat$Time, 
+       col = 'red', lwd = 2 )
+
+customAxes( xl, yl )
+
+axis( 1, seq( 0, 32, 4 ),
+      tick = F, line = -1.5, cex.axis = 1.25 )
+mtext( 'Days since THC ingestion', side = 1, 
+       line = 2, cex = 1.25 )
+
+axis( 2, round( seq( yl[1], yl[2], length = 5 ), 1 ), 
+      tick = F, line = -1.5, cex.axis = 1.25 )
+mtext( 'THCCOOH - log( ng/mL)', side = 2, 
+       line = 2, cex = 1.25 )
+
+legend( 'topright',
+        c( 'Observed', 'Censored', 'Generating', 'Estimated' ),
+        fill = c( 'black', 'grey', 'blue', 'red' ),
+        cex = 1.25, bty = 'n' )
+
+title( 'Figure 1' )
+
+```
+
+### 3. Tobit regression
+
+A well-documented approach to censored data is Tobit regression (e.g., Tobin, 1958; Amemiya, 1973). Tobit regression adds an adjustment to the maximum likelihood equation for the linear model based on how far potential unobserved data can be from the cut-off. Because the exponential decay parameters can be estimated via a log-linear model, extending tobit regression to also estimate these parameters is straightfoward.
+
+```{r}
+ed_model = function( param, x, log = F ) {
+  # Purpose:
+  # Computes the predicted THCCOOH values 
+  # using an exponential decay model.
+  # Arguments:
+  # param - A vector with the starting level of 
+  #         THCCOOH and the elimation rate
+  # x     - A vector with the days since THC 
+  #         ingestion
+  # log   - Logical; if TRUE, returns the 
+  #         log THCCOOH values instead
+  # Returns:
+  # The predicted log THCCOOH levels per each day.
+  
+  yhat = log( param[1] ) - param[2] * x
+  if ( !log ) yhat = exp( yhat )
+  
+  return( yhat )
+}
+
+mle_ed_tobit = function( param, dat ) {
+  # Purpose:
+  # Computes the negative of the summed log-likelihoods 
+  # for a tobit regression approach to fit an 
+  # exponential decay model with log-normal error.
+  # Arguments:
+  # param - The starting value, elimination rate, and the 
+  #         residual standard deviation parameters.
+  # dat   - A list with the days since THC ingestion, 
+  #         the THCCOOH levels, and the cut-off below 
+  #         which values are rounded down to 0.
+  # Returns:
+  # The negative of the summed log-likelihoods.
+  
+  # Extract data
+  x = dat$x # Independent variable
+  y = dat$y # Dependent variable
+  a = dat$a # Cut-off for censored data
+  
+  # Indicator function for censored data
+  I_a = y < a
+  y_star = y; y_star[ I_a ] = a
+  y_star = log( y_star )
+  
+  # Compute mean
+  mu = ed_model( param[1:2], x, log = T )
+  # Extract standard devation for residuals
+  sigma = param[3]
+  
+  # Carry out tobit regression
+  p1 = I_a * pnorm( ( y_star - mu )/sigma, log.p = T )
+  p2 = (1-I_a) * (dnorm( (y_star - mu)/sigma, log = T )- log( sigma ) )
+  sll = sum( p1 + p2 )
+  if ( is.na( sll ) ) sll = -Inf
+  
+  return( -sll )
+}
+```
+
+As seen in figure 2, using tobit regression leads to noticeable improvements in the estimates:
+
+```{r, echo = FALSE, warning = FALSE}
+estimate_ed_lm = function( x, y ) {
+  # Purpose:
+  # Fits an exponential decay model via 
+  # tobit log-linear regression.
+  # Arguments:
+  # x    - The independent variable
+  # y    - The dependent variable
+  # Returns:
+  # A list with the parameter estimates,
+  # the predicted THCCOOH levels, 
+  # and the residals.
+  
+  # Straightforward estimation of the 
+  # power law and exponential decay models 
+  # requires log transformations, so we 
+  # first check for zeroes in the dependent 
+  # variable
+  is_zero = y == 0
+  
+  # If there are no zero values, we can simply 
+  # use a log-linear model to estimate the 
+  # 3 parameters in the model
+  if ( !any( is_zero ) ) {
+    
+    lmf = lm( log( y ) ~ 1 + x )
+    est = c( coef( lmf ), sigma( lmf ) )
+    est[1] = exp( est[1] )
+    est[2] = -est[2]
+    
+  } else {
+    
+    # If there are zeros, we can treat them 
+    # as censored data (i.e., the actual 
+    # values are actually non-zero, but 
+    # any value less than a cut-off was 
+    # rounded down to zero). Therefore, 
+    # we can use tobit regression to 
+    # fit the log-linear model
+    
+    # First, we use the naive estimator 
+    # to determine the starting values 
+    # for the optimization routine
+    sel = y > 0
+    ne = lm( log( y[sel] ) ~ 1 + x[sel] )
+    st_val = c( coef( ne ), sigma( ne ) )
+    st_val[1] = exp( st_val[1] )
+    st_val[2] = -st_val[2]
+    
+    # Set up data to analyze
+    dat = list(
+      x = x,
+      y = y,
+      a = 1
+    )
+    # We can then use the tobit regression likelihood 
+    # to estimate the parameters of interest despite 
+    # the censored data
+    tbtf = tryCatch(
+      optim( st_val, mle_ed_tobit, dat = dat,
+             control = list( maxit = 1000 ) ),
+      error = function(e) NULL
+    )
+    
+    # If the MLE worked
+    if ( !is.null( tbtf ) ) {
+      
+      est = tbtf$par
+      
+    } else {
+      est = st_val
+      warning( 'Tobit regression failed' )
+    }
+    
+  }
+  names( est ) = c( 'Baseline', 'Elimination', 'Error' )
+  
+  # Generate predicted THCCOOH levels
+  pred = ed_model( est, x )
+  # Compute residuals
+  resid_val = y - pred
+  
+  return( list( est = est, 
+                x = x, 
+                pred = pred, 
+                resid = resid_val ) )
+  
+}
+
+# Create a blank plot
+xl = c( -1, 35 )
+yl = lowerUpper( 1, sim_dat$log_THCCOOH.obs )
+blankPlot( xl, yl )
+
+# Line based on generating parameters
+lines( sim_dat$Time, sim_dat$log_THCCOOH,
+       lwd = 2, col = 'blue' )
+
+# Censored data
+horizLines( log( cut_off ), xl, lwd = 2, lty = 2 )
+
+clr = rep( 'black', nrow( sim_dat ) )
+clr[ sim_dat$log_THCCOOH.obs < log( cut_off ) ] = 'grey'
+points( sim_dat$Time, sim_dat$log_THCCOOH.obs, 
+        pch = 19, col = clr )
+
+# Fit data using tobit regression
+x = sim_dat$Time
+y = exp( sim_dat$log_THCCOOH.obs )
+sel = sim_dat$log_THCCOOH.obs <= log( cut_off )
+y[sel] = 0
+trf = estimate_ed_lm( x, y )
+lines( trf$x, log( trf$pred ), 
+       col = 'red', lwd = 2 )
+
+customAxes( xl, yl )
+
+axis( 1, seq( 0, 32, 4 ),
+      tick = F, line = -1.5, cex.axis = 1.25 )
+mtext( 'Days since THC ingestion', side = 1, 
+       line = 2, cex = 1.25 )
+
+axis( 2, round( seq( yl[1], yl[2], length = 5 ), 1 ), 
+      tick = F, line = -1.5, cex.axis = 1.25 )
+mtext( 'THCCOOH - log( ng/mL)', side = 2, 
+       line = 2, cex = 1.25 )
+
+legend( 'topright',
+        c( 'Observed', 'Censored', 'Generating', 'Estimated' ),
+        fill = c( 'black', 'grey', 'blue', 'red' ),
+        cex = 1.25, bty = 'n' )
+
+title( 'Figure 2' )
+
+```
+
+#### 4. Prior distributions for the elimination rate
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Function to quickly create a histogram 
+# with preferred defaults
+qh = function( x, lbl, ttl, ... ) {
+  
+  hist( x, breaks = 'FD', freq = F, 
+        col = 'grey', border = 'white',
+        xlab = lbl,
+        main = ttl,
+        bty = 'l',
+        ... )
+  
+}
+
+# Function to compute the density for the 
+# inverse gamma distribution
+dinvgamma = function( x, shape, scale, log = F ) {
+  
+  p1 = pow( scale, shape ) / gamma( shape )
+  p2 = pow( x, -( shape + 1 ) )
+  p3 = -scale/x
+  out = log( p1 ) + log( p2 ) + p3
+  if (!log) out = exp( out )
+  
+  return( out )
+}
+```
+
+Estimating the exponential decay model in a Bayesian context leads to easily interpretible metrics of uncertainty around parameter estimates, and the ability to incorporate prior knowledge into the estimation scheme. For example, ideally we would like to place a mildly regularizing prior on the elimination rate. Note that the elimination rate can be transformed into a more intuitive measure, the half-life, the time it takes the variable (here, THCCOOH) to decay to half of its original amount:
+
+$$ \eta = \frac{ \ln(2) }{ \kappa },$$
+
+where $\eta$ is the half-life, $\ln$ is the natural log, and $\kappa$ is the elimination rate.
+
+An initial prior for consideration would be, for instance, a $N(.25,.5)$ prior, which translates to being centered at a half-life of slightly less than 3 days. Howevever, as shown in figure 3, sampling from the prior distribution and converting the draws into the associated half-life indicates that this prior is a poor choice:
+
+```{r, echo = FALSE}
+S = 10000 # Number of draws
+# Take draws from a normal prior on elimination rate
+draws_for_elimination_rate = rnorm( S, .25, .5 )
+xa = seq( min( draws_for_elimination_rate ),
+          max( draws_for_elimination_rate ),
+          length = 1000 )
+
+# Transform the draws into the associated half-lives
+associated_half_life = log(2) / draws_for_elimination_rate
+
+# Plot the results
+layout( cbind( 1, 2 ) )
+qh( draws_for_elimination_rate, 'Elimination rate', ' ' )
+lines( xa, dnorm( xa, .25, .5 ), col = 'blue' )
+qh( associated_half_life, 'Half-life (Days)', ' ',
+    xlim = c( -10, 10 ) )
+sel = associated_half_life > -10 & 
+  associated_half_life < 10
+dn = density( associated_half_life[sel] )
+lines( dn$x, dn$y, col = 'blue' )
+
+mtext( 'Figure 3', outer = T, line = -2, side = 3 )
+```
+
+As can be seen, the distribution of associated half-lives is bimodal, and places a fair amount of probability mass on extreme values for the half-life, including negative values.
+
+An alternative option with better qualities is the gamma distribution. If a random variable follows a gamma distribution, then its reciprocal follows an inverse-gamma distribution. Therefore, if the random variable for elimination rate ($R$) can be described by the following:
+
+$$ R \sim \text{Gamma}(\gamma_1,\gamma_2),$$
+
+then the random variable for half-life ($HL$) can be described by:
+
+$$ HL \sim \text{Inverse Gamma} \left(\gamma_1,\frac{\ln(2)}{\gamma_2} \right).$$
+
+Here, $\gamma_1$ and $\gamma_2$ refer to the shape and scale parametters, respectively, for the Gamma distribution. We can easily confirm this relationship by once again simulating draws from the prior distribution placed on the elimination rate and transforming the draws into the associated half-life:
+
+```{r}
+# Number of draws
+S = 10000
+# Specify parameters for the gamma distribution 
+# that lead to the associated inverse gamma 
+# distribution having a mode at 2.77 days for 
+# half-life
+gam = c( 4, 1 / (5 * log(2) / .25) )
+
+# Take draws from a gamma prior on elimination rate
+draws_for_elimination_rate = 
+  rgamma( S, shape = gam[1], scale = gam[2] )
+
+# Transform the draws into the associated half-lives
+associated_half_life = 
+  log(2) / draws_for_elimination_rate
+```
+
+```{r, echo = FALSE}
+# Range of values
+xa = seq( min( draws_for_elimination_rate ),
+          max( draws_for_elimination_rate ),
+          length = 1000 )
+
+# Plot the results
+layout( cbind( 1, 2 ) )
+
+# Elimination rate
+qh( draws_for_elimination_rate, 'Elimination rate', ' ', 
+    xlim = c( 0, 2 ) )
+lines( xa, dgamma( xa, shape = gam[1], scale = gam[2] ), col = 'blue' )
+
+# Half-life
+qh( associated_half_life, 'Half-life (Days)', ' ', 
+    xlim = c( 0, 10 ) )
+lines( 1/xa, dinvgamma( 1/xa, gam[1], log(2)/gam[2] ), col = 'blue' )
+
+```
+
+Overlaying the true density function in blue, we see that the Monte Carlo draws closely match the actual densities, validating the relationship specified above. Additionally the prior has several desirable qualities: 1) values are restricted to a positive range, ensuring no negative values for half-life, and 2) the characteristics of the two distributions are well-known, allowying us to specify prior parameter values that lead to reasonable probability mass distributed over the one-month period for abstinence. 
+
+#### 5. Transformations and marginal posteriors
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Load in general purpose package for Bayesian estimation
+library( rstan )
+```
+
+With careful specification of the prior distributions, the marginal posteriors for the parameters should be equivalent irrespective of whether we use the standard non-linear model or the log-linear model for the likelihood equation. We can check this by specifying the two different approaches within the RStan estimation framework:
+
+
+First, we specify code to estimate the starting level of THCCOOH and its elimination rate. The algorithm will draw posterior samples from the raw values, with the priors reflecting this.
+
+```{r}
+model_1 = '
+data {
+  int<lower=0> N;
+  real<lower=0> Time[N];
+  real<lower=0> y[N];
+}
+parameters {
+  real<lower=0> Start_point;
+  real<lower=0> Elimination_rate;
+  real<lower=0> sigma;
+}
+model {
+  // Variable declarations
+  real mu[N];
+  for ( n in 1:N ) 
+    mu[n] = log( Start_point) - Elimination_rate*Time[n];
+  
+  // Priors
+  Start_point ~ lognormal( 4.6, 2.5 );
+  Elimination_rate ~ gamma( 4.0, 1.0 / (5 * log(2) / .25));
+  
+  // Likelihood
+  y ~ lognormal( mu, sigma );
+}
+'
+```
+
+Next, we specify code for the log-linear approach, fitting the log(THCCOOH) values and drawing posterior samples from the log of the start point and the half-life variables instead.
+
+```{r}
+model_2 = '
+data {
+  int<lower=0> N;
+  real<lower=0> Time[N];
+  real log_y[N];
+}
+parameters {
+  real<lower=0> log_Start_point;
+  real<lower=0> Half_life;
+  real<lower=0> sigma;
+}
+model {
+  // Variable declarations
+  real mu[N];
+  real Elimination_rate = log( 2 ) / Half_life;
+  for ( n in 1:N ) 
+    mu[n] = log_Start_point - Elimination_rate*Time[n];
+  
+  // Priors
+  log_Start_point ~ normal( 4.6, 2.5 );
+  Half_life ~ inv_gamma( 4.0, 1.0 / (5 / .25) );
+  
+  // Likelihood
+  log_y ~ normal( mu, sigma );
+}
+'
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, results = 'hide', error = FALSE}
+# Compile the models
+m1 = stan_model( model_code = model_1 )
+m2 = stan_model( model_code = model_2 )
+```
+
+
+```{r, echo = FALSE}
+# Generating parameters
+gp = c(
+  # Starting level of THCCOOH
+  Start = 100,
+  # Half-life in days
+  Half_life = 2.7,
+  # Measurement error
+  sigma = .5
+)
+
+# Simulate data
+Time = 0:34
+N = length( Time )
+log_y = log( gp[1] ) - ( log(2) / gp[2] ) * Time + rnorm( N, 0, gp[3] )
+y = exp( log_y )
+
+
+# Fit model 1
+fit_m1 = sampling( m1, 
+                   data = c("N", "Time", "y"),
+                   warmup = 1000,
+                   iter = 3500,
+                   chains = 4,
+                   cores = 4,
+                   control = list(
+                     adapt_delta = .995,
+                     max_treedepth = 15 ) );
+
+# Fit model 2
+fit_m2 = sampling( m2, 
+                   data = c("N", "Time", "log_y"),
+                   warmup = 1000,
+                   iter = 3500,
+                   chains = 4,
+                   cores = 4,
+                   control = list(
+                     adapt_delta = .995,
+                     max_treedepth = 15 ) );
+
+post_model_1 = as.matrix( fit_m1 )
+post_model_2 = as.matrix( fit_m2 )
+```
+
+We can use the Kolmogorov-Smirnov test to examine whether the marginal posterior distributions for the two approaches differ following a transformation:
+
+```{r}
+ks.test( post_model_1[,'Start_point'], 
+         exp( post_model_2[,'log_Start_point'] ) )
+
+ks.test( log(2)/post_model_1[,'Elimination_rate'], 
+         post_model_2[,'Half_life'] )
+```
+
+Neither case significantly differ.
+
+### References
+
+* Tobin, James (1958). Estimation of relationships for limited dependent variables. Econometrica, 26, 24 – 36. doi:10.2307/1907382.
+* Amemiya, Takeshi (1973). Regression analysis when the dependent variable is truncated normal. Econometrica, 41, 997 – 1016. doi:10.2307/1914031.
+
+
+

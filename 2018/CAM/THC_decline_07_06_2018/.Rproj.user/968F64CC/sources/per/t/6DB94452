@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1545505062137.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "1585|22|1619|2|\n",
+    "hash" : "3450550877",
+    "id" : "6DB94452",
+    "lastKnownWriteTime" : 1550089160,
+    "last_content_update" : 1550089221666,
+    "path" : "~/Shared_drive/THC_decline_07_06_2018/R/S07_Model_results.R",
+    "project_path" : "R/S07_Model_results.R",
+    "properties" : {
+        "cursorPosition" : "1638,15",
+        "scrollLine" : "1625",
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
